@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitetura Enterprise - LexScan IA</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #0f172a;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header { 
+            text-align: center; 
+            border-bottom: 3px solid #1e3a5f; 
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 { 
+            color: #1e3a5f; 
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        h2 { 
+            color: #1e3a5f; 
+            font-size: 24px;
+            border-left: 4px solid #c9a227;
+            padding-left: 15px;
+            margin-top: 40px;
+        }
+        h3 {
+            color: #64748b;
+            font-size: 18px;
+            margin-top: 25px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #c9a227;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .critical-box {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .phase-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #1e3a5f;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            color: #64748b;
+            font-size: 12px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 12px;
+        }
+        .arch-diagram {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 20px 0;
+            line-height: 1.4;
+        }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏗️ ARQUITETURA ENTERPRISE</h1>
+        <p class="subtitle">Arquitetura para Escala Global</p>
+        <p style="font-size: 12px; color: #64748b;">
+            <strong>LexScan IA</strong> | CTO Architecture Vision<br>
+            Data: Maio 2026 | Classificação: CONFIDENCIAL
+        </p>
+    </div>
+
+    <div class="highlight">
+        <h3 style="margin-top: 0;">🏛️ VISÃO DE ARQUITETURA</h3>
+        <p>Transformar o LexScan IA de <strong>MVP</strong> para uma plataforma <strong>SaaS global</strong> 
+        requer evolução de arquitetura em 4 fases, atingindo capacidade de suportar 
+        <strong>1 milhão de usuários</strong>.</p>
+    </div>
+
+    <h2>🧩 STACK TECNOLÓGICO RECOMENDADO</h2>
+    <table>
+        <tr>
+            <th>Camada</th>
+            <th>Tecnologia</th>
+            <th>Justificativa</th>
+        </tr>
+        <tr>
+            <td>Frontend</td>
+            <td>Next.js 14 + Vercel</td>
+            <td>SSR, performance, escala global</td>
+        </tr>
+        <tr>
+            <td>Backend</td>
+            <td>FastAPI + Kubernetes</td>
+            <td>Python async, microservices</td>
+        </tr>
+        <tr>
+            <td>Database</td>
+            <td>PostgreSQL Aurora</td>
+            <td>ACID, multi-region, managed</td>
+        </tr>
+        <tr>
+            <td>Cache</td>
+            <td>Redis Cluster</td>
+            <td>Session, rate limit, queue</td>
+        </tr>
+        <tr>
+            <td>Queue</td>
+            <td>Kafka + Celery</td>
+            <td>Event-driven, async processing</td>
+        </tr>
+        <tr>
+            <td>Storage</td>
+            <td>S3 + CloudFront</td>
+            <td>Escalável, global CDN</td>
+        </tr>
+        <tr>
+            <td>AI</td>
+            <td>Groq + Multi-provider</td>
+            <td>Custo, performance, resiliência</td>
+        </tr>
+        <tr>
+            <td>Monitoring</td>
+            <td>Datadog</td>
+            <td>Observabilidade completa</td>
+        </tr>
+    </table>
+
+    <h2>⚙️ MICROSERVICES (10 Serviços)</h2>
+    
+    <div class="arch-diagram">
+┌─────────────────────────────────────────────┐
+│           LAYER 1: EDGE / CDN               │
+│     Cloudflare → SSL → DDoS Protection     │
+└─────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────┐
+│         LAYER 2: FRONTEND                   │
+│        Next.js + React + TypeScript         │
+│        Vercel (Global Edge Network)         │
+└─────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────┐
+│        LAYER 3: API GATEWAY                 │
+│    Kong / AWS API Gateway / NGINX           │
+│    Routing + Auth + Rate Limiting           │
+└─────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────┐
+│     LAYER 4: MICROSERVICES (K8s)            │
+│                                             │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐     │
+│  │  Auth   │ │Document │ │   AI    │     │
+│  │ Service │ │ Service │ │ Service │     │
+│  └─────────┘ └─────────┘ └─────────┘     │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐     │
+│  │  OCR    │ │  Chat   │ │  Email  │     │
+│  │ Service │ │ Service │ │ Service │     │
+│  └─────────┘ └─────────┘ └─────────┘     │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐     │
+│  │ Billing │ │Notify   │ │Analytics│     │
+│  │ Service │ │ Service │ │ Service │     │
+│  └─────────┘ └─────────┘ └─────────┘     │
+└─────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────┐
+│      LAYER 5: DATA LAYER                    │
+│                                             │
+│  PostgreSQL │ Redis │ S3 │ Kafka │ Vector DB │
+│  (Primary)  │(Cache)│    │(Queue)│(Embeddings)
+└─────────────────────────────────────────────┘
+    </div>
+
+    <h3>Detalhamento dos Serviços</h3>
+    <ul>
+        <li><strong>API Gateway</strong> - Routing, auth, rate limit, SSL termination</li>
+        <li><strong>Auth Service</strong> - Firebase Admin, JWT, sessions, RBAC</li>
+        <li><strong>Document Service</strong> - CRUD de documentos, metadados, versioning</li>
+        <li><strong>OCR Service</strong> - Tesseract, processamento paralelo (Celery workers)</li>
+        <li><strong>AI Service</strong> - LLM routing, embeddings, prompt management</li>
+        <li><strong>Chat Service</strong> - WebSocket, memória conversacional, contexto</li>
+        <li><strong>Email Service</strong> - IMAP/SMTP, sincronização, parsing</li>
+        <li><strong>Notification Service</strong> - Email, SMS, push notifications</li>
+        <li><strong>Billing Service</strong> - Stripe, invoices, subscriptions, webhooks</li>
+        <li><strong>Analytics Service</strong> - Métricas, relatórios, dashboards</li>
+    </ul>
+
+    <h2>⚡ PROJEÇÕES DE ESCALA</h2>
+    <table>
+        <tr>
+            <th>Usuários</th>
+            <th>Infraestrutura</th>
+            <th>Custo/Mês</th>
+            <th>Time</th>
+        </tr>
+        <tr>
+            <td><strong>1.000</strong></td>
+            <td>3 EC2 + RDS</td>
+            <td>R$ 7.000</td>
+            <td>2-3 devs</td>
+        </tr>
+        <tr>
+            <td><strong>10.000</strong></td>
+            <td>20 pods Kubernetes</td>
+            <td>R$ 50.000</td>
+            <td>8-12 devs</td>
+        </tr>
+        <tr>
+            <td><strong>100.000</strong></td>
+            <td>100 pods multi-region</td>
+            <td>R$ 250.000</td>
+            <td>20-30 devs</td>
+        </tr>
+        <tr>
+            <td><strong>1.000.000</strong></td>
+            <td>Multi-cloud (AWS/GCP/Azure)</td>
+            <td>R$ 2.000.000</td>
+            <td>100+ devs</td>
+        </tr>
+    </table>
+
+    <h2>🗄️ DATABASE - ESTRATÉGIA MULTI-MODEL</h2>
+    
+    <div class="phase-box">
+        <h4 style="margin-top: 0;">Estrutura de Dados</h4>
+        <ul>
+            <li><strong>Primary:</strong> PostgreSQL 16 (Aurora/RDS) - Multi-AZ</li>
+            <li><strong>Read Replicas:</strong> São Paulo, Virginia, Frankfurt, Singapore</li>
+            <li><strong>Cache:</strong> Redis Cluster (session, rate limit, temp data)</li>
+            <li><strong>Vector:</strong> Pinecone/Weaviate (embeddings para RAG)</li>
+            <li><strong>Analytics:</strong> ClickHouse (logs, métricas, time-series)</li>
+            <li><strong>Storage:</strong> S3 (arquivos) + Glacier (arquivamento)</li>
+        </ul>
+    </div>
+
+    <h3>Modelo de Tenant Isolation</h3>
+    <div class="arch-diagram">
+┌─────────────────────────────────────────┐
+│          TENANT ISOLATION               │
+├─────────────────────────────────────────┤
+│                                         │
+│  Option 1: Row-Level Security (RLS)    │
+│  ┌─────────────────────────────────┐     │
+│  │  ALTER TABLE documents         │     │
+│  │  ENABLE ROW LEVEL SECURITY;    │     │
+│  │                                 │     │
+│  │  CREATE POLICY user_docs      │     │
+│  │  USING (user_id = current_user);│   │
+│  └─────────────────────────────────┘     │
+│                                         │
+│  Option 2: Database per Tenant          │
+│  (Para Enterprise - melhor isolamento)  │
+│                                         │
+└─────────────────────────────────────────┘
+    </div>
+
+    <h2>🔴 GARGALOS CRÍTICOS ATUAIS</h2>
+    
+    <div class="critical-box">
+        <h4 style="margin-top: 0; color: #dc2626;">PRIORIDADE MÁXIMA (1-2 semanas)</h4>
+        <ol>
+            <li><strong>Banco de Dados JSON (SQLite)</strong><br>
+                → Migrar para PostgreSQL IMEDIATAMENTE<br>
+                <em>Sem isso, não passa de 100 usuários!</em></li>
+            <br>
+            <li><strong>Processamento Síncrono</strong><br>
+                → Implementar Celery + Redis para OCR async<br>
+                <em>Timeout em documentos grandes</em></li>
+            <br>
+            <li><strong>Sem Cache</strong><br>
+                → Adicionar Redis cache layer<br>
+                <em>Latência alta, custo de DB excessivo</em></li>
+        </ol>
+    </div>
+
+    <h3>Outros Gargalos</h3>
+    <ul>
+        <li>🟠 <strong>Monolith Architecture</strong> → Separar em 3-5 serviços (6 meses)</li>
+        <li>🟠 <strong>No CDN</strong> → CloudFlare / CloudFront (2 semanas)</li>
+        <li>🟠 <strong>AI Single Point of Failure</strong> → Multi-provider (1 mês)</li>
+        <li>🟡 <strong>Sem Observabilidade</strong> → Datadog (2 semanas)</li>
+        <li>🟡 <strong>Manual Deploys</strong> → GitOps + ArgoCD (1 mês)</li>
+    </ul>
+
+    <h2>🚀 PLANO DE EVOLUÇÃO - 4 FASES</h2>
+
+    <div class="phase-box">
+        <h4 style="margin-top: 0;">✅ FASE 1: MVP (Atual) - COMPLETO</h4>
+        <ul>
+            <li>Monolith FastAPI</li>
+            <li>SQLite + JSON files</li>
+            <li>Single server</li>
+            <li>Status: <strong>COMPLETO</strong></li>
+        </ul>
+    </div>
+
+    <div class="phase-box">
+        <h4 style="margin-top: 0;">🔄 FASE 2: PRODUTO (0-6 meses) - EM PROGRESSO</h4>
+        <ul>
+            <li>PostgreSQL (RDS)</li>
+            <li>Redis (ElastiCache)</li>
+            <li>S3 (Storage)</li>
+            <li>Docker containers</li>
+            <li>CI/CD pipeline</li>
+            <li>Meta: <strong>100 clientes, 99.5% uptime</strong></li>
+        </ul>
+    </div>
+
+    <div class="phase-box">
+        <h4 style="margin-top: 0;">⏳ FASE 3: ESCALA (6-18 meses) - PLANEJADO</h4>
+        <ul>
+            <li>Kubernetes (EKS)</li>
+            <li>10 microservices</li>
+            <li>Kafka event bus</li>
+            <li>Multi-region DB</li>
+            <li>CDN global</li>
+            <li>Meta: <strong>10.000 clientes, SOC 2</strong></li>
+        </ul>
+    </div>
+
+    <div class="phase-box">
+        <h4 style="margin-top: 0;">📋 FASE 4: ENTERPRISE GLOBAL (18-36 meses) - FUTURO</h4>
+        <ul>
+            <li>Multi-cloud (AWS/GCP/Azure)</li>
+            <li>50+ microservices</li>
+            <li>Self-hosted LLMs</li>
+            <li>Edge computing</li>
+            <li>White-label option</li>
+            <li>Meta: <strong>100.000+ clientes, Unicornio</strong></li>
+        </ul>
+    </div>
+
+    <h2>🎯 RECOMENDAÇÕES IMEDIATAS (30 Dias)</h2>
+    <table>
+        <tr>
+            <th>Semana</th>
+            <th>Tarefa</th>
+            <th>Prioridade</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Migrar SQLite → PostgreSQL</td>
+            <td><span style="color: #dc2626;"><strong>🔴 MÁXIMA</strong></span></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Implementar Celery + Redis</td>
+            <td><span style="color: #dc2626;"><strong>🔴 MÁXIMA</strong></span></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Security hardening</td>
+            <td><span style="color: #dc2626;"><strong>🔴 MÁXIMA</strong></span></td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Setup monitoring Datadog</td>
+            <td><span style="color: #f97316;"><strong>🟠 ALTA</strong></span></td>
+        </tr>
+    </table>
+
+    <h2>💰 CUSTO TOTAL DE OWNERSHIP (5 ANOS)</h2>
+    
+    <div class="highlight">
+        <h4 style="margin-top: 0;">Projeção Financeira</h4>
+        <table>
+            <tr>
+                <th>Categoria</th>
+                <th>Valor</th>
+            </tr>
+            <tr>
+                <td><strong>Capex (One-time)</strong></td>
+                <td>R$ 800.000</td>
+            </tr>
+            <tr>
+                <td><strong>Opex Anual (Ano 3)</strong></td>
+                <td>R$ 18.000.000</td>
+            </tr>
+            <tr>
+                <td><strong>Receita Ano 3</strong></td>
+                <td>R$ 50.000.000</td>
+            </tr>
+            <tr>
+                <td><strong>Gross Margin</strong></td>
+                <td><strong>64%</strong></td>
+            </tr>
+            <tr>
+                <td><strong>Break-even</strong></td>
+                <td>Mês 18</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>📊 STATUS ATUAL</h2>
+    <table>
+        <tr>
+            <th>Aspecto</th>
+            <th>Score</th>
+            <th>Target</th>
+        </tr>
+        <tr>
+            <td>Arquitetura</td>
+            <td>4/10 (MVP)</td>
+            <td>9/10 (Enterprise)</td>
+        </tr>
+        <tr>
+            <td>Escalabilidade</td>
+            <td>Limited</td>
+            <td>1M+ users</td>
+        </tr>
+        <tr>
+            <td>Observabilidade</td>
+            <td>Basic</td>
+            <td>Full (Datadog)</td>
+        </tr>
+        <tr>
+            <td>Compliance</td>
+            <td>None</td>
+            <td>SOC 2 + ISO 27001</td>
+        </tr>
+    </table>
+
+    <p><strong>Gap a fechar:</strong> 6 meses de evolução técnica</p>
+
+    <div class="footer">
+        <p><em>"Escalabilidade não é um recurso, é uma arquitetura."</em></p>
+        <p><strong>© 2024 LexScan IA - CONFIDENCIAL</strong></p>
+        <p>Documento gerado em: Maio 2026</p>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 30px; padding: 20px; background: #f0fdf4; border-radius: 8px;">
+        <p><strong>💡 Para salvar como PDF:</strong></p>
+        <p>Pressione <kbd>Ctrl+P</kbd> (Windows) ou <kbd>Cmd+P</kbd> (Mac) e selecione "Salvar como PDF"</p>
+    </div>
+</body>
+</html>
