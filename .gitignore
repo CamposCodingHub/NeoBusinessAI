@@ -1,4 +1,87 @@
+# =========================
+# PYTHON
+# =========================
 venv/
+.env/
 __pycache__/
 *.pyc
-node_modules
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.pytest_cache/
+.mypy_cache/
+
+# =========================
+# NODE / NEXT / REACT
+# =========================
+node_modules/
+.next/
+dist/
+build/
+out/
+coverage/
+
+# =========================
+# ENV FILES / SECRETS
+# =========================
+.env
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# LOGS
+# =========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# IDE / EDITOR
+# =========================
+.vscode/
+.idea/
+*.swp
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# TEMP FILES
+# =========================
+tmp/
+temp/
+.cache/
+
+# =========================
+# UPLOADS / GENERATED FILES
+# =========================
+uploads/
+generated/
+reports/
+pdfs/
+
+# =========================
+# DATABASES
+# =========================
+backend/*.db
+backend/ai/data/*.db
+
+# =========================
+# FRONTEND SUBMODULE ISSUE
+# =========================
+frontend/.git
+
+# =========================
+# SECURITY
+# =========================
+secrets/
+credentials/
