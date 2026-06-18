@@ -13,36 +13,24 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
 from sqlalchemy.pool import QueuePool
 
+# Importar configuração validada
+from config import settings
+
 # Base declarativa
 Base = declarative_base()
 
-# Configuração da conexão
-# Usa PostgreSQL se configurado, senão fallback para SQLite (desenvolvimento)
-DATABASE_URL = os.getenv('DATABASE_URL')
-if not DATABASE_URL:
-    # Fallback para SQLite em desenvolvimento
-    import os
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'lexscan.db')}"
-    print(f"[DB] Usando SQLite: {DATABASE_URL}")
+# Configuração da conexão - PostgreSQL obrigatório
+DATABASE_URL = settings.DATABASE_URL
 
-# Engine com pool de conexões
-# Fix: Configurações diferentes para SQLite vs PostgreSQL
-if DATABASE_URL.startswith('sqlite'):
-    # SQLite - configuração simples
-    engine = create_engine(
-        DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        echo=False
-    )
-else:
-    # PostgreSQL - configuração com UTF-8 explícito
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,
-        echo=False,
-        connect_args={"client_encoding": "utf8"}
-    )
+# Engine com pool de conexões - PostgreSQL apenas
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    echo=False,
+    connect_args={"client_encoding": "utf8"}
+)
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -21,12 +21,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Carrega variáveis de ambiente
+# Carrega variáveis de ambiente e configuração validada
 try:
     from dotenv import load_dotenv
     load_dotenv(encoding='utf-8')
 except ImportError:
     pass
+
+# Importar configuração validada (falha rápido se inválida)
+try:
+    from config import settings
+    logger.info(f"✅ Configuração validada - Environment: {settings.ENVIRONMENT}")
+except Exception as e:
+    logger.error(f"❌ Erro na configuração: {e}")
+    raise
 
 # ==================== SECURITY IMPORTS ====================
 from security import (
