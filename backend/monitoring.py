@@ -5,6 +5,7 @@ Sentry para error tracking, métricas customizadas
 """
 
 import logging
+import os
 import time
 from functools import wraps
 from typing import Callable, Any, Optional
@@ -171,7 +172,7 @@ class MonitoringManager:
 from config import settings
 
 monitoring = MonitoringManager(
-    sentry_dsn=os.getenv('SENTRY_DSN')
+    sentry_dsn=getattr(settings, 'SENTRY_DSN', None) or os.getenv('SENTRY_DSN')
 )
 
 

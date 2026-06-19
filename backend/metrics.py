@@ -41,6 +41,20 @@ ai_responses_total = Counter(
     registry=registry
 )
 
+ai_provider_requests_total = Counter(
+    "ai_provider_requests_total",
+    "Tentativas de inferencia por provedor",
+    ["provider", "model", "route", "status"],
+    registry=registry,
+)
+
+ai_provider_tokens_total = Counter(
+    "ai_provider_tokens_total",
+    "Tokens processados por provedor e tipo",
+    ["provider", "model", "token_type"],
+    registry=registry,
+)
+
 ocr_operations_total = Counter(
     'ocr_operations_total',
     'Total de operações de OCR',
@@ -94,6 +108,14 @@ ai_response_duration = Histogram(
     ['model', 'style'],
     buckets=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
     registry=registry
+)
+
+ai_provider_latency = Histogram(
+    "ai_provider_latency_seconds",
+    "Latencia de inferencia por provedor",
+    ["provider", "model", "route"],
+    buckets=[0.5, 1, 2, 5, 10, 20, 40, 90, 180, 600],
+    registry=registry,
 )
 
 database_query_duration = Histogram(
@@ -178,6 +200,39 @@ def track_ai_response(model: str, style: str, duration: float, has_legal_entitie
     """Rastreia resposta de IA"""
     ai_responses_total.labels(model=model, style=style, has_legal_entities=has_legal_entities).inc()
     ai_response_duration.labels(model=model, style=style).observe(duration)
+
+
+def track_ai_provider_request(
+    *,
+    provider: str,
+    model: str,
+    route: str,
+    status: str,
+    latency_ms: int,
+    prompt_tokens: int = 0,
+    completion_tokens: int = 0,
+):
+    ai_provider_requests_total.labels(
+        provider=provider,
+        model=model,
+        route=route,
+        status=status,
+    ).inc()
+    ai_provider_latency.labels(
+        provider=provider,
+        model=model,
+        route=route,
+    ).observe(max(0, latency_ms) / 1000)
+    ai_provider_tokens_total.labels(
+        provider=provider,
+        model=model,
+        token_type="prompt",
+    ).inc(max(0, prompt_tokens))
+    ai_provider_tokens_total.labels(
+        provider=provider,
+        model=model,
+        token_type="completion",
+    ).inc(max(0, completion_tokens))
 
 
 def track_ocr_operation(status: str, engine: str = "tesseract"):

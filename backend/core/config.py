@@ -4,7 +4,7 @@ Core Configuration
 Configurações centralizadas com suporte a múltiplos ambientes.
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 from functools import lru_cache
 import os
@@ -13,6 +13,11 @@ import os
 class Settings(BaseSettings):
     """Configurações da aplicação"""
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+    )
+
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
@@ -88,11 +93,6 @@ class Settings(BaseSettings):
     ENABLE_BILLING: bool = True
     ENABLE_AI: bool = True
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-
 @lru_cache()
 def get_settings() -> Settings:
     """Retorna configurações cached"""

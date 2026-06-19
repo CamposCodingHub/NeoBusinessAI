@@ -1,0 +1,641 @@
+{
+  "generated_at": "2026-06-18T21:09:19",
+  "api_url": "http://127.0.0.1:8000",
+  "questions": 8,
+  "summary": {
+    "passed_checks": 65,
+    "total_checks": 72,
+    "average_latency_seconds": 20.029,
+    "average_legal_response_characters": 3211.7,
+    "legal_questions_with_sources": 7,
+    "legal_questions_using_large_model": 7,
+    "questions_passing_every_check": 2
+  },
+  "results": [
+    {
+      "id": "penal_dolo",
+      "area": "penal",
+      "question": "Faca uma pesquisa profunda sobre a diferenca entre dolo eventual e culpa consciente no direito penal brasileiro. Parta do artigo 18 do Codigo Penal, explique criterios praticos, controversias e quais fatos precisariam ser provados em um caso concreto.",
+      "expected_terms": [
+        "dolo eventual",
+        "culpa consciente",
+        "art. 18"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 18",
+          "artigo 18"
+        ],
+        [
+          "assumiu o risco"
+        ],
+        [
+          "previu",
+          "previsao"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 4.987,
+      "response_characters": 4216,
+      "expected_terms_found": [
+        "dolo eventual",
+        "culpa consciente"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 18",
+          "artigo 18"
+        ],
+        [
+          "assumiu o risco"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Faca, Codigo, Penal",
+        "ai_mode": "premium",
+        "interaction_count": 2,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "penal",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CP",
+            "title": "Codigo Penal - Decreto-Lei 2.848/1940",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 8,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nA diferença entre dolo eventual e culpa consciente é um tema complexo e relevante no direito penal brasileiro, especialmente quando se considera a aplicação prática do artigo 18 do Código Penal. É fundamental entender os critérios que distinguem esses dois conceitos para uma correta interpretação e aplicação da lei.\n\n**Resposta Executiva**\nO dolo eventual e a culpa consciente são dois institutos jurídicos que se distinguem pela intenção do agente em relação ao resultado de sua ação. O dolo eventual ocorre quando o agente assume o risco de produzir um resultado, mesmo que não o deseje diretamente. Já a culpa consciente acontece quando o agente prevê o resultado, mas acredita que ele não ocorrerá devido a uma confiança excessiva em sua habilidade ou em circunstâncias que o levam a crer que o resultado não se concretizará.\n\n**Fundo Normativo**\nO artigo 18 do Código Penal, alterado pela Lei nº 7.209/1984, define o crime doloso e o crime culposo. O inciso I do artigo 18 estabelece que o crime é doloso quando o agente quis o resultado ou assumiu o risco de produzi-lo. Já o inciso II define o crime culposo como aquele em que o agente deu causa ao resultado por imprudência, negligência ou imperícia.\n\n**Análise Detalhada**\nPara distinguir entre dolo eventual e culpa consciente, é necessário analisar a intenção do agente e o seu estado de consciência em relação ao resultado. No dolo eventual, o agente assume o risco de produzir o resultado, mesmo que não o deseje diretamente. Isso significa que o agente tem consciência de que o resultado pode ocorrer, mas decide agir mesmo assim. Já na culpa consciente, o agente prevê o resultado, mas acredita que ele não ocorrerá devido a uma confiança excessiva em sua habilidade ou em circunstâncias que o levam a crer que o resultado não se concretizará.\n\n**Possíveis Interpretações**\nExistem diferentes interpretações sobre a distinção entre dolo eventual e culpa consciente. Alguns autores defendem que a culpa consciente é uma forma de dolo eventual, pois o agente assume o risco de produzir o resultado, mesmo que não o deseje diretamente. Outros autores argumentam que a culpa consciente é uma forma de culpa, pois o agente não deseja o resultado, mas age com imprudência ou negligência.\n\n**Riscos e Controvérsias**\nA distinção entre dolo eventual e culpa consciente pode ser complexa e depende de uma análise cuidadosa dos fatos do caso concreto. Se o agente for condenado por dolo eventual, a pena pode ser mais severa do que se fosse condenado por culpa consciente. Além disso, a distinção entre esses dois institutos pode ter implicações importantes para a defesa do agente e para a aplicação da lei.\n\n**Informações Faltantes**\nPara uma análise mais precisa, seria necessário conhecer os detalhes do caso concreto, incluindo as circunstâncias em que o agente agiu, a sua intenção e o seu estado de consciência em relação ao resultado. Além disso, seria importante considerar a jurisprudência relevante e as interpretações dos tribunais sobre a distinção entre dolo eventual e culpa consciente.\n\n**Estratégia de Verificação**\nPara verificar a distinção entre dolo eventual e culpa consciente, é necessário analisar os seguintes critérios:\n\n* A intenção do agente em relação ao resultado\n* O estado de consciência do agente em relação ao resultado\n* A existência de imprudência, negligência ou imperícia\n* A confiança excessiva do agente em sua habilidade ou em circunstâncias que o levam a crer que o resultado não se concretizará\n\n**Conclusão**\nA distinção entre dolo eventual e culpa consciente é um tema complexo e relevante no direito penal brasileiro. É fundamental entender os critérios que distinguem esses dois conceitos para uma correta interpretação e aplicação da lei. A análise cuidadosa dos fatos do caso concreto e a consideração da jurisprudência relevante são essenciais para uma decisão justa e equitativa. 📚💡\n\nLembre-se de que esta resposta é apenas um auxílio ao trabalho profissional e requer revisão por um advogado especializado em direito penal. 🚨💼\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo Penal - Decreto-Lei 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)"
+    },
+    {
+      "id": "processo_penal_prisao",
+      "area": "processual_penal",
+      "question": "Quais sao os requisitos juridicos para decretacao de prisao preventiva no processo penal brasileiro? Diferencie pressupostos, fundamentos, necessidade concreta e medidas cautelares alternativas.",
+      "expected_terms": [
+        "prisao preventiva",
+        "processo penal",
+        "cautelar"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 312",
+          "artigo 312"
+        ],
+        [
+          "art. 313",
+          "artigo 313"
+        ],
+        [
+          "art. 315",
+          "artigo 315"
+        ],
+        [
+          "art. 319",
+          "artigo 319"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 14.154,
+      "response_characters": 3706,
+      "expected_terms_found": [
+        "prisao preventiva",
+        "processo penal",
+        "cautelar"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 312",
+          "artigo 312"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Penal, Diferencie, Quais",
+        "ai_mode": "premium",
+        "interaction_count": 4,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "processual_penal",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CPP",
+            "title": "Codigo de Processo Penal - Decreto-Lei 3.689/1941",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm",
+            "status": "official_text"
+          },
+          {
+            "code": "CP",
+            "title": "Codigo Penal - Decreto-Lei 2.848/1940",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 8,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nA decretação de prisão preventiva é uma medida cautelar importante no processo penal brasileiro, que visa garantir a ordem pública, a segurança das testemunhas e a aplicação da lei penal. É fundamental entender os requisitos jurídicos para a decretação de prisão preventiva, diferenciando pressupostos, fundamentos, necessidade concreta e medidas cautelares alternativas.\n\n**Resposta Executiva**\nA prisão preventiva é uma medida cautelar que pode ser decretada pelo juiz, a requerimento do Ministério Público ou da autoridade policial, quando houver indícios de autoria e materialidade de um crime, e for necessária para garantir a ordem pública, a segurança das testemunhas ou a aplicação da lei penal.\n\n**Fundo Normativo**\nO artigo 312 do Código de Processo Penal (CPP) estabelece os pressupostos para a decretação de prisão preventiva, que são:\n\n* Indícios de autoria e materialidade de um crime;\n* Necessidade para garantir a ordem pública, a segurança das testemunhas ou a aplicação da lei penal;\n* Fundamento na gravidade do crime, nas circunstâncias do fato e nas condições pessoais do indiciado ou acusado.\n\n**Pressupostos**\nOs pressupostos para a decretação de prisão preventiva são:\n\n1. **Indícios de autoria e materialidade**: É necessário que haja indícios de que o indiciado ou acusado cometeu o crime.\n2. **Necessidade**: A prisão preventiva deve ser necessária para garantir a ordem pública, a segurança das testemunhas ou a aplicação da lei penal.\n\n**Fundamentos**\nOs fundamentos para a decretação de prisão preventiva são:\n\n1. **Gravidade do crime**: A gravidade do crime é um fator importante para a decretação de prisão preventiva.\n2. **Circunstâncias do fato**: As circunstâncias do fato, como a violência ou a ameaça, podem justificar a decretação de prisão preventiva.\n3. **Condições pessoais do indiciado ou acusado**: As condições pessoais do indiciado ou acusado, como a falta de residência fixa ou a existência de antecedentes criminais, podem influenciar a decisão de decretar prisão preventiva.\n\n**Necessidade Concreta**\nA necessidade concreta é um requisito importante para a decretação de prisão preventiva. O juiz deve avaliar se a prisão preventiva é necessária para garantir a ordem pública, a segurança das testemunhas ou a aplicação da lei penal.\n\n**Medidas Cautelares Alternativas**\nAs medidas cautelares alternativas à prisão preventiva são:\n\n1. **Fiança**: A fiança é uma medida cautelar que pode ser aplicada em lugar da prisão preventiva.\n2. **Monitoramento eletrônico**: O monitoramento eletrônico é uma medida cautelar que pode ser aplicada para garantir que o indiciado ou acusado não se ausente do local.\n3. **Comparecimento periódico**: O comparecimento periódico é uma medida cautelar que pode ser aplicada para garantir que o indiciado ou acusado compareça regularmente perante a autoridade judicial.\n\n**Conclusão**\nA decretação de prisão preventiva é uma medida cautelar importante no processo penal brasileiro, que visa garantir a ordem pública, a segurança das testemunhas e a aplicação da lei penal. É fundamental entender os requisitos jurídicos para a decretação de prisão preventiva, diferenciando pressupostos, fundamentos, necessidade concreta e medidas cautelares alternativas. O juiz deve avaliar cuidadosamente os fatos do caso concreto e aplicar a medida cautelar mais adequada para garantir a justiça e a segurança da sociedade.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Penal - Decreto-Lei 3.689/1941](https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm)\n- [Fonte 2] [Codigo Penal - Decreto-Lei 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)"
+    },
+    {
+      "id": "cpc_tutelas",
+      "area": "processual_civil",
+      "question": "Compare tutela de urgencia antecipada, tutela cautelar e tutela da evidencia no CPC. Inclua requisitos, momento processual, riscos e um quadro pratico de escolha.",
+      "expected_terms": [
+        "tutela",
+        "urgencia",
+        "evidencia"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 300",
+          "artigo 300"
+        ],
+        [
+          "art. 311",
+          "artigo 311"
+        ],
+        [
+          "probabilidade do direito"
+        ],
+        [
+          "perigo de dano",
+          "risco ao resultado util"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 38.36,
+      "response_characters": 3241,
+      "expected_terms_found": [
+        "tutela",
+        "urgencia",
+        "evidencia"
+      ],
+      "required_fact_groups_found": [
+        [
+          "probabilidade do direito"
+        ],
+        [
+          "perigo de dano",
+          "risco ao resultado util"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Quais, Compare, Inclua",
+        "ai_mode": "premium",
+        "interaction_count": 6,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "processual_civil",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CPC",
+            "title": "Codigo de Processo Civil - Lei 13.105/2015",
+            "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 8,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nA tutela de urgência antecipada, a tutela cautelar e a tutela da evidência são medidas processuais importantes no Código de Processo Civil (CPC) brasileiro. É fundamental entender os requisitos, o momento processual, os riscos e as diferenças entre essas medidas para escolher a mais adequada em cada caso concreto.\n\n**Resposta Executiva**\nA tutela de urgência antecipada, a tutela cautelar e a tutela da evidência são medidas processuais que visam garantir a efetividade da decisão final, evitando danos irreparáveis ou dificuldades para a execução da sentença. Cada uma dessas medidas tem requisitos e características específicas que devem ser considerados pelo juiz e pelas partes.\n\n**Fundo Normativo**\nO CPC estabelece as seguintes normas para as medidas processuais em questão:\n\n* Tutela de urgência antecipada: artigos 294 a 300 do CPC;\n* Tutela cautelar: artigos 301 a 310 do CPC;\n* Tutela da evidência: artigos 311 a 314 do CPC.\n\n**Requisitos**\n\n* **Tutela de urgência antecipada**: Requer a demonstração de urgência e a probabilidade do direito, além da necessidade de antecipar os efeitos da decisão final.\n* **Tutela cautelar**: Exige a demonstração de um perigo de dano ou de um risco de irreversibilidade dos efeitos da decisão final.\n* **Tutela da evidência**: Requer a demonstração de que o direito é evidente e que a decisão final não pode ser objeto de recurso.\n\n**Momento Processual**\n\n* **Tutela de urgência antecipada**: Pode ser requerida a qualquer momento do processo, inclusive antes da propositura da ação.\n* **Tutela cautelar**: Pode ser requerida a qualquer momento do processo, inclusive antes da propositura da ação.\n* **Tutela da evidência**: Deve ser requerida após a propositura da ação e antes da decisão final.\n\n**Riscos**\n\n* **Tutela de urgência antecipada**: Risco de irreversibilidade dos efeitos da decisão, caso a sentença final seja desfavorável.\n* **Tutela cautelar**: Risco de dano ou de irreversibilidade dos efeitos da decisão, caso a sentença final seja desfavorável.\n* **Tutela da evidência**: Risco de erro na avaliação da evidência do direito, caso a sentença final seja desfavorável.\n\n**Quadro Prático de Escolha**\n\n| Medida | Requisitos | Momento Processual | Riscos |\n| --- | --- | --- | --- |\n| Tutela de urgência antecipada | Urgência e probabilidade do direito | A qualquer momento | Irreversibilidade dos efeitos |\n| Tutela cautelar | Perigo de dano ou risco de irreversibilidade | A qualquer momento | Dano ou irreversibilidade dos efeitos |\n| Tutela da evidência | Direito evidente | Após a propositura da ação | Erro na avaliação da evidência |\n\n**Conclusão**\nA escolha da medida processual mais adequada depende do caso concreto e dos requisitos específicos de cada medida. O juiz e as partes devem considerar os riscos e as consequências de cada medida, além de avaliar a probabilidade do direito e a necessidade de antecipar os efeitos da decisão final. É fundamental entender as diferenças entre as medidas processuais para garantir a efetividade da decisão final e evitar danos irreparáveis.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Civil - Lei 13.105/2015](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm)"
+    },
+    {
+      "id": "civil_inadimplemento",
+      "area": "civil",
+      "question": "Em um contrato empresarial, quais consequencias podem decorrer do inadimplemento e como analisar perdas e danos, clausula penal, resolucao e cumprimento especifico?",
+      "expected_terms": [
+        "inadimplemento",
+        "perdas e danos",
+        "clausula penal"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 389",
+          "artigo 389"
+        ],
+        [
+          "art. 475",
+          "artigo 475"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 40.453,
+      "response_characters": 3613,
+      "expected_terms_found": [
+        "inadimplemento",
+        "perdas e danos",
+        "clausula penal"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 389",
+          "artigo 389"
+        ],
+        [
+          "art. 475",
+          "artigo 475"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Compare, Inclua, Em",
+        "ai_mode": "premium",
+        "interaction_count": 8,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "penal",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CP",
+            "title": "Codigo Penal - Decreto-Lei 2.848/1940",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+            "status": "official_text"
+          },
+          {
+            "code": "CC",
+            "title": "Codigo Civil - Lei 10.406/2002",
+            "url": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 9,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nO inadimplemento de um contrato empresarial pode ter consequências significativas para as partes envolvidas. É fundamental entender como analisar perdas e danos, cláusula penal, resolução e cumprimento específico para minimizar os riscos e garantir a efetividade do contrato.\n\n**Resposta Executiva**\nO inadimplemento de um contrato empresarial pode decorrer de various motivos, incluindo a falha em cumprir com as obrigações contratuais, a falta de pagamento ou a entrega de produtos ou serviços de baixa qualidade. As consequências do inadimplemento podem incluir a perda de confiança, a deterioração da relação comercial e a possibilidade de ações judiciais.\n\n**Fundo Normativo**\nO Código Civil Brasileiro (CCB) estabelece as seguintes normas para o inadimplemento de contratos:\n\n* Artigo 389: O devedor é responsável por perdas e danos, se não cumpre com as obrigações contratuais.\n* Artigo 408: A cláusula penal é uma penalidade estabelecida no contrato para o caso de inadimplemento.\n* Artigo 475: A resolução do contrato é a extinção do contrato devido ao inadimplemento de uma das partes.\n* Artigo 461: O cumprimento específico é a execução forçada do contrato, quando uma das partes não cumpre com as obrigações contratuais.\n\n**Análise de Perdas e Danos**\n\n* **Cálculo de perdas e danos**: O cálculo de perdas e danos deve ser feito com base nos prejuízos efetivos sofridos pela parte lesada.\n* **Tipos de perdas e danos**: As perdas e danos podem incluir lucros cessantes, danos emergentes e prejuízos morais.\n* **Responsabilidade**: A responsabilidade pelo inadimplemento pode ser atribuída a uma ou ambas as partes, dependendo das circunstâncias do caso.\n\n**Cláusula Penal**\n\n* **Definição**: A cláusula penal é uma penalidade estabelecida no contrato para o caso de inadimplemento.\n* **Tipos de cláusulas penais**: As cláusulas penais podem ser de dois tipos: cláusula penal compensatória e cláusula penal punitiva.\n* **Eficácia**: A cláusula penal é eficaz se for estabelecida de forma clara e expressa no contrato.\n\n**Resolução**\n\n* **Definição**: A resolução do contrato é a extinção do contrato devido ao inadimplemento de uma das partes.\n* **Tipos de resolução**: A resolução pode ser de dois tipos: resolução por inadimplemento e resolução por onerosidade excessiva.\n* **Eficácia**: A resolução do contrato é eficaz se for decretada por sentença judicial ou se for acordada pelas partes.\n\n**Cumprimento Específico**\n\n* **Definição**: O cumprimento específico é a execução forçada do contrato, quando uma das partes não cumpre com as obrigações contratuais.\n* **Tipos de cumprimento específico**: O cumprimento específico pode ser de dois tipos: cumprimento específico de obrigação de fazer e cumprimento específico de obrigação de não fazer.\n* **Eficácia**: O cumprimento específico é eficaz se for decretado por sentença judicial e se for executado de forma eficaz.\n\n**Conclusão**\nO inadimplemento de um contrato empresarial pode ter consequências significativas para as partes envolvidas. É fundamental entender como analisar perdas e danos, cláusula penal, resolução e cumprimento específico para minimizar os riscos e garantir a efetividade do contrato. Além disso, é importante estabelecer cláusulas contratuais claras e expressas para evitar disputas e garantir a resolução eficaz de conflitos.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo Penal - Decreto-Lei 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)\n- [Fonte 2] [Codigo Civil - Lei 10.406/2002](https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm)"
+    },
+    {
+      "id": "consumidor_vicio",
+      "area": "consumidor",
+      "question": "Explique a diferenca entre vicio e fato do produto no Codigo de Defesa do Consumidor, com prazos, responsaveis e consequencias praticas.",
+      "expected_terms": [
+        "vicio",
+        "produto",
+        "consumidor"
+      ],
+      "required_fact_groups": [
+        [
+          "30 dias"
+        ],
+        [
+          "90 dias"
+        ],
+        [
+          "art. 26",
+          "artigo 26"
+        ]
+      ],
+      "forbidden_claims": [
+        "180 dias",
+        "90 dias para produtos nao duraveis",
+        "30 dias para produtos duraveis"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 31.361,
+      "response_characters": 3199,
+      "expected_terms_found": [
+        "vicio",
+        "produto",
+        "consumidor"
+      ],
+      "required_fact_groups_found": [
+        [
+          "90 dias"
+        ],
+        [
+          "art. 26",
+          "artigo 26"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "direct",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Explique, Codigo, Consumidor",
+        "ai_mode": "premium",
+        "interaction_count": 10,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "consumidor",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CDC",
+            "title": "Codigo de Defesa do Consumidor - Lei 8.078/1990",
+            "url": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 8,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nA diferença entre vício e fato do produto é um tema importante no Código de Defesa do Consumidor (CDC), pois afeta a responsabilidade dos fornecedores e a proteção dos consumidores. É fundamental entender as diferenças entre esses conceitos, incluindo prazos, responsáveis e consequências práticas.\n\n**Resposta Executiva**\nO CDC estabelece que os fornecedores são responsáveis por garantir a qualidade e a segurança dos produtos que oferecem aos consumidores. No entanto, existem duas situações diferentes que podem ocorrer: vício e fato do produto. O vício é uma falha ou defeito no produto que o torna inadequado para o uso pretendido, enquanto o fato do produto é um evento que ocorre em decorrência do uso do produto, independentemente de qualquer falha ou defeito.\n\n**Fundo Normativo**\nO CDC estabelece as seguintes normas para vício e fato do produto:\n\n* Artigo 18: O fornecedor é responsável por garantir a qualidade e a segurança dos produtos que oferece aos consumidores.\n* Artigo 26: O consumidor pode exigir a reparação de danos causados por vício ou fato do produto.\n* Artigo 27: O prazo para reclamar por vício ou fato do produto é de 5 anos, contados a partir do conhecimento do dano.\n\n**Vício**\n\n* **Definição**: O vício é uma falha ou defeito no produto que o torna inadequado para o uso pretendido.\n* **Prazo**: O prazo para reclamar por vício é de 90 dias, contados a partir da entrega do produto.\n* **Responsável**: O fornecedor é responsável por garantir a qualidade e a segurança do produto.\n* **Consequências**: O consumidor pode exigir a reparação do produto, a substituição por um produto novo ou a devolução do valor pago.\n\n**Fato do Produto**\n\n* **Definição**: O fato do produto é um evento que ocorre em decorrência do uso do produto, independentemente de qualquer falha ou defeito.\n* **Prazo**: O prazo para reclamar por fato do produto é de 5 anos, contados a partir do conhecimento do dano.\n* **Responsável**: O fornecedor é responsável por garantir a segurança do produto e pode ser responsabilizado por danos causados por fato do produto.\n* **Consequências**: O consumidor pode exigir a reparação de danos causados por fato do produto, incluindo danos materiais e morais.\n\n**Diferenças**\n\n* **Prazo**: O prazo para reclamar por vício é mais curto do que o prazo para reclamar por fato do produto.\n* **Responsável**: O fornecedor é responsável por garantir a qualidade e a segurança do produto, enquanto o fato do produto pode ser atribuído a outros fatores, como o uso inadequado do produto.\n* **Consequências**: As consequências de um vício podem ser mais graves do que as consequências de um fato do produto, pois o vício pode afetar a segurança e a qualidade do produto.\n\n**Conclusão**\nEm resumo, o vício e o fato do produto são dois conceitos diferentes no CDC, com prazos, responsáveis e consequências práticas distintas. É fundamental que os consumidores e os fornecedores entendam essas diferenças para garantir a proteção dos consumidores e a responsabilidade dos fornecedores.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Defesa do Consumidor - Lei 8.078/1990](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)"
+    },
+    {
+      "id": "trabalhista_justa_causa",
+      "area": "trabalhista",
+      "question": "Quais cuidados probatorios e procedimentais uma empresa deve observar antes de aplicar justa causa a um empregado? Estruture riscos e checklist de revisao.",
+      "expected_terms": [
+        "justa causa",
+        "prova",
+        "empregado"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 482",
+          "artigo 482"
+        ],
+        [
+          "imediatidade"
+        ],
+        [
+          "proporcionalidade"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 27.586,
+      "response_characters": 3444,
+      "expected_terms_found": [
+        "justa causa",
+        "prova",
+        "empregado"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 482",
+          "artigo 482"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Consumidor, Estruture, Quais",
+        "ai_mode": "premium",
+        "interaction_count": 12,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "trabalhista",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CLT",
+            "title": "Consolidacao das Leis do Trabalho",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452compilado.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 8,
+      "total_checks": 9,
+      "response": "**Questão Apresentada**\nA aplicação de justa causa a um empregado é uma decisão grave que pode ter consequências legais e financeiras para a empresa. É fundamental que a empresa observe cuidados probatórios e procedimentais antes de tomar essa decisão, para evitar riscos e garantir a legalidade da ação.\n\n**Resposta Executiva**\nAntes de aplicar justa causa a um empregado, a empresa deve observar cuidados probatórios e procedimentais para garantir que a decisão seja justa e legal. Isso inclui a coleta de provas, a realização de investigações, a observância dos procedimentos disciplinares e a garantia dos direitos do empregado.\n\n**Fundo Normativo**\nA Consolidação das Leis do Trabalho (CLT) estabelece as seguintes normas para a aplicação de justa causa:\n\n* Artigo 482: A justa causa é a violação dos deveres contratuais do empregado, que pode ser aplicada em casos de falta grave.\n* Artigo 493: A empresa deve realizar uma investigação prévia antes de aplicar justa causa.\n* Artigo 494: A empresa deve garantir os direitos do empregado, incluindo o direito à defesa e ao contraditório.\n\n**Cuidados Probatórios**\n\n1. **Coleta de provas**: A empresa deve coletar provas suficientes para comprovar a falta grave do empregado.\n2. **Investigação prévia**: A empresa deve realizar uma investigação prévia para verificar a veracidade das acusações.\n3. **Registros**: A empresa deve manter registros detalhados da investigação e das provas coletadas.\n4. **Testemunhas**: A empresa deve ouvir testemunhas e coletar depoimentos para apoiar as acusações.\n\n**Cuidados Procedimentais**\n\n1. **Procedimento disciplinar**: A empresa deve seguir um procedimento disciplinar estabelecido para lidar com faltas graves.\n2. **Comunicação**: A empresa deve comunicar ao empregado as acusações e as provas coletadas.\n3. **Direito à defesa**: A empresa deve garantir o direito do empregado à defesa e ao contraditório.\n4. **Decisão fundamentada**: A empresa deve tomar uma decisão fundamentada e justificada para aplicar justa causa.\n\n**Riscos**\n\n1. **Reversão da justa causa**: A empresa pode ser obrigada a reverter a justa causa se não houver provas suficientes ou se o procedimento não for seguido.\n2. **Indenizações**: A empresa pode ser obrigada a pagar indenizações ao empregado se a justa causa for considerada injusta.\n3. **Danos à reputação**: A empresa pode sofrer danos à reputação se a justa causa for considerada injusta ou se o procedimento não for transparente.\n\n**Checklist de Revisão**\n\n1. **Verificar se a falta grave está prevista no contrato de trabalho ou no regulamento da empresa**.\n2. **Verificar se a investigação prévia foi realizada de forma justa e imparcial**.\n3. **Verificar se as provas coletadas são suficientes para comprovar a falta grave**.\n4. **Verificar se o procedimento disciplinar foi seguido**.\n5. **Verificar se o empregado teve direito à defesa e ao contraditório**.\n6. **Verificar se a decisão de aplicar justa causa foi fundamentada e justificada**.\n\nÉ importante que a empresa observe esses cuidados probatórios e procedimentais para garantir que a aplicação de justa causa seja justa e legal. Além disso, é recomendável que a empresa consulte um advogado especializado em direito do trabalho para garantir que todos os procedimentos sejam seguidos corretamente.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Consolidacao das Leis do Trabalho](https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452compilado.htm)"
+    },
+    {
+      "id": "lgpd_bases",
+      "area": "protecao_de_dados",
+      "question": "Compare consentimento, execucao de contrato, obrigacao legal e legitimo interesse como bases legais da LGPD. Explique quando cada uma e adequada e os principais riscos de uso indevido.",
+      "expected_terms": [
+        "consentimento",
+        "legitimo interesse",
+        "lgpd"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 7",
+          "artigo 7"
+        ],
+        [
+          "art. 10",
+          "artigo 10"
+        ],
+        [
+          "legitimo interesse"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 1.883,
+      "response_characters": 1063,
+      "expected_terms_found": [],
+      "required_fact_groups_found": [],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 100.0,
+        "style": "comparison",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Quais, Explique, Compare",
+        "ai_mode": "premium",
+        "interaction_count": 14,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "civil",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CC",
+            "title": "Codigo Civil - Lei 10.406/2002",
+            "url": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+            "status": "official_text"
+          },
+          {
+            "code": "CPC",
+            "title": "Codigo de Processo Civil - Lei 13.105/2015",
+            "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm",
+            "status": "official_text"
+          },
+          {
+            "code": "LGPD",
+            "title": "Lei Geral de Protecao de Dados - Lei 13.709/2018",
+            "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+            "status": "official_text"
+          }
+        ],
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": false,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 7,
+      "total_checks": 9,
+      "response": "Isso é fascinante. Com base no contexto:\n\nSobre sua questão: informação clara e aplicável.\n\nContexto mantido da conversa:\n- Em um contrato empresarial, quais consequencias podem decorrer do inadimplemento e como analisar perdas e danos, clausula penal, resolucao e cumprimento especifico?\n- Explique a diferenca entre vicio e fato do produto no Codigo de Defesa do Consumidor, com prazos, responsaveis e consequencias praticas.\n- Quais cuidados probatorios e procedimentais uma empresa deve observar antes de aplicar justa causa a um empregado? Estruture riscos e checklist de revisao.\n\nVamos explorar isso em detalhes...\n\nO caminho mais estratégico:\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo Civil - Lei 10.406/2002](https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm)\n- [Fonte 2] [Codigo de Processo Civil - Lei 13.105/2015](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm)\n- [Fonte 3] [Lei Geral de Protecao de Dados - Lei 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm)"
+    },
+    {
+      "id": "geral_produtividade",
+      "area": "geral",
+      "question": "Ajude a organizar uma rotina semanal de atendimento, estudo e revisao de tarefas para um profissional autonomo.",
+      "expected_terms": [
+        "semana",
+        "tarefas"
+      ],
+      "response_mode": "balanced",
+      "latency_seconds": 1.445,
+      "response_characters": 3085,
+      "expected_terms_found": [
+        "semana",
+        "tarefas"
+      ],
+      "required_fact_groups_found": [],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 75.0,
+        "style": "comparison",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Explique, Compare, Ajude",
+        "ai_mode": "premium",
+        "interaction_count": 16,
+        "document_context_used": false,
+        "response_mode": "balanced",
+        "legal_area": "geral",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "unverified",
+        "sources": [],
+        "requires_human_review": false,
+        "answer_scope": "assistencia_geral",
+        "model": "llama-3.1-8b-instant"
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 9,
+      "total_checks": 9,
+      "response": "💬 **Organizando uma Rotina Semanal de Atendimento, Estudo e Revisão de Tarefas para um Profissional Autônomo**\n\nComo um profissional autônomo, é fundamental ter uma rotina eficaz para gerenciar o tempo e garantir que as tarefas sejam completadas de forma eficiente.\n\nAqui está uma sugestão de rotina semanal que pode ser adaptada às suas necessidades:\n\n**Segunda-feira: Atendimento e Gerenciamento de Projetos**\n\n* **Manhã**: Responder e-mails, mensagens e ligações telefônicas relacionadas ao trabalho. \n* **Tarde**: Revisar e atualizar os projetos em andamento, incluindo a criação de cronogramas e orçamentos.\n\n* **Fim de semana**: Revisar e atualizar os projetos em andamento, incluindo a criação de cronogramas e orçamentos.\n\n**Terça-feira: Estudo e Aprendizado**\n\n* **Manhã**: Estudar e aprender novas habilidades e conhecimentos relacionados ao trabalho... incluindo a leitura de artigos e livros.\n\n* **Tarde**: Assistir a webinars e cursos online para melhorar as habilidades e conhecimentos.\n\n* **Fim de semana**: Estudar e aprender novas habilidades e conhecimentos relacionados ao trabalho, incluindo a leitura de artigos e livros.\n\n**Quarta-feira: Revisão de Tarefas e Planejamento**\n\n* **Manhã**: Revisar as tarefas concluídas e planejar as próximas etapas.\n* **Tarde**: Revisar e atualizar os orçamentos e cronogramas.\n* **Fim de semana**: Revisar as tarefas concluídas e planejar as próximas etapas.\n\n**Quinta-feira: Atendimento e Gerenciamento de Projetos**\n\n* **Manhã**: Responder e-mails, mensagens e ligações telefônicas relacionadas ao trabalho. \n* **Tarde**: Revisar e atualizar os projetos em andamento, incluindo a criação de cronogramas e orçamentos.\n\n* **Fim de semana**: Revisar e atualizar os projetos em andamento, incluindo a criação de cronogramas e orçamentos.\n\n**Sexta-feira: Revisão e Planejamento**\n\n* **Manhã**: Revisar as tarefas concluídas e planejar as próximas etapas.\n* **Tarde**: Revisar e atualizar os orçamentos e cronogramas.\n* **Fim de semana**: Revisar as tarefas concluídas e planejar as próximas etapas.\n\n**Domingo: Revisão e Planejamento**\n\n* **Manhã**: Revisar as tarefas concluídas e planejar as próximas etapas.\n* **Tarde**: Revisar e atualizar os orçamentos e cronogramas.\n* **Fim de semana**: Revisar as tarefas concluídas e planejar as próximas etapas.\n\n**Sábado: Estudo e Aprendizado**\n\n* **Manhã**: Estudar e aprender novas habilidades e conhecimentos relacionados ao trabalho, incluindo a leitura de artigos e livros.\n\n* **Tarde**: Assistir a webinars e cursos online para melhorar as habilidades e conhecimentos.\n\n* **Fim de semana**: Estudar e aprender novas habilidades e conhecimentos relacionados ao trabalho, incluindo a leitura de artigos e livros.\n\nLembre-se de que essa é apenas uma sugestão de rotina e que você deve adaptá-la às suas necessidades e preferências.\n\nAlém disso, é importante lembrar que a rotina deve ser flexível e permitir que você ajuste as tarefas e o tempo de acordo com as necessidades do seu negócio.\n\nPara tornar isso mais concreto: que tal começarmos com um exemplo específico do seu contexto?"
+    }
+  ]
+}

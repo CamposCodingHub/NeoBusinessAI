@@ -8,7 +8,7 @@ from config import Settings, get_settings
 
 
 def test_database_url_must_be_postgres():
-    """Testa que SQLite não é permitido"""
+    """Testa que SQLite não é permitido em produção"""
     with pytest.raises(ValueError, match="SQLite não é permitido"):
         Settings(
             DATABASE_URL="sqlite:///test.db",
@@ -16,7 +16,8 @@ def test_database_url_must_be_postgres():
             FIREBASE_PROJECT_ID="test-project",
             FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----\n",
             FIREBASE_CLIENT_EMAIL="test@test.com",
-            SECRET_KEY="test_secret_key_minimum_32_characters"
+            SECRET_KEY="test_secret_key_minimum_32_characters",
+            ENVIRONMENT="production"
         )
 
 

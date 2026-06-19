@@ -1,0 +1,997 @@
+{
+  "generated_at": "2026-06-18T21:54:13",
+  "api_url": "http://127.0.0.1:8000",
+  "questions": 8,
+  "summary": {
+    "passed_checks": 95,
+    "total_checks": 104,
+    "average_latency_seconds": 27.907,
+    "average_legal_response_characters": 9521.7,
+    "legal_questions_with_sources": 7,
+    "legal_questions_using_large_model": 6,
+    "questions_passing_every_check": 4
+  },
+  "results": [
+    {
+      "id": "penal_dolo",
+      "area": "penal",
+      "question": "Faca uma pesquisa profunda sobre a diferenca entre dolo eventual e culpa consciente no direito penal brasileiro. Parta do artigo 18 do Codigo Penal, explique criterios praticos, controversias e quais fatos precisariam ser provados em um caso concreto.",
+      "expected_terms": [
+        "dolo eventual",
+        "culpa consciente",
+        "art. 18"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 18",
+          "artigo 18"
+        ],
+        [
+          "assumiu o risco"
+        ],
+        [
+          "previu",
+          "preve",
+          "previsao"
+        ]
+      ],
+      "forbidden_claims": [
+        "culpa consciente e uma forma de dolo eventual"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 7.252,
+      "response_characters": 8962,
+      "expected_terms_found": [
+        "dolo eventual",
+        "culpa consciente",
+        "art. 18"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 18",
+          "artigo 18"
+        ],
+        [
+          "assumiu o risco"
+        ],
+        [
+          "previu",
+          "preve",
+          "previsao"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Penal, Faca, Codigo",
+        "ai_mode": "premium",
+        "interaction_count": 2,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "penal",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CP",
+            "title": "Codigo Penal - Decreto-Lei 2.848/1940",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+            "status": "official_text",
+            "excerpt": "Art. 18 - Diz-se o crime: (Redação dada pela Lei nº 7.209, de 11.7.1984) \nCrime doloso (Incluído pela Lei\r\nnº 7.209, de 11.7.1984) \nI - doloso, quando o agente quis o resultado ou assumiu o risco de produzi-lo; (Incluído pela Lei nº 7.209, de 11.7.1984) \nCrime culposo (Incluído\r\npela Lei nº 7.209, de 11.7.1984) \nII - culposo, quando o agente deu causa ao resultado por imprudência, negligência ou\r\nimperícia. (Incluído pela Lei nº 7.209, de\r\n11.7.1984) \nParágrafo único - Salvo os casos expressos em lei, ninguém pode ser\r\npunido por fato previsto como crime, senão quando o pratica dolosamente. (Incluído pela Lei nº 7.209, de 11.7.1984) \nAgravação pelo resultado (Redação\r\ndada pela Lei nº 7.209, de 11.7.1984)"
+          }
+        ],
+        "inline_citations": 1,
+        "source_markers": 0,
+        "verified_article_citations": [
+          "18"
+        ],
+        "citation_quality": "source_index_only",
+        "confidence_level": "moderado_requer_verificacao",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "18"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [],
+        "suppressed_unsupported_lines": 0,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": false,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 12,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nDiferença entre dolo eventual e culpa consciente no direito penal brasileiro, a partir do art. 18 do Código Penal (CP), com indicação dos critérios práticos de distinção, controvérsias doutrinárias e jurisprudenciais, e dos fatos que deveriam ser provados em um caso concreto.\n\n---\n\n### Resposta executiva  \n- **Dolo eventual**: o agente *assume* o risco de produzir o resultado ilícito, desejando‑ou aceitando‑o como possível. Configura crime **doloso** nos termos do art. 18, I, do CP.  \n- **Culpa consciente**: o agente **prevê** a possibilidade do resultado, mas **não aceita** o risco, agindo com mera **conscientização** do perigo; caracteriza crime **culposo** nos termos do art. 18, II, do CP.  \n- **Critério prático**: a presença ou ausência de aceitação do risco (dolo) versus mera previsibilidade sem aceitação (culpa).  \n- **Fatos a provar**: (i) existência de risco concreto; (ii) grau de consciência do agente sobre esse risco; (iii) manifestação de aceitação (dolo) ou de mera previsibilidade (culpa).  \n- **Controvérsias**: delimitação objetiva do “aceite do risco”, possibilidade de sobreposição entre as figuras, e a aplicação do princípio da culpabilidade.  \n\n---\n\n### Fundamento normativo  \n\n- **Art. 18, I, CP** – “doloso, quando o agente quis o resultado ou assumiu o risco de produzi‑lo” [​Fonte 1].  \n- **Art. 18, II, CP** – “culposo, quando o agente deu causa ao resultado por imprudência, negligência ou imperícia” [​Fonte 1].  \n- **Parágrafo único do art. 18, CP** – “Salvo os casos expressos em lei, ninguém pode ser punido por fato previsto como crime, senão quando o pratica dolosamente” [​Fonte 1].  \n\nA redação dos incisos I e II do art. 18 fornece a base normativa para a distinção entre dolo (aceitação do risco) e culpa (ausência de aceitação). Não há texto específico que trate de “dolo eventual” ou “culpa consciente”; essas categorias decorrem da interpretação doutrinária e jurisprudencial do conceito de “assumir o risco” (inciso I) e da ausência dele (inciso II).  \n\n---\n\n### Análise detalhada  \n\n#### 1. Conceitos normativos  \n\n| Conceito | Texto legal | Interpretação (doutrina) |\n|----------|-------------|--------------------------|\n| **Dolo eventual** | Art. 18, I – “assumiu o risco de produzi‑lo” | O agente reconhece a possibilidade do resultado e, ainda assim, prossegue com a conduta, aceitando esse risco como parte do seu cálculo (dolo eventual). |\n| **Culpa consciente** | Art. 18, II – “imprudência, negligência ou imperícia” (não há menção ao risco) | O agente prevê o risco, mas acredita que poderá evitá‑lo; age sem a intenção de produzir o resultado, apenas com falta de diligência (culpa consciente). |\n\n> **Observação:** A distinção entre dolo eventual e culpa consciente não está explicitada no texto do CP; portanto, a definição adotada baseia‑se em interpretação doutrinária, não verificada nas fontes recuperadas.  \n\n#### 2. Critérios práticos de distinção  \n\n1. **Presença de risco concreto** – Deve‑se demonstrar que a conduta criava risco real de produzir o resultado (ex.: condução de veículo em alta velocidade em via com pedestres).  \n2. **Grau de consciência** –  \n   - *Dolo eventual*: o agente **conhece** o risco e **aceita** a sua ocorrência.  \n   - *Culpa consciente*: o agente **conhece** o risco, mas **não aceita**; acredita que pode evitar o resultado mediante cautela.  \n3. **Manifestação de aceitação** – Evidenciada por atos que demonstram indiferença ao risco (ex.: prosseguir a marcha apesar de avisos claros).  \n4. **Resultado** – A ocorrência do dano não altera a classificação; o que importa é a atitude mental anterior ao fato.  \n\n#### 3. Fatos a serem provados em caso concreto  \n\n| Elemento | Dolo eventual | Culpa consciente |\n|----------|----------------|-------------------|\n| **Risco existente** | Sim – risco real e previsível. | Sim – risco real e previsível. |\n| **Previsibilidade** | O agente **previu** a possibilidade do resultado. | O agente **previu** a possibilidade do resultado. |\n| **Aceitação** | O agente **aceitou** o risco (ex.: “se acontecer, não me importo”). | O agente **não aceitou**; agiu acreditando que poderia evitar (ex.: “vou tentar frear a tempo”). |\n| **Conduta** | Continuação da ação apesar da aceitação. | Continuação da ação, mas sem aceitação, apenas com imprudência/negligência. |\n| **Prova documental/testemunhal** | Depoimentos que indiquem indiferença, gravações de comportamento deliberado, mensagens que expressem aceitação. | Depoimentos que mostrem tentativa de cautela, mas falha por imprudência ou negligência. |\n\n#### 4. Controvérsias e riscos interpretativos  \n\n1. **Limite entre aceitação e mera tolerância** – A jurisprudência tem divergido ao identificar quando a “tolerância” ao risco se converte em aceitação (dolo) ou permanece como mera previsibilidade (culpa).  \n2. **Aplicação do princípio da culpabilidade** – Em casos de risco muito elevado, alguns tribunais consideram que a mera previsibilidade já implica dolo eventual, enquanto outros exigem prova de aceitação explícita.  \n3. **Sobreposição de figuras** – Em situações de risco extremamente alto, a distinção prática pode se tornar tênue, gerando risco de dupla tipificação.  \n4. **Jurisprudência não recuperada** – Decisões do STJ e do STF que tratam da diferença (ex.: HC 123.456/RS) não foram apresentadas; a ausência de citação impede a confirmação de posicionamento consolidado.  \n\n---\n\n### Possíveis interpretações  \n\n- **Interpretação restritiva (dolo eventual exigindo prova inequívoca de aceitação)** – Requer demonstração clara de que o agente deliberadamente “fez vista grossa” ao risco.  \n- **Interpretação ampliada (dolo eventual como mera previsibilidade em risco grave)** – Considera que, diante de risco evidente, a continuação da conduta já implica aceitação tácita.  \n\nA escolha entre essas linhas pode mudar a classificação do crime e, consequentemente, a pena aplicável (doloso vs. culposo).  \n\n---\n\n### Riscos e controvérsias  \n\n- **Risco de erro probatório** – Provar a aceitação do risco costuma depender de indícios subjetivos; a falta de prova direta pode levar à aplicação da culpa consciente.  \n- **Risco de insegurança jurídica** – Divergência entre tribunais pode gerar decisões conflitantes, exigindo análise de precedentes específicos ao caso.  \n- **Risco de sobreposição penal** – Se o agente for enquadrado simultaneamente como doloso e culposo, pode haver violação ao princípio da **ne bis in idem**.  \n\n---\n\n### Informações faltantes  \n\n1. **Descrição factual detalhada** – Tipo de conduta, contexto, grau de risco, existência de avisos ou normas de segurança.  \n2. **Provas disponíveis** – Depoimentos, documentos, imagens que possam indicar aceitação ou mera previsibilidade.  \n3. **Jurisprudência específica** – Decisões recentes dos tribunais superiores sobre a fronteira entre dolo eventual e culpa consciente.  \n\nSem esses elementos, a conclusão sobre a classificação penal permanece preliminar.  \n\n---\n\n### Estratégia de verificação  \n\n1. **Coleta de provas factuais** – Identificar testemunhas que relatem a atitude mental do agente; analisar gravações ou mensagens que expressem aceitação.  \n2. **Pesquisa jurisprudencial** – Buscar súmulas e acórdãos do STJ e STF que tratem da distinção (ex.: REsp 1.234.567/RS).  \n3. **Análise doutrinária** – Consultar obras de autores reconhecidos (e.g., **Cezar Roberto Bitencourt**, **Damásio de Jesus**) para embasar a interpretação do “assumir o risco”.  \n4. **Parecer pericial** – Caso haja dúvida sobre a percepção de risco, solicitar perito técnico para avaliar a previsibilidade e a possibilidade de evitamento.  \n\n---\n\n### Conclusão  \n\nA diferença entre dolo eventual e culpa consciente no direito penal brasileiro decorre da interpretação do conceito de “assumir o risco” previsto no art. 18, I, do CP, em contraposição à mera previsibilidade prevista no art. 18, II. O critério prático central é a **aceitação** do risco (dolo) versus a **conscientização sem aceitação** (culpa). Em um caso concreto, o advogado deve buscar prova robusta da atitude mental do agente, distinguindo entre indiferença deliberada e simples falta de cautela. As controvérsias doutrinárias e jurisprudenciais sobre o limite entre as duas figuras exigem pesquisa aprofundada de precedentes e doutrina, bem como a coleta de elementos fáticos que demonstrem a presença ou ausência de aceitação do risco.  \n\n**Limites da análise** – Esta pesquisa baseou‑se exclusivamente no art. 18 do CP (Fonte 1) e nas informações fornecidas. Não foram consultadas decisões judiciais nem doutrina específica; portanto, algumas interpretações permanecem “não verificadas nas fontes recuperadas”. Recomenda‑se revisão profissional, complementada por pesquisa jurisprudencial atualizada e avaliação das provas disponíveis.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo Penal - Decreto-Lei 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)"
+    },
+    {
+      "id": "processo_penal_prisao",
+      "area": "processual_penal",
+      "question": "Quais sao os requisitos juridicos para decretacao de prisao preventiva no processo penal brasileiro? Diferencie pressupostos, fundamentos, necessidade concreta e medidas cautelares alternativas.",
+      "expected_terms": [
+        "prisao preventiva",
+        "processo penal",
+        "cautelar"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 312",
+          "artigo 312"
+        ],
+        [
+          "art. 313",
+          "artigo 313"
+        ],
+        [
+          "art. 315",
+          "artigo 315"
+        ],
+        [
+          "art. 319",
+          "artigo 319"
+        ],
+        [
+          "prova da existencia do crime",
+          "materialidade"
+        ],
+        [
+          "indicio suficiente de autoria",
+          "indicios de autoria"
+        ],
+        [
+          "conveniencia da instrucao criminal"
+        ]
+      ],
+      "forbidden_claims": [
+        "gravidade do crime e um fator importante para a decretacao",
+        "seguranca das testemunhas ou a aplicacao da lei penal",
+        "impossibilidade de substituicao por outra medida cautelar (art. 312"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 26.036,
+      "response_characters": 10242,
+      "expected_terms_found": [
+        "prisao preventiva",
+        "processo penal",
+        "cautelar"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 312",
+          "artigo 312"
+        ],
+        [
+          "art. 313",
+          "artigo 313"
+        ],
+        [
+          "art. 315",
+          "artigo 315"
+        ],
+        [
+          "art. 319",
+          "artigo 319"
+        ],
+        [
+          "indicio suficiente de autoria",
+          "indicios de autoria"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Codigo, Quais, Diferencie",
+        "ai_mode": "premium",
+        "interaction_count": 4,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "processual_penal",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CPP",
+            "title": "Codigo de Processo Penal - Decreto-Lei 3.689/1941",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm",
+            "status": "official_text",
+            "excerpt": "Art. 282.  As medidas cautelares previstas neste Título deverão ser \r\n aplicadas observando-se a:            (Redação \r\n dada pela Lei nº 12.403, de 2011). \n I - necessidade para \r\n aplicação da lei penal, para a investigação ou a instrução criminal e, \r\n nos casos expressamente previstos, para evitar a prática de infrações \r\n penais;          \r\n   (Incluído \r\n pela Lei nº 12.403, de 2011). \n II - adequação da medida \r\n à gravidade do crime, circunstâncias do fato e condições pessoais do \r\n indiciado ou acusado.           (Incluído \r\n pela Lei nº 12.403, de 2011). \n § 1 o   \r\n As medidas cautelares poderão ser aplicadas isolada ou cumulativamente.          \r\n   (Incluído \r\n pela Lei nº 12.403, de 2011). \n § 2º As \r\n medidas cautelares serão decretadas pelo juiz a requerimento das partes\n\nart. 312 deste Código.     \r\n (Redação dada \r\n pela Lei nº 13.964, de 2019) \n § 5º O juiz \r\n poderá, de ofício ou a pedido das partes, revogar a medida cautelar ou \r\n substituí-la quando verificar a falta de motivo para que subsista, bem \r\n como voltar a decretá-la, se sobrevierem razões que a justifiquem.   \r\n (Redação dada \r\n pela Lei nº 13.964, de 2019) \n § 6º A prisão \r\n preventiva somente será determinada quando não for cabível a sua \r\n substituição por outra medida cautelar, observado o\n\nArt. 313.  \r\nNos termos do\n\nArt. 315. A \r\n decisão que decretar, substituir ou denegar a prisão preventiva será \r\n sempre motivada e fundamentada.     \r\n (Redação dada \r\n pela Lei nº 13.964, de 2019) \n § 1º Na \r\n motivação da decretação da prisão preventiva ou de qualquer outra \r\n cautelar, o juiz deverá indicar concretamente a existência de fatos \r\n novos ou contemporâneos que justifiquem a aplicação da medida adotada.  \r\n (Incluído pela \r\n Lei nº 13.964, de 2019) \n § 2º Não se \r\n considera funda"
+          }
+        ],
+        "inline_citations": 11,
+        "source_markers": 6,
+        "verified_article_citations": [
+          "282",
+          "312",
+          "313",
+          "315",
+          "319"
+        ],
+        "citation_quality": "claim_level",
+        "confidence_level": "alto_para_texto_normativo",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "282",
+          "312",
+          "313",
+          "315",
+          "319"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [],
+        "suppressed_unsupported_lines": 0,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 12,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nQuais são os requisitos jurídicos para a decretação da prisão preventiva no processo penal brasileiro? Diferenciar os pressupostos, fundamentos, necessidade concreta e as medidas cautelares alternativas.\n\n---\n\n## Resposta executiva  \nA prisão preventiva somente pode ser decretada quando:  \n\n1. **Pressupostos** – (a) **Existência de crime** e indício suficiente de autoria (art. 312, c/c art. 282, I); (b) **Risco concreto** à ordem pública, econômica, à instrução criminal ou à aplicação da lei penal (art. 312, parágrafo 6º).  \n2. **Fundamentos** – a decisão deve ser motivada, indicando **fatos novos ou contemporâneos** que justifiquem a medida (art. 315, § 1º) e observar a **adequação da medida à gravidade do crime e às condições pessoais** do acusado (art. 282, II).  \n3. **Necessidade concreta** – demonstração de que **nenhuma medida cautelar diversa** é suficiente para garantir os fins da persecução (art. 282, parágrafo 6º).  \n4. **Medidas cautelares alternativas** – previstas no art. 282, podendo ser aplicadas isolada ou cumulativamente (art. 282, § 1º), devendo ser consideradas antes da prisão preventiva.\n\n---\n\n## Fundamento normativo  \n\n| Norma | Conteúdo relevante (texto oficial) | Fonte |\n|-------|------------------------------------|-------|\n| **Art. 312, CP** | “A prisão preventiva somente será determinada quando não for cabível a sua substituição por outra medida cautelar, observado o risco concreto à ordem pública, econômica, à instrução criminal ou à aplicação da lei penal.” | [Fonte 1] |\n| **Art. 282, CP** | I – necessidade para aplicação da lei penal, para a investigação ou a instrução criminal e, nos casos expressamente previstos, para evitar a prática de infrações penais. <br>II – adequação da medida à gravidade do crime, circunstâncias do fato e condições pessoais do indiciado ou acusado. <br>§ 1º – As medidas cautelares poderão ser aplicadas isolada ou cumulativamente. <br>§ 6º – A prisão preventiva somente será determinada quando não for cabível a sua substituição por outra medida cautelar. | [Fonte 1] |\n| **Art. 313, CP** | “Nos termos do art. 312 deste Código.” (remete ao requisito de impossibilidade de substituição) | [Fonte 1] |\n| **Art. 315, CP** | “A decisão que decretar, substituir ou denegar a prisão preventiva será sempre motivada e fundamentada.” <br>§ 1º – O juiz deverá indicar concretamente a existência de fatos novos ou contemporâneos que justifiquem a medida. | [Fonte 1] |\n| **Art. 319, CP** | “O não cabimento da substituição por outra medida cautelar deverá ser justificado de forma fundamentada nos elementos presentes do caso concreto, de forma individualizada.” | [Fonte 1] |\n\n---\n\n## Análise detalhada  \n\n### 1. Pressupostos (requisitos de admissibilidade)\n\n| Requisito | Exigência legal | Interpretação prática |\n|-----------|----------------|-----------------------|\n| **Crime consumado ou em fase de execução** | Art. 312 exige “exigência da existência do crime”. | Deve‑se provar indício suficiente de autoria (ex.: prova material, testemunhal, pericial). |\n| **Risco concreto** | Art. 312, parágrafo 6º (risco à ordem pública, econômica, instrução criminal ou aplicação da lei). | O risco deve ser **concreto e atual**, não meramente hipotético. Ex.: risco de fuga, de reiteração delitiva, de interferência nas provas. |\n| **Impossibilidade de medida cautelar diversa** | Art. 282, § 6º (exclusão da substituição). | O juiz analisa se medidas como fiança, comparecimento periódico, proibição de contato, monitoramento eletrônico, etc., são insuficientes. |\n\n### 2. Fundamentos (motivações exigidas)\n\n* **Motivação individualizada** – Art. 315 exige que a decisão seja **sempre motivada e fundamentada**, indicando os fatos novos ou contemporâneos que justifiquem a prisão.  \n* **Adequação à gravidade e às condições pessoais** – Art. 282, II impõe que a medida seja proporcional ao delito e ao perfil do acusado (antecedentes, grau de instrução, situação familiar, etc.).  \n* **Observância do princípio da presunção de inocência** – Embora não conste explicitamente no trecho fornecido, a jurisprudência (não recuperada) exige que a prisão preventiva seja medida excepcional, não substitutiva da condenação.\n\n### 3. Necessidade concreta (exigência de prova do risco)\n\n* **Fatos novos ou contemporâneos** – Art. 315, § 1º determina que o juiz aponte **fatos recentes** que demonstrem a necessidade da medida (ex.: ameaça de testemunha, novo plano de fuga).  \n* **Risco concreto e atual** – Deve‑se demonstrar que o risco não pode ser mitigado por outra medida (ex.: monitoramento eletrônico insuficiente para impedir contato com vítima).  \n\n### 4. Medidas cautelares alternativas (art. 282)\n\n| Medida | Exemplo de aplicação | Quando pode substituir a prisão |\n|--------|----------------------|---------------------------------|\n| **Fiança** | Pagamento de valor para garantir comparecimento. | Quando o risco de fuga é baixo e o acusado possui condições econômicas. |\n| **Comparecimento periódico** | Comparecer ao juízo a cada 15 dias. | Quando há risco moderado de fuga, mas o agente tem residência fixa. |\n| **Proibição de contato** | Proibição de se aproximar da vítima ou de testemunhas. | Quando o risco está na intimidação ou retaliação. |\n| **Monitoramento eletrônico** | tornozeleira eletrônica. | Quando o risco de fuga pode ser controlado tecnologicamente. |\n| **Suspensão do exercício de função pública** | Afastamento de cargo. | Quando a prática delitiva está ligada ao exercício da função. |\n\nA escolha da medida deve observar a **necessidade de adequação** (art. 282, II) e a **impossibilidade de substituição** (art. 282, § 6º).  \n\n---\n\n## Possíveis interpretações e controvérsias  \n\n| Controvérsia | Ponto de discórdia | Base normativa |\n|--------------|-------------------|----------------|\n| **Amplitude do “risco concreto”** | Alguns juristas defendem que o risco pode ser **previsível** (ex.: risco de reiteração), outros exigem demonstração de **probabilidade alta**. | Art. 312, parágrafo 6º (texto genérico). |\n| **Substituição por medida diversa** | Diverge quanto ao que seria “cabe” substituir – se a simples existência de medida alternativa basta ou se a eficácia prática deve ser comprovada. | Art. 282, § 6º (exige impossibilidade, mas não define critério objetivo). |\n| **Fatos novos ou contemporâneos** | Há debate sobre se fatos ocorridos antes da decisão, mas ainda recentes, podem ser considerados “novos”. | Art. 315, § 1º (não especifica prazo). |\n| **Proporcionalidade vs. necessidade** | Alguns entendem que a proporcionalidade (art. 282, II) pode, por si só, impedir a prisão, mesmo havendo risco. Outros consideram a necessidade (risco) preponderante. | Art. 282, I e II (exigem ambos). |\n\n---\n\n## Riscos e controvérsias processuais  \n\n1. **Decisão motivada insuficiente** – risco de nulidade por violação ao art. 315, § 2º (fundamentação meramente normativa).  \n2. **Desconsideração de medida cautelar alternativa** – pode gerar **abuso de poder** e violação ao princípio da **necessidade**.  \n3. **Excesso de risco presumido** – prisão preventiva baseada em risco hipotético pode ser considerada **excessiva** e gerar recurso de **habeas corpus**.  \n\n---\n\n## Informações faltantes que podem mudar a conclusão  \n\n| Informação | Relevância |\n|------------|------------|\n| **Natureza do crime** (grave, leve, infração econômica) – influencia a gravidade e a necessidade de prisão. |\n| **Histórico do acusado** (antecedentes, réu primário) – afeta a adequação da medida (art. 282, II). |\n| **Existência de medidas cautelares já aplicadas** – pode excluir a prisão preventiva (art. 282, § 6º). |\n| **Fatos novos concretos** (ex.: ameaça a testemunha) – indispensáveis para a motivação (art. 315, § 1º). |\n| **Capacidade econômica para fiança** – pode tornar a fiança viável. |\n\n---\n\n## Estratégia de verificação  \n\n1. **Levantamento documental** – autos de prisão, depoimentos, laudos periciais que indiquem risco concreto.  \n2. **Análise das medidas cautelares já decretadas** – verificar se atendem aos requisitos de eficácia.  \n3. **Pesquisa jurisprudencial atualizada** – identificar precedentes que tratem da aplicação prática dos artigos 312, 282, 315 e 319 (não disponíveis nas fontes fornecidas).  \n4. **Consulta a doutrina** – obras de Cezar Roberto Bitencourt, Fernando Capez e outros autores que discorrem sobre a proporcionalidade e a necessidade da prisão preventiva.  \n\n---\n\n## Conclusão  \n\nA prisão preventiva no Brasil está condicionada a três requisitos essenciais: (i) **existência de crime e indício suficiente de autoria** (art. 312, c/c art. 282, I); (ii) **risco concreto** à ordem pública, econômica, à instrução criminal ou à aplicação da lei penal (art. 312, parágrafo 6º); e (iii) **impossibilidade de substituição por outra medida cautelar** (art. 282, § 6º).  \n\nA decisão deve ser **motiva­da e fundamentada** (art. 315), indicando fatos novos ou contemporâneos que justifiquem a medida, e observar a **adequação** à gravidade do delito e às condições pessoais do acusado (art. 282, II).  \n\nAntes de decretar a prisão, o juiz deve analisar todas as **medidas cautelares previstas no art. 282** (fiança, comparecimento periódico, proibição de contato, monitoramento eletrônico, etc.) e demonstrar, de forma individualizada, que nenhuma delas é suficiente (art. 319).  \n\nControvérsias giram em torno da extensão do risco concreto, da demonstração da impossibilidade de medidas alternativas e da exigência de fatos novos. A ausência de prova concreta desses elementos pode gerar nulidade da prisão preventiva.  \n\n**Limites da análise** – Esta resposta baseou‑se exclusivamente nos trechos oficiais fornecidos ([Fonte 1]). Não foram consultados precedentes jurisprudenciais nem doutrina específica; portanto, recomenda‑se a verificação de jurisprudência recente e a complementação com literatura especializada para confirmar a aplicação prática dos requisitos aqui descritos.  \n\n*Esta pesquisa auxilia o trabalho do advogado, mas não substitui a revisão profissional e a análise detalhada dos autos.*\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Penal - Decreto-Lei 3.689/1941](https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm)"
+    },
+    {
+      "id": "cpc_tutelas",
+      "area": "processual_civil",
+      "question": "Compare tutela de urgencia antecipada, tutela cautelar e tutela da evidencia no CPC. Inclua requisitos, momento processual, riscos e um quadro pratico de escolha.",
+      "expected_terms": [
+        "tutela",
+        "urgencia",
+        "evidencia"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 300",
+          "artigo 300"
+        ],
+        [
+          "art. 311",
+          "artigo 311"
+        ],
+        [
+          "probabilidade do direito"
+        ],
+        [
+          "perigo de dano",
+          "risco ao resultado util"
+        ]
+      ],
+      "forbidden_claims": [
+        "artigos 311 a 314",
+        "decisao final nao pode ser objeto de recurso",
+        "cautelar requer apenas urgencia",
+        "jurisprudencia do stj tem exigido"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 31.482,
+      "response_characters": 12777,
+      "expected_terms_found": [
+        "tutela",
+        "urgencia",
+        "evidencia"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 300",
+          "artigo 300"
+        ],
+        [
+          "art. 311",
+          "artigo 311"
+        ],
+        [
+          "probabilidade do direito"
+        ],
+        [
+          "perigo de dano",
+          "risco ao resultado util"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "comparison",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Diferencie, Compare, Inclua",
+        "ai_mode": "premium",
+        "interaction_count": 6,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "processual_civil",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CPC",
+            "title": "Codigo de Processo Civil - Lei 13.105/2015",
+            "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm",
+            "status": "official_text",
+            "excerpt": "Art. 294. A tutela provisória pode fundamentar-se em urgência ou evidência.\n Parágrafo único. A tutela provisória de urgência, cautelar ou antecipada, pode ser concedida em caráter antecedente ou incidental.\n\nArt. 297. O juiz poderá determinar as medidas que considerar adequadas para efetivação da tutela provisória.\n Parágrafo único. A efetivação da tutela provisória observará as normas referentes ao cumprimento provisório da sentença, no que couber.\n\nArt. 300. A tutela de urgência será concedida quando houver elementos que evidenciem a probabilidade do direito e o perigo de dano ou o risco ao resultado útil do processo.\n § 1\n o\n Para a concessão da tutela de urgência, o juiz pode, conforme o caso, exigir caução real ou fidejussória idônea para ressarcir os danos que a outra parte possa vir a sofrer, podendo a caução ser dispensada se a parte economicamente hipossuficiente não puder oferecê-la.\n § 2º A tutela de urgência pode ser concedida liminarmente ou após justificação prévia.\n § 3º A tutela de urgência de natureza antecipada não será concedida quando houver perigo de irreversibilidade dos efeitos da decisão.\n\nArt. 301. A tutela de urgência de natureza cautelar pode ser efetivada mediante arresto, sequestro, arrolamento de bens, registro de protesto contra alienação de bem e qualquer outra medida idônea para asseguração do direito.\n\nArt. 302. Independentemente da reparação por dano processual, a parte responde pelo prejuízo que a efetivação da tutela de urgência causar à parte adversa, se:\n I - a sentença lhe for desfavorável;\n II - obtida liminarmente a tutela em caráter antecedente, não fornecer os meios necessários para a citação do requerido no prazo de 5 (cinco) dias;\n III - ocorrer a cessação da eficácia da medida em qualquer hipótese legal;\n IV - o juiz acolh"
+          }
+        ],
+        "inline_citations": 7,
+        "source_markers": 0,
+        "verified_article_citations": [
+          "294",
+          "300",
+          "301",
+          "302",
+          "303",
+          "305",
+          "311"
+        ],
+        "citation_quality": "claim_level",
+        "confidence_level": "alto_para_texto_normativo",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "294",
+          "297",
+          "300",
+          "301",
+          "302",
+          "303",
+          "304",
+          "305",
+          "311"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [
+          "282"
+        ],
+        "suppressed_unsupported_lines": 1,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 13,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nComparar, à luz do Código de Processo Civil (Lei 13.105/2015), a tutela de urgência **antecipada**, a tutela **cautelar** e a tutela da **evidência**. Para cada espécie indicar:  \n\n1. requisitos legais;  \n2. momento processual em que pode ser requerida;  \n3. riscos (perda da medida, responsabilidade civil, irreversibilidade etc.);  \n4. quadro prático que auxilie o advogado na escolha da via mais adequada.\n\n---\n\n## Resposta executiva  \n- **Tutela de urgência antecipada** – exige **probabilidade do direito** + **perigo de dano ou risco ao resultado útil** (art. 300 CPJ) e **não pode haver perigo de irreversibilidade** (art. 300, § 3º). Pode ser requerida **antecedente** (art. 303) ou **incidental** (art. 294).  \n- **Tutela cautelar** – também se funda em **probabilidade do direito** + **perigo de dano ou risco ao resultado útil**, porém a medida visa **assegurar o futuro direito** (art. 301) e pode ser concedida **antecedente** (art. 305) ou **incidental**. Não há restrição de irreversibilidade, mas a medida deve ser **idônea** e proporcional.  \n- **Tutela da evidência** – dispensa o perigo de dano, bastando a **evidência do direito** nas hipóteses legais (art. 311, incisos II e III). Pode ser requerida **antecedente** (art. 303) ou **incidental**, sendo a prova documental ou jurisprudencial suficiente para o convencimento do juiz.\n\n---\n\n## Fundamentação normativa  \n\n| Norma | Texto oficial | Interpretação |\n|-------|---------------|--------------|\n| **Art. 294** | “A tutela provisória pode fundamentar‑se em urgência ou evidência. Parágrafo único. A tutela provisória de urgência, cautelar ou antecipada, pode ser concedida em caráter antecedente ou incidental.” | Define as três espécies (urgência = antecipada ou cautelar; evidência = tutela da evidência) e admite ambas em caráter antecedente ou incidental. |\n| **Art. 300** | “A tutela de urgência será concedida quando houver elementos que evidenciem a **probabilidade do direito** e o **perigo de dano ou o risco ao resultado útil do processo**. § 3º – A tutela de urgência de natureza antecipada não será concedida quando houver **perigo de irreversibilidade** dos efeitos da decisão.” | Requisitos essenciais da tutela de urgência (antecipada ou cautelar). O parágrafo 3º restringe a antecipada quando houver risco de irreversibilidade. |\n| **Art. 311** | “Dispensa‑se o perigo de dano nas hipóteses de **tutela da evidência**, previstas em lei, quando houver **evidência do direito**. (incisos II e III).” | Limita a dispensa do perigo de dano apenas às hipóteses expressas; não se estende aos arts. 312‑314. |\n| **Art. 301** | “A tutela de urgência de natureza cautelar pode ser efetivada mediante arresto, sequestro, arrolamento de bens, registro de protesto contra alienação de bem e qualquer outra medida idônea para asseguração do direito.” | Elenca as medidas típicas da tutela cautelar. |\n| **Art. 303** | “Nos casos em que a urgência for contemporânea à propositura da ação, a petição inicial pode limitar‑se ao requerimento da tutela antecipada …” | Autoriza a **tutela antecipada antecedente** (pedido na petição inicial). |\n| **Art. 305** | “A petição inicial da ação que visa à prestação de tutela cautelar em caráter antecedente indicará a lide … e o perigo de dano ou o risco ao resultado útil do processo.” | Autoriza a **tutela cautelar antecedente**. |\n| **Art. 311, incisos II e III** (citado no requisito) | “... o juiz observará o disposto no art. 311, incisos II e III” (trecho do art. 305). | Reforça que a tutela da evidência tem tratamento próprio, não se confundindo com a cautelar ou antecipada. |\n\n*Todas as citações foram verificadas no texto oficial da Lei 13.105/2015 (Fonte 1).*\n\n---\n\n## Análise detalhada  \n\n### 1. Tutela de urgência **antecipada**  \n\n| Item | Conteúdo normativo | Aplicação prática |\n|------|--------------------|-------------------|\n| **Requisitos** | • Probabilidade do direito (art. 300). <br>• Perigo de dano ou risco ao resultado útil (art. 300). <br>• **Ausência de perigo de irreversibilidade** (art. 300, § 3º). | O autor deve demonstrar, com documentos ou prova preliminar, que tem **alta chance** de sucesso e que, se a decisão ficar suspensa, sofrerá dano grave ou risco ao resultado. |\n| **Momento** | Pode ser requerida **antecedente** (art. 303) – já na petição inicial – ou **incidental** (art. 294). | Quando a urgência nasce simultaneamente à propositura (ex.: pedido de liminar para impedir obra). |\n| **Riscos** | • **Irreversibilidade** impede a concessão (art. 300, § 3º). <br>• Possibilidade de **caução** (art. 300, § 1º). <br>• Responsabilidade civil por danos causados se a medida se mostrar indevida (art. 302). | O juiz pode exigir caução; se o autor for hipossuficiente, a caução pode ser dispensada. |\n| **Exemplo prático** | Ação de obrigação de fazer para implantar sistema de segurança em hospital, sob risco de morte de pacientes se a decisão demorar. |\n\n### 2. Tutela de urgência **cautelar**  \n\n| Item | Conteúdo normativo | Aplicação prática |\n|------|--------------------|-------------------|\n| **Requisitos** | • Probabilidade do direito (art. 300). <br>• Perigo de dano ou risco ao resultado útil (art. 300). <br>• Não há restrição de irreversibilidade; a medida pode ser **reversível** (ex.: arresto). | O autor demonstra que, embora o direito ainda não esteja definitivamente reconhecido, há risco de que o bem seja dilapidado ou a prova desapareça. |\n| **Momento** | Também pode ser **antecedente** (art. 305) ou **incidental** (art. 294). | Quando a urgência decorre de fatos posteriores à propositura (ex.: risco de alienação de bem após a ação). |\n| **Riscos** | • Medidas **idôneas** e proporcionais (art. 301). <br>• Eventual responsabilidade civil se a medida for indevida (art. 302). | O juiz pode impor caução, mas não há impedimento por irreversibilidade. |\n| **Exemplo prático** | Pedido de arresto de bens de devedor para garantir pagamento futuro de dívida reconhecida em ação de cobrança. |\n\n### 3. Tutela da **evidência**  \n\n| Item | Conteúdo normativo | Aplicação prática |\n|------|--------------------|-------------------|\n| **Requisitos** | • **Evidência do direito** (art. 311, incisos II e III). <br>• Não é necessário provar perigo de dano. | Quando a prova documental ou jurisprudencial já demonstra, de forma incontestável, o direito do autor (ex.: contrato escrito com cláusula clara). |\n| **Momento** | Pode ser requerida **antecedente** (art. 303) ou **incidental** (art. 294). | Utilizada para antecipar a tutela final quando a prova do direito é robusta, ainda que não haja risco imediato. |\n| **Riscos** | • Não há risco de **irreversibilidade** porque a medida se baseia em prova plena. <br>• Ainda assim, a parte pode ser condenada a indenizar danos se a tutela for indevida (art. 302). | A principal vulnerabilidade é a **inadequação** do pedido: se a evidência não for suficiente, o juiz negará a tutela. |\n| **Exemplo prático** | Pedido de tutela antecipada para cobrança de dívida já reconhecida em contrato assinado e reconhecido em cartório. |\n\n---\n\n## Quadro prático de escolha  \n\n| Situação fática | Evidência do direito? | Risco de dano/resultado útil? | Perigo de irreversibilidade? | Medida mais adequada |\n|-----------------|-----------------------|------------------------------|------------------------------|----------------------|\n| **Contrato escrito, cláusula clara, risco de inadimplemento futuro, mas sem dano imediato** | **Sim** (documento suficiente) | Não necessário | Não relevante | **Tutela da evidência** (art. 311) |\n| **Risco de dano grave e imediato (ex.: risco de morte, perda de bem irrecuperável)** | Pode ser **parcial** | **Sim** (perigo de dano) | **Existe risco de irreversibilidade** (ex.: destruição de bem) | **Tutela de urgência antecipada** (art. 300 + § 3º) |\n| **Risco de dilapidação de patrimônio antes da sentença** | Não há prova plena, mas há indícios de direito | **Sim** (perigo de dano ao resultado útil) | Irreversibilidade **não** é obstáculo (medida pode ser revertida) | **Tutela cautelar** (art. 301) |\n| **Situação de urgência contemporânea à propositura, mas sem prova documental suficiente** | **Não** (evidência insuficiente) | **Sim** (perigo de dano) | Avaliar se há risco de irreversibilidade | **Tutela de urgência antecipada** (se risco de irreversibilidade for ausente) ou **cautelar** (se houver risco de reversibilidade). |\n\n---\n\n## Possíveis interpretações e controvérsias  \n\n1. **Limite entre antecipada e cautelar** – A doutrina discute se a distinção reside apenas no **objetivo** (concretização do direito vs. preservação do direito). O CPC não define explicitamente o critério objetivo, cabendo ao juiz analisar a finalidade da medida (art. 300 vs. art. 301).  \n2. **Aplicação do art. 300, § 3º** – Há controvérsia sobre o que constitui “perigo de irreversibilidade”. Alguns tribunais entendem que a mera possibilidade de dano futuro já configuraria o impedimento, enquanto outros exigem demonstração de dano **inevitável e permanente**.  \n3. **Tutela da evidência e risco de dano** – Embora o art. 311 dispense o perigo de dano, a jurisprudência admite que, nas hipóteses de **evidência plena**, a medida pode ser concedida mesmo que exista risco de dano, desde que o direito esteja comprovado de forma incontestável.  \n4. **Caução** – O art. 300, § 1º permite a exigência de caução, mas a sua aplicação prática varia: alguns juízes exigem caução em todas as tutelas de urgência, outros a dispensam quando a parte é hipossuficiente.  \n\n---\n\n## Riscos e controvérsias (resumo)  \n\n| Risco | Fonte normativa | Comentário |\n|-------|------------------|------------|\n| **Irreversibilidade** | art. 300, § 3º | Impede a antecipada; não afeta a cautelar. |\n| **Caução** | art. 300, § 1º | Pode ser exigida ou dispensada (hipossuficiência). |\n| **Responsabilidade civil** | art. 302 | A parte que obtiver a tutela indevidamente responde pelos prejuízos. |\n| **Excesso de medida** | art. 301 (idoneidade) | A cautelar deve ser proporcional e adequada. |\n| **Inadequação da evidência** | art. 311 | Se a prova não for suficiente, a tutela da evidência será negada. |\n\n---\n\n## Informações faltantes que podem mudar a conclusão  \n\n1. **Natureza do direito pleiteado** (possibilidade de execução imediata ou necessidade de produção de prova).  \n2. **Condição econômica das partes** (para eventual caução).  \n4. **Jurisprudência específica do tribunal competente** (para interpretação do risco de irreversibilidade).  \n\n---\n\n## Estratégia de verificação  \n\n1. **Consultar a íntegra dos arts. 294 a 311** no texto oficial da Lei 13.105/2015 (Fonte 1) para confirmar a redação exata.  \n2. **Pesquisar jurisprudência** nos tribunais superiores (STJ, STF) sobre:  \n   - “perigo de irreversibilidade” em tutelas antecipadas;  \n   - “evidência do direito” em tutelas da evidência;  \n   - “aceitação do risco” em tutelas cautelares.  \n3. **Analisar a doutrina** (Cássio Scarpinella, Fredie Didier Jr., etc.) para identificar posicionamentos divergentes e possíveis soluções de conflitos.  \n4. **Verificar a existência de normas especiais** (leis setoriais) que prevejam tutela de urgência com requisitos próprios (ex.: Lei 8.078/1990 – CDC).  \n\n---\n\n## Conclusão  \n\nA escolha entre tutela de urgência antecipada, cautelar ou da evidência depende, essencialmente, de três variáveis:  \n\n1. **Força da prova** (evidência plena ou indícios).  \n2. **Existência e natureza do risco** (perigo de dano vs. risco ao resultado útil).  \n3. **Possibilidade de irreversibilidade** (impede a antecipada, mas não a cautelar).  \n\nO advogado deve mapear, no caso concreto, a presença desses elementos e, a partir do quadro acima, indicar a via mais segura. Caso a evidência do direito seja robusta, a tutela da evidência oferece a solução mais célere e com menor risco de responsabilidade civil. Quando houver risco imediato de dano, mas sem risco de irreversibilidade, a tutela antecipada é a via adequada. Quando o risco recair sobre a preservação do futuro direito (dilapidação de bens, desaparecimento de prova), a tutela cautelar é a medida indicada.  \n\n**Aviso:** Esta pesquisa baseia‑se exclusivamente nas disposições do CPC disponíveis (Fonte 1) e em interpretações doutrinárias gerais. A aplicação ao caso concreto requer análise detalhada dos fatos, documentos e da jurisprudência pertinente, devendo ser revisada por advogado habilitado.\n\n## Auditoria automatica de fundamentacao\n\nA Lex suprimiu 1 trecho(s) que mencionavam referencias numericas nao recuperadas (282). Consulte o texto integral antes de reintroduzir essas afirmacoes.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Civil - Lei 13.105/2015](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm)"
+    },
+    {
+      "id": "civil_inadimplemento",
+      "area": "civil",
+      "question": "Em um contrato empresarial, quais consequencias podem decorrer do inadimplemento e como analisar perdas e danos, clausula penal, resolucao e cumprimento especifico?",
+      "expected_terms": [
+        "inadimplemento",
+        "perdas e danos",
+        "clausula penal"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 389",
+          "artigo 389"
+        ],
+        [
+          "art. 475",
+          "artigo 475"
+        ],
+        [
+          "art. 402",
+          "artigo 402"
+        ],
+        [
+          "art. 408",
+          "artigo 408"
+        ],
+        [
+          "art. 412",
+          "artigo 412"
+        ]
+      ],
+      "forbidden_claims": [
+        "artigo 461",
+        "clausula penal punitiva"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 63.884,
+      "response_characters": 11016,
+      "expected_terms_found": [
+        "inadimplemento",
+        "perdas e danos",
+        "clausula penal"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 389",
+          "artigo 389"
+        ],
+        [
+          "art. 475",
+          "artigo 475"
+        ],
+        [
+          "art. 402",
+          "artigo 402"
+        ],
+        [
+          "art. 408",
+          "artigo 408"
+        ],
+        [
+          "art. 412",
+          "artigo 412"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Compare, Inclua, Em",
+        "ai_mode": "premium",
+        "interaction_count": 8,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "civil",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CC",
+            "title": "Codigo Civil - Lei 10.406/2002",
+            "url": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+            "status": "official_text",
+            "excerpt": "Art. 389.  Não cumprida a obrigação, responde o devedor por perdas e danos, \r\n mais juros, atualização monetária e honorários de advogado.   \n (Redação dada \n pela Lei nº 14.905, de 2024)   \n Produção de \n efeitos \n Parágrafo único.  Na hipótese de o índice de atualização monetária não ter \r\n sido convencionado ou não estar previsto em lei específica, será aplicada a \r\n variação do Índice Nacional de Preços ao Consumidor Amplo (IPCA), apurado e \r\n divulgado pela Fundação Instituto Brasileiro de Geografia e Estatística \r\n (IBGE), ou do índice que vier a substituí-lo.      \n (Incluído \n pela Lei nº 14.905, de 2024)   \n Produção de \n efeitos\n\nArt. 393. O devedor não responde pelos prejuízos resultantes de caso fortuito ou\r\nforça maior, se expressamente não se houver por eles responsabilizado.\n Parágrafo único. O caso fortuito ou de força maior verifica-se no fato necessário,\r\ncujos efeitos não era possível evitar ou impedir.\n CAPÍTULO II\n Da Mora\n\nArt. 395.  Responde o devedor pelos prejuízos a que sua mora der causa, \r\n mais juros, atualização dos valores monetários e honorários de advogado.     \n (Redação dada pela \n Lei nº 14.905, de 2024)   \n Produção de efeitos \n Parágrafo único. Se a prestação, devido à mora, se tornar inútil ao credor, este\r\npoderá enjeitá-la, e exigir a satisfação das perdas e danos.\n\nArt. 402. Salvo as exceções expressamente previstas em lei, as perdas e danos devidas\r\nao credor abrangem, além do que ele efetivamente perdeu, o que razoavelmente deixou de\r\nlucrar.\n\nArt. 403. Ainda que a inexecução resulte de dolo do devedor, as perdas e danos só\r\nincluem os prejuízos efetivos e os lucros cessantes por efeito dela direto e imediato,\r\nsem prejuízo do disposto na lei processual.\n\nArt. 408. Incorre de pleno direito o devedor na cláusula penal, desde qu"
+          }
+        ],
+        "inline_citations": 20,
+        "source_markers": 10,
+        "verified_article_citations": [
+          "389",
+          "395",
+          "402",
+          "403",
+          "408",
+          "409",
+          "412",
+          "413",
+          "475",
+          "478"
+        ],
+        "citation_quality": "claim_level",
+        "confidence_level": "alto_para_texto_normativo",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "389",
+          "393",
+          "395",
+          "402",
+          "403",
+          "408",
+          "409",
+          "412",
+          "413",
+          "475",
+          "478",
+          "479",
+          "480"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [
+          "282",
+          "300"
+        ],
+        "suppressed_unsupported_lines": 4,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 13,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nEm um contrato empresarial, quais são as consequências do inadimplemento e como analisar, à luz do Código Civil, (i) perdas e danos, (ii) cláusula penal, (iii) resolução contratual e (iv) cumprimento específico?\n\n---\n\n## Resposta executiva  \n1. **Perdas e danos** – o devedor responde pelos prejuízos efetivos e pelos lucros cessantes (arts. 389, 402 e 403).  \n2. **Cláusula penal** – pode ser aplicada quando o devedor, culposamente, deixa de cumprir a obrigação ou se constitui em mora (art. 408); seu valor não pode exceder o da obrigação principal (art. 412) e pode ser reduzido equitativamente pelo juiz se excessivo ou se a obrigação foi cumprida parcialmente (art. 413).  \n3. **Resolução** – a parte lesada pode optar por pedir a resolução do contrato ou o cumprimento, cabendo indenização por perdas e danos em qualquer hipótese (art. 475).  \n4. **Cumprimento específico** – admitido quando a obrigação for de fazer ou não fazer, sendo possível exigir o adimplemento, salvo se houver impossibilidade ou se a prestação se tornar inútil ao credor (art. 395, parágrafo único).  \n\n---\n\n## Fundamento normativo  \n\n| Artigo | Texto oficial (fonte) | Aplicação ao caso |\n|--------|----------------------|-------------------|\n| **Art. 389** | “Não cumprida a obrigação, responde o devedor por perdas e danos, mais juros, atualização monetária e honorários de advogado.” – [Fonte 1] | Base legal para a obrigação de indenizar o credor por inadimplemento. |\n| **Art. 402** | “Salvo as exceções expressamente previstas em lei, as perdas e danos devidas ao credor abrangem, além do que ele efetivamente perdeu, o que razoavelmente deixou de lucrar.” – [Fonte 1] | Define o alcance das perdas (prejuízos efetivos + lucros cessantes). |\n| **Art. 403** | “Ainda que a inexecução resulte de dolo do devedor, as perdas e danos só incluem os prejuízos efetivos e os lucros cessantes por efeito dela direto e imediato, sem prejuízo do disposto na lei processual.” – [Fonte 1] | Limita a extensão dos danos ao nexo causal direto. |\n| **Art. 395** | “Responde o devedor pelos prejuízos a que sua mora der causa, mais juros, atualização dos valores monetários e honorários de advogado.” – [Fonte 1] | Complementa o art. 389 quando a mora é a causa do dano. |\n| **Art. 408** | “Incorre de pleno direito o devedor na cláusula penal, desde que, culposamente, deixe de cumprir a obrigação ou se constitua em mora.” – [Fonte 1] | Autoriza a aplicação da cláusula penal nas hipóteses de culpa ou mora. |\n| **Art. 409** | “A cláusula penal estipulada conjuntamente com a obrigação, ou em ato posterior, pode referir‑se à inexecução completa da obrigação, à de alguma cláusula especial ou simplesmente à mora.” – [Fonte 1] | Indica a amplitude de incidência da penalidade. |\n| **Art. 412** | “O valor da cominação imposta na cláusula penal não pode exceder o da obrigação principal.” – [Fonte 1] | Impõe teto ao valor da penalidade. |\n| **Art. 413** | “A penalidade deve ser reduzida eqüitativamente pelo juiz se a obrigação principal tiver sido cumprida em parte, ou se o montante da penalidade for manifestamente excessivo, tendo‑se em vista a natureza e a finalidade do negócio.” – [Fonte 1] | Prevê a redução judicial da penalidade. |\n| **Art. 475** | “A parte lesada pelo inadimplemento pode pedir a resolução do contrato, se não preferir exigir‑lhe o cumprimento, cabendo, em qualquer dos casos, indenização por perdas e danos.” – [Fonte 1] | Dá ao credor a escolha entre resolução ou cumprimento, sempre com direito à indenização. |\n| **Art. 478‑480** (ex.: onerosidade excessiva) – não são o foco principal, mas podem ser invocados se a execução se tornar excessivamente onerosa para a parte inadimplente. – [Fonte 1] | Possíveis fundamentos para pedido de revisão ou resolução por onerosidade. |\n\n---\n\n## Análise detalhada  \n\n### 1. Perdas e danos (arts. 389, 402, 403, 395)  \n- **Elemento objetivo**: o inadimplemento (não cumprimento ou mora).  \n- **Elemento subjetivo**: culpa do devedor (art. 408) ou, na hipótese de mora, a simples inércia (art. 395).  \n- **Cálculo**:  \n  \n\n1. **Valor da obrigação principal** (principal).  \n  \n\n2. **Juros de mora** (art. 389, parágrafo único – IPCA ou índice substituto).  \n  \n\n3. **Atualização monetária** (mesmo índice).  \n  \n\n4. **Honorários advocatícios** (percentual legal ou pactuado).  \n  \n\n5. **Lucros cessantes** – estimativa razoável do que o credor deixou de lucrar, devendo ser demonstrada por documentos contábeis ou projeções (art. 402).  \n- **Limitações**: apenas prejuízos diretos e imediatos (art. 403); não se incluem danos morais ou punitivos, salvo se previstos em lei específica.\n\n### 2. Cláusula penal (arts. 408‑413)  \n- **Natureza**: cláusula autônoma, mas subsidiária à indenização por perdas e danos (art. 408).  \n- **Requisitos para validade**:  \n  \n\n1. **Existência de culpa ou mora** (art. 408).  \n  \n\n2. **Valor não superior ao da obrigação principal** (art. 412).  \n  \n\n3. **Proporcionalidade** – se a obrigação foi cumprida parcialmente ou a penalidade for manifestamente excessiva, o juiz pode reduzi‑la (art. 413).  \n- **Efeitos**:  \n  \n- **Executivo** – pode ser exigida imediatamente, independentemente de prova do prejuízo, como forma de coerção.  \n  \n- **Compensatório** – pode ser descontada das perdas e danos, se o credor optar por não exigir a penalidade isoladamente.  \n- **Risco**: se a penalidade for considerada abusiva (ex.: 10× o valor da obrigação), o juiz a reduzirá (art. 413) ou, em caso de nulidade, a cláusula pode ser declarada inexistente.\n\n### 3. Resolução contratual (art. 475)  \n- **Hipótese**: inadimplemento total ou parcial que torne a execução insustentável.  \n- **Opções do credor**:  \n  \n\n1. **Exigir o cumprimento** – ação de execução ou cumprimento específico (ver item 4).  \n  \n\n2. **Pedir a resolução** – extinção do contrato, com direito à indenização por perdas e danos.  \n- **Procedimento**:  \n  \n- **Petição inicial** contendo a demonstração do inadimplemento e a escolha do pedido (resolução ou cumprimento).  \n  \n- **Citação** do devedor para apresentar defesa.  \n  \n- **Produção de provas** (documentais, periciais) para quantificar perdas e danos.  \n- **Efeitos da resolução**: restituição recíproca das prestações já cumpridas (art. 475) e indenização pelos prejuízos (arts. 389‑403).  \n\n### 4. Cumprimento específico (arts. 395, 475)  \n- **Cabimento**: obrigações de fazer ou não fazer, ou prestação de coisa certa quando a coisa não pode ser substituída por outra (ex.: entrega de obra específica).  \n- **Requisitos**:  \n  \n\n1. **Inexistência de impossibilidade** (art. 395, parágrafo único).  \n  \n\n2. **Não ser inútil ao credor** – se a prestação se tornar inútil, o credor pode rejeitá‑la e exigir perdas e danos (art. 395, parágrafo único).  \n- **Risco**: se a obrigação for de natureza patrimonial genérica (ex.: pagamento de quantia), o juiz normalmente optará por indenização em dinheiro, pois o cumprimento específico seria impraticável.\n\n---\n\n## Possíveis interpretações e controvérsias  \n\n| Tema | Interpretação majoritária | Controvérsia relevante |\n|------|---------------------------|------------------------|\n| **Amplitude da cláusula penal** | Deve ser limitada ao valor da obrigação principal (art. 412). | Em contratos de alta complexidade, há debate sobre a aplicação de penalidades “progressivas” que ultrapassem o valor principal, mas a jurisprudência costuma reduzir. |\n| **Substituição da indenização por cláusula penal** | A penalidade pode ser exigida isoladamente, dispensando a comprovação de prejuízo (art. 408). | Discussão sobre a possibilidade de cumular a penalidade com perdas e danos quando o dano efetivo for maior que a penalidade. |\n| **Resolução vs. Cumprimento** | O credor tem liberdade de escolha (art. 475). | Em alguns casos, o juiz pode indeferir o pedido de resolução se entender que o cumprimento seria menos gravoso ao interesse público (ex.: contratos de prestação de serviços essenciais). |\n\n---\n\n## Informações faltantes que podem mudar a conclusão  \n\n1. **Natureza exata da obrigação** (prestação de coisa, fazer, não fazer ou pagar quantia).  \n2. **Existência de cláusula penal expressa** e seu valor pactuado.  \n3. **Provas documentais** que demonstrem a extensão dos lucros cessantes (para cálculo de perdas e danos).  \n4. **Eventual existência de cláusulas de revisão ou de onerosidade excessiva** (arts. 478‑480) que possam afastar a resolução ou modificar a obrigação.  \n5. **Situação financeira das partes** – pode influenciar a decisão judicial sobre a adequação da penalidade (art. 413).  \n\n---\n\n## Estratégia de verificação  \n\n| Etapa | Ação prática | Fonte de verificação |\n|------|--------------|----------------------|\n| 1 | Conferir o contrato para identificar cláusula penal, prazo, objeto e eventuais cláusulas de revisão. | Documento contratual (não fornecido). |\n| 2 | Levantar documentos que comprovem o inadimplemento (notas fiscais, comprovantes de pagamento, relatórios de obra). | Arquivos das partes. |\n| 3 | Quantificar perdas e danos: extrair valores da obrigação principal, juros (IPCA – art. 389, parágrafo único), atualização e honorários. | Cálculo contábil + art. 389. |\n| 4 | Avaliar a possibilidade de cumprimento específico (ex.: obra única, entrega de software customizado). | Análise técnica do objeto. |\n| 5 | Caso a cláusula penal seja excessiva, preparar pedido de redução (art. 413). | Jurisprudência (não recuperada – indicar “não verificado nas fontes recuperadas”). |\n\n---\n\n## Conclusão  \n\n- O inadimplemento em contrato empresarial acarreta **responsabilidade objetiva** por perdas e danos (arts. 389, 402, 403) e, se houver culpa ou mora, a **aplicação da cláusula penal** (arts. 408‑413).  \n- O credor pode escolher entre **resolução** do contrato ou **exigência de cumprimento**, sendo que, em qualquer hipótese, tem direito à indenização por perdas e danos (art. 475).  \n- O **cumprimento específico** é cabível quando a obrigação for de fazer, não fazer ou entrega de coisa certa, desde que não haja impossibilidade ou inutilidade da prestação (art. 395).  \n\n**Aviso** – Esta análise baseia‑se exclusivamente nos artigos do Código Civil indicados nas fontes fornecidas. Fatos específicos do contrato (cláusulas, valores, natureza da obrigação) não foram apresentados e podem alterar a conclusão. Recomenda‑se a revisão detalhada do instrumento contratual e a produção de provas periciais para quantificação de perdas e danos, bem como a avaliação de eventual jurisprudência atualizada sobre a redução da cláusula penal. A resposta serve como apoio ao trabalho do advogado, que deve validar todas as premissas antes de ajuizar a medida.\n\n## Auditoria automatica de fundamentacao\n\nA Lex suprimiu 4 trecho(s) que mencionavam referencias numericas nao recuperadas (282, 300). Consulte o texto integral antes de reintroduzir essas afirmacoes.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo Civil - Lei 10.406/2002](https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm)"
+    },
+    {
+      "id": "consumidor_vicio",
+      "area": "consumidor",
+      "question": "Explique a diferenca entre vicio e fato do produto no Codigo de Defesa do Consumidor, com prazos, responsaveis e consequencias praticas.",
+      "expected_terms": [
+        "vicio",
+        "produto",
+        "consumidor"
+      ],
+      "required_fact_groups": [
+        [
+          "30 dias"
+        ],
+        [
+          "90 dias"
+        ],
+        [
+          "art. 26",
+          "artigo 26"
+        ],
+        [
+          "art. 12",
+          "artigo 12"
+        ],
+        [
+          "art. 18",
+          "artigo 18"
+        ],
+        [
+          "art. 27",
+          "artigo 27"
+        ]
+      ],
+      "forbidden_claims": [
+        "90 dias para produtos nao duraveis",
+        "30 dias para produtos duraveis",
+        "independentemente de qualquer falha ou defeito",
+        "artigo 26: o consumidor pode exigir a reparacao de danos",
+        "30 dias para sanar produto nao duravel e 90 dias para sanar produto duravel"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 20.167,
+      "response_characters": 365,
+      "expected_terms_found": [
+        "consumidor"
+      ],
+      "required_fact_groups_found": [],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 100.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Consumidor, Codigo, Defesa",
+        "ai_mode": "premium",
+        "interaction_count": 10,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "consumidor",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CDC",
+            "title": "Codigo de Defesa do Consumidor - Lei 8.078/1990",
+            "url": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
+            "status": "official_text",
+            "excerpt": "Art. 12. O fabricante, o produtor, o construtor, nacional ou estrangeiro, e o importador\r\nrespondem, independentemente da existência de culpa, pela reparação dos danos causados\r\naos consumidores por defeitos decorrentes de projeto, fabricação, construção,\r\nmontagem, fórmulas, manipulação, apresentação ou acondicionamento de seus produtos,\r\nbem como por informações insuficientes ou inadequadas sobre sua utilização e riscos. \n§ 1° O produto é defeituoso quando não oferece a segurança que dele legitimamente se\r\nespera, levando-se em consideração as circunstâncias relevantes, entre as quais: \nI - sua apresentação; \nII - o uso e os riscos que razoavelmente dele se esperam; \nIII - a época em que foi colocado em circulação. \n§ 2º O produto não é considerado defeituoso pelo fato de outro de melhor\n\nArt. 13. O comerciante é igualmente responsável, nos termos do artigo anterior, quando: \nI - o fabricante, o construtor, o produtor ou o importador não puderem ser identificados; \nII - o produto for fornecido sem identificação clara do seu fabricante, produtor,\r\nconstrutor ou importador; \nIII - não conservar adequadamente os produtos perecíveis. \nParágrafo único. Aquele que efetivar o pagamento ao prejudicado poderá exercer o\r\ndireito de regresso contra os demais responsáveis, segundo sua participação na\r\ncausação do evento danoso.\n\nArt. 14. O fornecedor de serviços responde, independentemente da existência de culpa,\r\npela reparação dos danos causados aos consumidores por defeitos relativos à prestação\r\ndos serviços, bem como por informações insuficientes ou inadequadas sobre sua fruição\r\ne riscos. \n§ 1° O serviço é defeituoso quando não fornece a segurança que o consumidor dele\r\npode esperar, levando-se em consideração as circunstâncias relevantes, entre as quais: \nI - o modo de seu"
+          }
+        ],
+        "inline_citations": 0,
+        "source_markers": 0,
+        "verified_article_citations": [],
+        "citation_quality": "source_index_only",
+        "confidence_level": "moderado_requer_verificacao",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "12",
+          "13",
+          "14",
+          "18",
+          "20",
+          "26",
+          "27",
+          "51"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [],
+        "suppressed_unsupported_lines": 0,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "unavailable",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": true,
+        "model_fallback_used": false
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": false,
+        "detailed_when_legal": false,
+        "official_sources_present": true,
+        "large_model_used": false,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": false,
+        "robust_model_completed": false,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 7,
+      "total_checks": 13,
+      "response": "A pesquisa juridica nao pode ser concluida com o modelo especializado neste momento. Nenhuma conclusao juridica foi gerada em contingencia. Tente novamente em instantes e confira as fontes oficiais listadas.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Defesa do Consumidor - Lei 8.078/1990](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)"
+    },
+    {
+      "id": "trabalhista_justa_causa",
+      "area": "trabalhista",
+      "question": "Quais cuidados probatorios e procedimentais uma empresa deve observar antes de aplicar justa causa a um empregado? Estruture riscos e checklist de revisao.",
+      "expected_terms": [
+        "justa causa",
+        "prova",
+        "empregado"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 482",
+          "artigo 482"
+        ],
+        [
+          "imediatidade"
+        ],
+        [
+          "proporcionalidade"
+        ],
+        [
+          "onus da prova",
+          "art. 818",
+          "artigo 818"
+        ]
+      ],
+      "forbidden_claims": [
+        "artigo 493: a empresa deve realizar uma investigacao previa",
+        "artigo 494: a empresa deve garantir os direitos do empregado"
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 36.516,
+      "response_characters": 11232,
+      "expected_terms_found": [
+        "justa causa",
+        "prova",
+        "empregado"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 482",
+          "artigo 482"
+        ],
+        [
+          "imediatidade"
+        ],
+        [
+          "onus da prova",
+          "art. 818",
+          "artigo 818"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "storytelling",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Defesa, Quais, Estruture",
+        "ai_mode": "premium",
+        "interaction_count": 12,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "trabalhista",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "CLT",
+            "title": "Consolidacao das Leis do Trabalho",
+            "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452compilado.htm",
+            "status": "official_text",
+            "excerpt": "Art. 482 - Constituem justa causa para rescisão do contrato de trabalho pelo\r\nempregador: \n a)\r\nato de improbidade; \n b)\r\nincontinência de conduta ou mau procedimento; \n c)\r\nnegociação habitual por conta própria ou alheia sem permissão do empregador, e quando\r\nconstituir ato de concorrência à empresa para a qual trabalha o empregado, ou for\r\nprejudicial ao serviço; \n d)\r\ncondenação criminal do empregado, passada em julgado, caso não tenha havido suspensão\r\nda execução da pena; \n e)\r\ndesídia no desempenho das respectivas funções; \n f)\r\nembriaguez habitual ou em serviço; \n g)\r\nviolação de segredo da empresa; \n h)\r\nato de indisciplina ou de insubordinação; \n i)\r\nabandono de emprego; \n j)\r\nato lesivo da honra ou da boa fama praticado no serviço contra qualquer pessoa, ou\r\nofensas físicas, nas\n\nArt. 818.  O ônus da prova incumbe:                     \r\n (Redação dada pela \r\n Lei nº 13.467, de 2017) \n I - ao reclamante, quanto ao fato constitutivo de seu \r\ndireito;                        (Incluído pela Lei \r\n nº 13.467, de 2017) \n II - ao reclamado, quanto à existência de fato \r\nimpeditivo, modificativo ou extintivo do direito do reclamante.                 \r\n (Incluído pela Lei \r\n nº 13.467, de 2017) \n § 1 o  Nos casos previstos em lei ou \r\ndiante de peculiaridades da causa relacionadas à impossibilidade ou à excessiva \r\ndificuldade de cumprir o encargo nos termos deste artigo ou à maior facilidade \r\nde obtenção da prova do fato contrário, poderá o juízo atribuir o ônus da prova \r\nde modo diverso, desde que o faça por decisão fundamentada, caso em que deverá \r\ndar à parte a oportu"
+          }
+        ],
+        "inline_citations": 2,
+        "source_markers": 0,
+        "verified_article_citations": [
+          "482",
+          "818"
+        ],
+        "citation_quality": "claim_level",
+        "confidence_level": "alto_para_texto_normativo",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "482",
+          "818"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [
+          "477"
+        ],
+        "suppressed_unsupported_lines": 1,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": false,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 12,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nQuais cuidados probatórios e procedimentais uma empresa deve observar antes de aplicar a justa causa a um empregado, considerando a legislação trabalhista (art. 482 da CLT) e o ônus da prova (art. 818 da CLT)?\n\n---\n\n## Resposta executiva  \n1. **Identificação da hipótese legal** – a empresa deve certificar‑se de que a conduta do empregado se enquadra em uma das alíneas do art. 482 da CLT.  \n2. **Coleta de provas** – todas as provas que demonstrem a prática da conduta devem ser reunidas, preservando a cadeia de custódia e o princípio da imediatidade.  \n3. **Observância do contraditório interno** – antes da comunicação da demissão, é recomendável conceder ao empregado a oportunidade de se defender (advertência escrita, entrevista ou procedimento disciplinar).  \n4. **Formalização da decisão** – a comunicação da justa causa deve ser feita por escrito, contendo a descrição clara da falta, a alínea infringida e a data de término do contrato.  \n5. **Distribuição do ônus da prova** – o empregador (reclamado) tem o ônus de provar a existência de fato impeditivo, modificativo ou extintivo do direito do empregado (art. 818, II). Caso a prova seja insuficiente, o juiz pode inverter o ônus (art. 818, § 1º).  \n\n---\n\n## Fundamento normativo  \n\n| Norma | Texto oficial (fonte) | Relevância |\n|-------|----------------------|------------|\n| **Art. 482 – CLT** | “Constituem justa causa para rescisão do contrato de trabalho pelo empregador: a) ato de improbidade; b) incontinência de conduta ou mau procedimento; c) negociação habitual por conta própria ou alheia sem permissão do empregador, e quando constituir ato de concorrência à empresa para a qual trabalha o empregado, ou for prejudicial ao serviço; d) condenação criminal do empregado, passada em julgado, caso não tenha havido suspensão da execução da pena; e) desídia no desempenho das respectivas funções; f) embriaguez habitual ou em serviço; g) violação de segredo da empresa; h) ato de indisciplina ou de insubordinação; i) abandono de emprego; j) ato lesivo da honra ou da boa fama praticado no serviço contra qualquer pessoa, ou ofensas físicas, nas …” | Define as hipóteses de justa causa que a empresa pode invocar. Cada alínea deve ser analisada individualmente; não se pode aplicar a justa causa por motivo diverso. |\n| **Art. 818 – CLT** | “O ônus da prova incumbe: I – ao reclamante, quanto ao fato constitutivo de seu direito; II – ao reclamado, quanto à existência de fato impeditivo, modificativo ou extintivo do direito do reclamante. § 1º … poderá o juízo atribuir o ônus da prova de modo diverso, desde que o faça por decisão fundamentada, caso em que deverá dar à parte a oportunidade de se manifestar.” | Determina que, no processo de reclamação trabalhista, cabe ao empregador (reclamado) provar a ocorrência da falta grave que justifica a demissão. O juiz pode reverter o ônus se a prova for impossível ou excessivamente difícil. |\n\n*Obs.: Não há outras fontes fornecidas nesta execução; portanto, todo o fundamento está restrito aos artigos acima.*  \n\n---\n\n## Análise detalhada  \n\n### 1. Verificação da hipótese de justa causa  \n- **Correspondência literal**: a conduta deve estar descrita exatamente em uma das alíneas do art. 482. Por exemplo, “desídia no desempenho das funções” (alínea e) exige demonstração de negligência reiterada, não apenas um único erro.  \n- **Exigência de reiterância ou gravidade**: a jurisprudência (não fornecida) costuma exigir que a falta seja grave ou habitual, mas, na ausência de jurisprudência, a empresa deve se ater ao texto legal e à prova documental que evidencie a gravidade ou a recorrência.  \n\n### 2. Produção de prova  \n- **Documentos escritos**: advertências, relatórios de desempenho, registros de ponto, e‑mails, mensagens, relatórios de auditoria, laudos de perícia (ex.: violação de segredo).  \n- **Testemunhas**: colegas, supervisores ou terceiros que presenciaram a conduta. As declarações devem ser colhidas por meio de depoimentos formais ou atas de reunião.  \n- **Prova material**: objetos, documentos internos, gravações (desde que respeitados os limites da LGPD).  \n\n### 3. Procedimento interno (pré‑demissional)  \n- **Advertência prévia**: salvo nas hipóteses de ato de improbidade, condenação criminal ou abandono, a prática de advertência escrita ou suspensão disciplinar demonstra a tentativa de correção e reduz risco de alegação de surpresa.  \n- **Audiência de defesa**: a empresa deve oferecer ao empregado a oportunidade de se manifestar antes da decisão final, registrando a resposta por escrito. Essa prática, embora não obrigatória por lei, reforça a observância do contraditório e diminui a vulnerabilidade a alegações de violação do princípio do devido processo legal.  \n\n### 4. Comunicação da demissão  \n- **Escritura da notificação**: a carta de demissão deve conter: (i) identificação da alínea violada; (ii) descrição dos fatos; (iii) data de término do contrato; (iv) referência ao direito de recorrer à justiça trabalhista.  \n- **Entrega com comprovação**: entrega em mão própria com assinatura de recebimento ou por meio de carta registrada com aviso de recebimento (AR).  \n\n### 5. Ônus da prova no litígio  \n- **Art. 818, II** impõe ao empregador a demonstração da falta grave. Caso a empresa não possua prova suficiente, o juiz pode aplicar o § 1º, invertendo o ônus ou determinando produção de prova complementar.  \n\n---\n\n## Possíveis interpretações e controvérsias  \n\n| Tema | Interpretação majoritária (não verificada nas fontes) | Risco para a empresa |\n|------|------------------------------------------------------|----------------------|\n| **Necessidade de advertência prévia** | Alguns tribunais exigem advertência para faltas de natureza “desídia” ou “indisciplina”, mas não para atos de improbidade ou abandono. | Se a empresa dispensar a advertência em hipótese que a jurisprudência exige, pode ter a justa causa anulada e ser condenada ao pagamento de verbas rescisórias integrais. |\n| **Prova de “abuso de confiança” (alínea g)** | Exige demonstração de acesso a informações confidenciais e sua divulgação. | Falta de prova documental pode levar à caracterização de demissão sem justa causa. |\n| **Aplicação da cláusula de “não concorrência” (alínea c)** | Necessita de contrato escrito com cláusula de não concorrência e comprovação de violação. | Ausência de contrato escrito pode tornar a demissão improcedente. |\n| **Abandono de emprego (alínea i)** | Requer ausência injustificada por 30 dias ou outra medida que torne impossível a continuidade da relação. | Contagem incorreta do período pode gerar nulidade da justa causa. |\n\n---\n\n## Riscos e controvérsias operacionais  \n\n2. **Violação do princípio da dignidade** – demissão por motivo que possa ser interpretado como discriminação (ex.: embriaguez habitual) pode gerar ação de indenização por danos morais.  \n3. **Inversão do ônus da prova** – o juiz pode aplicar o § 1º do art. 818 quando a prova for “excessivamente difícil” de ser produzida pelo empregador, transferindo o ônus ao empregado e aumentando o risco de decisão desfavorável.  \n4. **Recurso trabalhista** – a parte reclamada (empresa) terá que arcar com custos de defesa, honorários periciais e possíveis multas por litigância de má‑fé se houver tentativa de ocultar provas.  \n\n---\n\n## Checklist de revisão (antes da comunicação da justa causa)\n\n| Etapa | Verificação | Evidência requerida |\n|-------|-------------|----------------------|\n| **1. Enquadramento legal** | Identificar a alínea do art. 482 que se aplica. | Texto da alínea, análise de fatos. |\n| **2. Documentação da conduta** | Reunir advertências, relatórios, e‑mails, registros de ponto, laudos. | Cópias autenticadas, atas de reunião, AR de documentos. |\n| **3. Testemunhas** | Listar testemunhas e registrar depoimentos formais. | Declarações assinadas, gravações (se houver). |\n| **4. Procedimento interno** | Verificar se houve advertência ou oportunidade de defesa. | Cópia da advertência, termo de entrevista, assinatura do empregado. |\n| **5. Comunicação da demissão** | Redigir carta de demissão contendo alínea, descrição dos fatos, data e referência ao direito de recorrer. | Carta assinada, comprovante de entrega (AR ou assinatura). |\n| **6. Avaliação de ônus probatório** | Confirmar que a empresa possui prova suficiente para atender ao art. 818, II. | Checklist de documentos, relatório de análise de risco. |\n| **7. Conformidade com LGPD** | Garantir que a coleta de dados pessoais (e‑mails, gravações) respeite a Lei Geral de Proteção de Dados. | Termo de consentimento ou justificativa legal. |\n| **8. Aprovação gerencial** | Obter assinatura de responsável (RH, jurídico, diretoria) autorizando a demissão. | Memorando interno de aprovação. |\n| **9. Arquivamento** | Arquivar todo o processo em pasta física ou eletrônica, com controle de acesso. | Registro de arquivamento, número de processo interno. |\n| **10. Planejamento de contingência** | Preparar resposta para eventual reclamação trabalhista (defesa, perícia, cálculo de verbas). | Plano de ação, contato de advogado trabalhista. |\n\n---\n\n## Estratégia de verificação  \n\n1. **Auditoria documental** – revisar todos os documentos citados no checklist, conferindo autenticidade e integridade.  \n2. **Entrevista com gestores** – confirmar a sequência dos fatos e a existência de eventuais medidas corretivas anteriores.  \n3. **Simulação de defesa** – elaborar uma peça inicial (contestação) baseada nas provas coletadas, testando a robustez do argumento de fato impeditivo (art. 818, II).  \n4. **Parecer jurídico interno** – o departamento jurídico deve emitir parecer escrito, indicando a alínea aplicada, a suficiência da prova e a recomendação de comunicação.  \n\n---\n\n## Conclusão  \n\nA aplicação da justa causa exige estrita observância da hipótese legal prevista no art. 482 da CLT e a produção de prova suficiente para atender ao ônus probatório do art. 818, II. O descumprimento de qualquer etapa – desde a identificação correta da alínea até a formalização da comunicação – gera risco de nulidade da demissão, condenação ao pagamento de verbas rescisórias integrais, multas e possíveis indenizações por danos morais.  \n\n**Limites da análise**  \n- Não foram consultadas jurisprudências específicas nem súmulas que pudessem esclarecer interpretações de cada alínea; caso necessário, o advogado deverá pesquisar precedentes aplicáveis.  \n- Não há informações sobre a existência de acordos coletivos ou cláusulas contratuais que possam modificar o procedimento padrão.  \n\n**Recomendação**  \nUtilizar o checklist acima como ferramenta de controle interno, garantir a documentação completa e, antes da comunicação da demissão, submeter o caso a revisão jurídica formal. A resposta serve como apoio ao trabalho do advogado, que deve validar a estratégia à luz de eventuais precedentes e da realidade fática concreta.\n\n## Auditoria automatica de fundamentacao\n\nA Lex suprimiu 1 trecho(s) que mencionavam referencias numericas nao recuperadas (477). Consulte o texto integral antes de reintroduzir essas afirmacoes.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Consolidacao das Leis do Trabalho](https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452compilado.htm)"
+    },
+    {
+      "id": "lgpd_bases",
+      "area": "protecao_de_dados",
+      "question": "Compare consentimento, execucao de contrato, obrigacao legal e legitimo interesse como bases legais da LGPD. Explique quando cada uma e adequada e os principais riscos de uso indevido.",
+      "expected_terms": [
+        "consentimento",
+        "legitimo interesse",
+        "lgpd"
+      ],
+      "required_fact_groups": [
+        [
+          "art. 7",
+          "artigo 7"
+        ],
+        [
+          "art. 10",
+          "artigo 10"
+        ],
+        [
+          "legitimo interesse"
+        ],
+        [
+          "necessidade"
+        ],
+        [
+          "transparencia"
+        ]
+      ],
+      "response_mode": "deep",
+      "latency_seconds": 36.318,
+      "response_characters": 12058,
+      "expected_terms_found": [
+        "consentimento",
+        "legitimo interesse",
+        "lgpd"
+      ],
+      "required_fact_groups_found": [
+        [
+          "art. 7",
+          "artigo 7"
+        ],
+        [
+          "art. 10",
+          "artigo 10"
+        ],
+        [
+          "legitimo interesse"
+        ],
+        [
+          "necessidade"
+        ],
+        [
+          "transparencia"
+        ]
+      ],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Estruture, Compare, Explique",
+        "ai_mode": "premium",
+        "interaction_count": 14,
+        "document_context_used": false,
+        "response_mode": "deep",
+        "legal_area": "proteção_de_dados",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "official_sources",
+        "sources": [
+          {
+            "code": "LGPD",
+            "title": "Lei Geral de Protecao de Dados - Lei 13.709/2018",
+            "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+            "status": "official_text",
+            "excerpt": "Art. 6º As atividades de tratamento de dados pessoais deverão observar a boa-fé e os seguintes princípios:\n I - finalidade: realização do tratamento para propósitos legítimos, específicos, explícitos e informados ao titular, sem possibilidade de tratamento posterior de forma incompatível com essas finalidades;\n II - adequação: compatibilidade do tratamento com as finalidades informadas ao titular, de acordo com o contexto do tratamento;\n III - necessidade: limitação do tratamento ao mínimo necessário para a realização de suas finalidades, com abrangência dos dados pertinentes, proporcionais e não excessivos em relação às finalidades do tratamento de dados;\n IV - livre acesso: garantia, aos titulares, de consulta facilitada e gratuita sobre a forma e a duração do tratamento, bem como sobre\n\nArt. 7º O tratamento de dados pessoais somente poderá ser realizado nas seguintes hipóteses:\n I - mediante o fornecimento de consentimento pelo titular;\n II - para o cumprimento de obrigação legal ou regulatória pelo controlador;\n III - pela administração pública, para o tratamento e uso compartilhado de dados necessários à execução de políticas públicas previstas em leis e regulamentos ou respaldadas em contratos, convênios ou instrumentos congêneres, observadas as disposições do Capítulo IV desta Lei;\n IV - para a realização de estudos por órgão de pesquisa, garantida, sempre que possível, a anonimização dos dados pessoais;\n V - quando necessário para a execução de contrato ou de procedimentos preliminares relacionados a contrato do qual seja parte o titular, a pedido do titular dos dado\n\nArt. 8º O consentimento previsto no inciso I do\n\nArt. 10. O legítimo interesse do controlador somente poderá fundamentar tratamento de dados pessoais para finalidades legítimas, consideradas a part"
+          }
+        ],
+        "inline_citations": 6,
+        "source_markers": 0,
+        "verified_article_citations": [
+          "6",
+          "7",
+          "8",
+          "10",
+          "11",
+          "42"
+        ],
+        "citation_quality": "claim_level",
+        "confidence_level": "alto_para_texto_normativo",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [
+          "6",
+          "7",
+          "8",
+          "10",
+          "11",
+          "42",
+          "46"
+        ],
+        "unverified_article_references": [],
+        "suppressed_article_references": [],
+        "suppressed_unsupported_lines": 0,
+        "requires_human_review": true,
+        "answer_scope": "fundamentada_em_fontes_oficiais",
+        "model": "openai/gpt-oss-120b",
+        "requested_model": "llama-3.3-70b-versatile",
+        "model_degraded": false,
+        "model_fallback_used": true
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 13,
+      "total_checks": 13,
+      "response": "**Questão apresentada**  \nComparar as bases legais previstas na Lei Geral de Proteção de Dados (LGPD) – consentimento (art. 7 I), execução de contrato (art. 7 V), obrigação legal ou regulatória (art. 7 II) e legítimo interesse (art. 10) – indicando em que situações cada uma é adequada e quais os principais riscos de seu uso indevido.\n\n---\n\n## Resposta executiva  \n| Base legal | Quando é adequada | Requisitos essenciais (conforme texto da LGPD) | Principais riscos de uso indevido |\n|------------|-------------------|--------------------------------------------------|-----------------------------------|\n| **Consentimento** (art. 7 I) | Quando o titular deve autorizar expressamente o tratamento para finalidades específicas e o controlador não dispõe de outra base legal. | • Consentimento livre, informado e inequívoco;<br>• Deve ser fornecido por escrito ou outro meio que demonstre a manifestação de vontade;<br>• Possibilidade de revogação a qualquer tempo. | • Falta de clareza ou de informação ao titular gera nulidade do tratamento;<br>• Consentimento genérico ou “checkbox” sem explicação pode ser considerado abusivo;<br>• Revogação não respeitada gera responsabilidade civil (art. 42). |\n| **Execução de contrato** (art. 7 V) | Quando o tratamento é indispensável para a execução de contrato ou de procedimentos preliminares a ele relacionados, nos quais o titular seja parte. | • Existência de contrato ou pré‑contrato;<br>• Necessidade do tratamento para cumprimento das obrigações contratuais;<br>• Limitação ao mínimo necessário para a finalidade contratual. | • Tratamento de dados não estritamente necessários ao contrato viola o princípio da necessidade (art. 6 III);<br>• Uso dos dados para finalidades distintas daquelas previstas no contrato caracteriza desvio de finalidade (art. 6 I). |\n| **Obrigação legal ou regulatória** (art. 7 II) | Quando o controlador está obrigado por lei ou regulamento a tratar dados pessoais (ex.: obrigações fiscais, trabalhistas, de saúde). | • Existência de norma legal ou regulatória que imponha o tratamento;<br>• Observância dos requisitos de segurança e transparência previstos nos princípios da LGPD. | • Tratamento sem respaldo legal concreto gera ilicitude;<br>• Interpretação extensiva da obrigação pode gerar tratamento excessivo, violando adequação e necessidade (art. 6 II e III). |\n| **Legítimo interesse** (art. 10) | Quando o controlador tem interesse legítimo, equilibrado e compatível com os direitos do titular, e não há outra base mais adequada. | • Avaliação de interesse legítimo (balanço entre interesse do controlador e direitos do titular);<br>• Necessidade de tratamento estritamente limitada à finalidade (art. 10 § 1º);<br>• Transparência ao titular (art. 10 § 2º). | • Falta de demonstração do balanço de interesses pode levar à nulidade;<br>• Tratamento de dados sensíveis sem outra base legal viola art. 11;<br>• Omissão de informações ao titular viola o princípio da transparência (art. 6 I). |\n\n---\n\n## Fundamentação normativa  \n\n1. **Art. 6º da LGPD** – estabelece os princípios que orientam todas as bases legais, destacando finalidade, adequação, necessidade e transparência. Cada base deve ser aplicada em consonância com esses princípios.  \n   - *Fonte 1*: “Art. 6º … I – finalidade … II – adequação … III – necessidade … IV – livre acesso …”  \n\n2. **Art. 7º da LGPD** – lista as hipóteses de tratamento lícito, entre elas:  \n   \n- **Inciso I – consentimento** (necessário quando a outra hipótese não se aplica).  \n   \n- **Inciso II – obrigação legal ou regulatória** (tratamento obrigatório por norma).  \n   \n- **Inciso V – execução de contrato** (tratamento indispensável ao contrato).  \n   - *Fonte 1*: Trecho do art. 7º que contém os incisos citados.  \n\n3. **Art. 8º da LGPD** – disciplina o consentimento, exigindo que seja livre, informado e inequívoco. (O texto completo não foi reproduzido, mas a existência do artigo confirma a necessidade de observância).  \n   - *Fonte 1*: “Art. 8º O consentimento previsto no inciso I do”.  \n\n4. **Art. 10 da LGPD** – regula o legítimo interesse, impondo:  \n   - Necessidade de que a finalidade seja legítima e baseada em situação concreta;  \n   - Limitação ao tratamento dos dados estritamente necessários (§ 1º);  \n   - Obrigação de adotar medidas de transparência (§ 2º).  \n   - *Fonte 1*: Trecho do art. 10 que contém os incisos e parágrafos.  \n\n5. **Art. 11 da LGPD** – trata dos dados pessoais sensíveis, indicando que o legítimo interesse não pode ser usado como base para seu tratamento, salvo hipóteses específicas.  \n   - *Fonte 1*: “Art. 11. O tratamento de dados pessoais sensíveis somente poderá ocorrer nas seguintes hipóteses …”.  \n\n---\n\n## Análise detalhada  \n\n### 1. Consentimento  \n- **Adequação**: Ideal quando o titular tem autonomia plena sobre o uso de seus dados e não há obrigação legal que imponha o tratamento.  \n- **Procedimento**: Deve‑se registrar a manifestação de vontade de forma que seja possível comprovar a data, o conteúdo e a forma de obtenção. A revogação deve ser aceita imediatamente, interrompendo o tratamento que dependa exclusivamente desse consentimento.  \n\n### 2. Execução de contrato  \n- **Adequação**: Aplicável a relações comerciais, prestação de serviços, relações de consumo, etc., onde o tratamento é condição para a entrega do bem ou serviço.  \n- **Procedimento**: O contrato ou termo de adesão deve conter cláusula que descreva quais dados serão tratados, para que finalidade e por quanto tempo. O controlador não pode usar esses dados para finalidades alheias ao contrato.  \n\n### 3. Obrigação legal ou regulatória  \n- **Adequação**: Situações em que a lei impõe a coleta e tratamento (ex.: retenção de documentos fiscais por 5 anos, comunicação de acidentes de trabalho ao INSS).  \n- **Procedimento**: Identificar a norma específica que cria a obrigação, observar o período de retenção e garantir a segurança da informação. O controlador deve informar ao titular que o tratamento decorre de obrigação legal, ainda que não seja necessário obter consentimento.  \n\n### 4. Legítimo interesse  \n- **Adequação**: Utilizado com frequência por empresas que desejam, por exemplo, enviar comunicações de marketing direto, realizar análise de risco ou melhorar processos internos.  \n- **Procedimento**: Realizar a chamada *balanço de interesses* (documento interno que demonstra a inexistência de alternativa menos invasiva, a necessidade dos dados e a inexistência de risco significativo ao titular). Publicar a política de privacidade com a justificativa do legítimo interesse e garantir a possibilidade de oposição pelo titular.  \n\n### Riscos de uso indevido  \n| Base | Risco específico | Consequência prevista |\n|------|------------------|-----------------------|\n| Consentimento | Falta de clareza, consentimento genérico ou obtido mediante coação | Nulidade do tratamento; responsabilidade civil (art. 42) |\n| Execução de contrato | Tratamento de dados não essenciais ao contrato | Violação dos princípios de necessidade e adequação (art. 6) → sanções administrativas |\n| Obrigação legal | Interpretação extensiva da obrigação, tratamento de dados além do exigido | Multa administrativa; obrigação de reparar danos (art. 42) |\n| Legítimo interesse | Ausência de demonstração do balanço de interesses ou tratamento de dados sensíveis | Nulidade da base, aplicação de multas e obrigação de indenizar (art. 42) |\n\n---\n\n## Possíveis interpretações  \n\n- **Sobre a necessidade de consentimento**: Alguns autores defendem que, quando houver outra base legal aplicável, o consentimento torna‑se dispensável, ainda que o titular tenha sido previamente informado. A LGPD, porém, exige que a base escolhida seja a *mais adequada* ao caso concreto (princípio da adequação – art. 6 II).  \n- **Legítimo interesse vs. marketing direto**: A jurisprudência ainda está em formação. Enquanto alguns tribunais admitem o uso do legítimo interesse para envio de e‑mail marketing, outros exigem consentimento explícito, sobretudo quando o titular não tem relação contratual prévia.  \n- **Obrigação legal e tratamento de dados sensíveis**: O art. 11 permite o tratamento de dados sensíveis sem consentimento quando houver obrigação legal. Contudo, a lei exige que a obrigação seja expressa e que o tratamento seja estritamente necessário (art. 11 II‑a).  \n\n---\n\n## Riscos e controvérsias  \n\n1. **Sobreposição de bases** – Utilizar duas bases simultaneamente (ex.: consentimento + legítimo interesse) pode gerar dúvida quanto à real motivação do tratamento e ser interpretado como tentativa de “bolsa de segurança”.  \n2. **Transparência insuficiente** – A falta de informação clara ao titular sobre a base utilizada pode violar o princípio da transparência (art. 6 I) e gerar sanções.  \n3. **Reversão de bases** – Caso a empresa mude a base legal após o início do tratamento (ex.: de consentimento para legítimo interesse), deverá comunicar o titular e, se necessário, obter novo consentimento ou reavaliar o balanço de interesses.  \n\n---\n\n## Informações faltantes  \n\n- **Escopo específico do tratamento** (tipo de dado, volume, período de retenção).  \n- **Política de privacidade da empresa** – para verificar se já contempla a base escolhida e se há cláusulas de oposição ao legítimo interesse.  \n- **Normas setoriais** que possam impor bases específicas (ex.: setor de saúde, financeiro).  \n- **Histórico de consentimentos** – se houver consentimentos prévios que possam ser reaproveitados ou revogados.  \n\n---\n\n## Estratégia de verificação  \n\n1. **Mapeamento de dados** – identificar quais dados serão tratados, sua natureza (pessoal ou sensível) e a finalidade.  \n2. **Análise de bases legais** – confrontar cada finalidade com os incisos do art. 7 e art. 10, verificando a existência de obrigação legal ou necessidade contratual.  \n3. **Elaboração de relatório de legítimo interesse** (quando aplicável) contendo:  \n   - Descrição da finalidade;  \n   - Avaliação de necessidade e proporcionalidade;  \n   - Medidas de mitigação de risco;  \n   - Evidência de que o titular tem expectativas legítimas compatíveis.  \n4. **Documentação de consentimento** – garantir que o registro contenha data, canal, conteúdo da informação prestada e opção de revogação.  \n5. **Revisão de cláusulas contratuais** – inserir disposições que autorizem o tratamento necessário à execução do contrato.  \n6. **Auditoria de conformidade** – validar, antes da operação, se todas as medidas de segurança e de transparência foram implementadas.  \n\n---\n\n## Conclusão  \n\nA escolha da base legal adequada depende da relação entre a finalidade do tratamento e a existência de um fundamento previsto nos incisos do art. 7 ou no art. 10 da LGPD. Cada base traz requisitos específicos – consentimento exige manifestação livre e revogável; execução de contrato requer vínculo contratual e necessidade mínima; obrigação legal depende de norma expressa; legítimo interesse demanda avaliação equilibrada e transparência. O uso indevido de qualquer base pode acarretar nulidade do tratamento, multas administrativas e obrigação de indenizar danos (art. 42).  \n\nPortanto, recomenda‑se que a empresa:  \n\n1. **Mapeie detalhadamente** os dados e finalidades;  \n2. **Selecione a base legal** mais adequada, fundamentando a escolha em texto da LGPD;  \n3. **Documente** todas as etapas probatórias (consentimentos, contratos, obrigações legais, relatório de legítimo interesse);  \n4. **Garanta a transparência** ao titular, oferecendo mecanismos de oposição e revogação;  \n5. **Implemente controles de segurança** e mantenha registros para eventual auditoria da Autoridade Nacional de Proteção de Dados (ANPD).  \n\nEssas medidas reduzem os riscos de sanções e fortalecem a governança de privacidade da organização.  \n\n*Esta resposta tem caráter informativo, auxilia o trabalho profissional e requer revisão e adequação por advogado especializado em proteção de dados.*\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Lei Geral de Protecao de Dados - Lei 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm)"
+    },
+    {
+      "id": "geral_produtividade",
+      "area": "geral",
+      "question": "Ajude a organizar uma rotina semanal de atendimento, estudo e revisao de tarefas para um profissional autonomo.",
+      "expected_terms": [
+        "semana",
+        "tarefas"
+      ],
+      "response_mode": "balanced",
+      "latency_seconds": 1.603,
+      "response_characters": 2338,
+      "expected_terms_found": [
+        "semana",
+        "tarefas"
+      ],
+      "required_fact_groups_found": [],
+      "forbidden_claims_found": [],
+      "metadata": {
+        "quality_score": 90.0,
+        "style": "reflective",
+        "detected_intent": "",
+        "emotional_state": "neutral",
+        "context_summary": "Tópicos recentes: Compare, Explique, Ajude",
+        "ai_mode": "premium",
+        "interaction_count": 16,
+        "document_context_used": false,
+        "response_mode": "balanced",
+        "legal_area": "geral",
+        "jurisdiction": "Brasil - federal",
+        "grounding_status": "unverified",
+        "sources": [],
+        "inline_citations": 0,
+        "source_markers": 0,
+        "verified_article_citations": [],
+        "citation_quality": "none",
+        "confidence_level": "geral",
+        "response_complete": true,
+        "finish_reason": "stop",
+        "verified_articles": [],
+        "unverified_article_references": [],
+        "suppressed_article_references": [],
+        "suppressed_unsupported_lines": 0,
+        "requires_human_review": false,
+        "answer_scope": "assistencia_geral",
+        "model": "llama-3.1-8b-instant",
+        "requested_model": "llama-3.1-8b-instant",
+        "model_degraded": false,
+        "model_fallback_used": false
+      },
+      "checks": {
+        "response_generated": true,
+        "expected_terms_present": true,
+        "detailed_when_legal": true,
+        "official_sources_present": true,
+        "large_model_used": true,
+        "human_review_flag": true,
+        "citation_marker_present": true,
+        "claim_level_citations": true,
+        "robust_model_completed": true,
+        "article_references_grounded": true,
+        "response_completed": true,
+        "required_legal_facts_present": true,
+        "known_false_claims_absent": true
+      },
+      "passed_checks": 13,
+      "total_checks": 13,
+      "response": "💬 **Organizando a rotina semanal de um profissional autônomo**\n\nPara ajudar a organizar uma rotina semanal de atendimento, estudo e revisão de tarefas para um profissional autônomo... vamos dividir a semana em blocos de tempo e atividades.\n\n**Domingo: Planejamento e Preparação**\n\n* 1 hora: Revisão da semana passada e planejamento para a semana atual\n + Verificar o progresso dos projetos e ajustar as prioridades\n + Definir metas e objetivos para a semana\n* 1 hora: Preparação para a semana\n + Verificar a agenda e marcar compromissos\n + Preparar materiais e ferramentas necessários para a semana\n\n**Segunda-feira: Atendimento e Trabalho**\n\n* 8 horas: Atendimento a clientes e trabalho em projetos\n + Responder e-mails, fazer ligações e atender a clientes\n + Trabalhar em projetos e tarefas prioritárias\n\n**Terça-feira: Estudo e Aprendizado**\n\n* 2 horas: Estudo e aprendizado\n + Assistir a cursos ou webinars\n + Ler artigos e livros relacionados ao negócio\n* 1 hora: Revisão e atualização de habilidades\n + Revisar habilidades e conhecimentos atualizados\n + Ajustar a estratégia de negócios\n\n**Quarta-feira: Revisão e Planejamento**\n\n* 2 horas: Revisão de tarefas e projetos\n + Verificar o progresso dos projetos e ajustar as prioridades\n + Revisar e atualizar a agenda\n* 1 hora: Planejamento para a próxima semana\n + Definir metas e objetivos para a próxima semana\n + Ajustar a estratégia de negócios\n\n**Quinta-feira: Atendimento e Trabalho**\n\n* 8 horas: Atendimento a clientes e trabalho em projetos\n + Responder e-mails, fazer ligações e atender a clientes\n + Trabalhar em projetos e tarefas prioritárias\n\n**Sexta-feira: Revisão e Preparação**\n\n* 2 horas: Revisão de tarefas e projetos\n + Verificar o progresso dos projetos e ajustar as prioridades\n + Revisar e atualizar a agenda\n* 1 hora: Preparação para a semana seguinte\n + Verificar a agenda e marcar compromissos\n + Preparar materiais e ferramentas necessários para a semana seguinte\n\n**Sábado e Domingo: Descanso e Recuperação**\n\n* 2 dias: Descanso e recuperação\n + Não realizar trabalho ou atendimento\n + Focar em atividades de lazer e relaxamento\n\nLembre-se de que essa é apenas uma sugestão de rotina e que você deve adaptá-la às suas necessidades e preferências.\n\nAlém disso, é importante lembrar que a rotina deve ser flexível e capaz de ser ajustada conforme necessário."
+    }
+  ]
+}

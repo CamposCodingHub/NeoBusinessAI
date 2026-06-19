@@ -267,7 +267,7 @@ async def send_whatsapp_message(
         user_id=current_user.id,
         client_id=message_data.client_id,
         sender_type="user",
-        sender_name=current_user.name,
+        sender_name=getattr(current_user, "name", None) or f"Usuario {current_user.id}",
         sender_phone=config.twilio_phone_number if config.provider == "twilio" else config.evolution_instance,
         message=message_data.message,
         message_type="text",

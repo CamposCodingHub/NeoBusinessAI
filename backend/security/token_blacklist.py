@@ -1,127 +1,206 @@
 """
-Blacklist de Tokens JWT - Invalidação em Logout
-Usa Redis para armazenar tokens revogados
+JWT token blacklist com degradacao elegante.
+Se Redis nao estiver disponivel, o sistema continua autenticando sem ruido excessivo.
 """
 
-import redis
+import logging
 import os
-from datetime import datetime
-from typing import Optional
+import time
 
-# Configuração Redis
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+import redis
+
+logger = logging.getLogger(__name__)
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
 
 class TokenBlacklist:
-    """Gerencia blacklist de tokens JWT"""
-    
+    """Gerencia blacklist de tokens JWT e refresh tokens."""
+
     def __init__(self):
+        self.redis_client = None
+        self.is_available = False
+        self._warning_logged = False
+        self._memory_blacklist = {}
+        self._memory_refresh_tokens = {}
+        self._last_connection_attempt = 0.0
+        self._retry_interval_seconds = 30
+        self._initialize_client()
+
+    def _cleanup_memory_store(self, store: dict):
+        now = time.time()
+        expired = [key for key, expires_at in store.items() if expires_at <= now]
+        for key in expired:
+            store.pop(key, None)
+
+    def _initialize_client(self):
+        self._last_connection_attempt = time.time()
         try:
-            self.redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+            client = redis.from_url(
+                REDIS_URL,
+                decode_responses=True,
+                socket_connect_timeout=1,
+                socket_timeout=1,
+            )
+            client.ping()
+            self.redis_client = client
             self.is_available = True
-        except Exception as e:
-            print(f"[TokenBlacklist] Redis não disponível: {e}")
+            self._warning_logged = False
+            logger.info("Token blacklist conectada ao Redis com sucesso.")
+        except Exception as exc:
             self.redis_client = None
             self.is_available = False
-    
+            self._log_unavailable_once(
+                f"Redis indisponivel para token blacklist. Sistema segue em modo degradado. Erro: {exc}"
+            )
+
+    def _ensure_connection(self):
+        if self.is_available and self.redis_client:
+            return
+        if (
+            time.time() - self._last_connection_attempt
+            >= self._retry_interval_seconds
+        ):
+            self._initialize_client()
+
+    def _log_unavailable_once(self, message: str):
+        if not self._warning_logged:
+            logger.warning(message)
+            self._warning_logged = True
+
+    def _disable_temporarily(self, exc: Exception):
+        self.redis_client = None
+        self.is_available = False
+        self._log_unavailable_once(
+            f"Token blacklist entrou em modo degradado por falha no Redis: {exc}"
+        )
+
     def add_to_blacklist(self, token: str, expires_in: int = 3600) -> bool:
-        """
-        Adiciona token à blacklist
-        expires_in: tempo em segundos até expiração natural do token
-        """
+        self._ensure_connection()
         if not self.is_available or not self.redis_client:
-            # Fallback: não conseguimos invalidar o token
-            print(f"[TokenBlacklist] AVISO: Token não adicionado à blacklist (Redis indisponível)")
-            return False
-        
+            self._memory_blacklist[token] = time.time() + expires_in
+            return True
+
         try:
-            # Usar JWT ID ou hash do token como chave
             key = f"blacklist:token:{token}"
             self.redis_client.setex(key, expires_in, "revoked")
-            print(f"[TokenBlacklist] Token adicionado à blacklist (expira em {expires_in}s)")
             return True
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao adicionar token: {e}")
-            return False
-    
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            self._memory_blacklist[token] = time.time() + expires_in
+            return True
+
     def is_blacklisted(self, token: str) -> bool:
-        """Verifica se token está na blacklist"""
+        self._cleanup_memory_store(self._memory_blacklist)
+        if token in self._memory_blacklist:
+            return True
+
+        self._ensure_connection()
         if not self.is_available or not self.redis_client:
-            # Se Redis não disponível, assumir que token é válido
             return False
-        
+
         try:
             key = f"blacklist:token:{token}"
             return self.redis_client.exists(key) > 0
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao verificar token: {e}")
-            return False
-    
-    def add_refresh_token(self, refresh_token: str, user_id: int, expires_in: int = 604800) -> bool:
-        """
-        Armazena refresh token válido
-        expires_in: 7 dias padrão (604800 segundos)
-        """
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            return token in self._memory_blacklist
+
+    def add_refresh_token(
+        self, refresh_token: str, user_id: int, expires_in: int = 604800
+    ) -> bool:
+        self._ensure_connection()
         if not self.is_available or not self.redis_client:
-            return False
-        
+            key = f"refresh_token:{user_id}:{refresh_token}"
+            self._memory_refresh_tokens[key] = time.time() + expires_in
+            return True
+
         try:
             key = f"refresh_token:{user_id}:{refresh_token}"
             self.redis_client.setex(key, expires_in, "valid")
             return True
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao armazenar refresh token: {e}")
-            return False
-    
-    def is_refresh_token_valid(self, refresh_token: str, user_id: int) -> bool:
-        """Verifica se refresh token é válido"""
-        if not self.is_available or not self.redis_client:
-            # Se Redis não disponível, aceitar o token (degradado)
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            key = f"refresh_token:{user_id}:{refresh_token}"
+            self._memory_refresh_tokens[key] = time.time() + expires_in
             return True
-        
-        try:
-            key = f"refresh_token:{user_id}:{refresh_token}"
-            return self.redis_client.exists(key) > 0
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao verificar refresh token: {e}")
-            return True  # Degradado: aceitar em caso de falha
-    
-    def revoke_refresh_token(self, refresh_token: str, user_id: int) -> bool:
-        """Revoga um refresh token específico"""
+
+    def is_refresh_token_valid(self, refresh_token: str, user_id: int) -> bool:
+        self._cleanup_memory_store(self._memory_refresh_tokens)
+        key = f"refresh_token:{user_id}:{refresh_token}"
+        if key in self._memory_refresh_tokens:
+            return True
+
+        self._ensure_connection()
         if not self.is_available or not self.redis_client:
             return False
-        
+
         try:
-            key = f"refresh_token:{user_id}:{refresh_token}"
+            return self.redis_client.exists(key) > 0
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            return key in self._memory_refresh_tokens
+
+    def revoke_refresh_token(self, refresh_token: str, user_id: int) -> bool:
+        key = f"refresh_token:{user_id}:{refresh_token}"
+        self._memory_refresh_tokens.pop(key, None)
+
+        self._ensure_connection()
+        if not self.is_available or not self.redis_client:
+            return True
+
+        try:
             self.redis_client.delete(key)
             return True
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao revogar refresh token: {e}")
-            return False
-    
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            return True
+
     def revoke_all_user_tokens(self, user_id: int) -> bool:
-        """Revoga todos os tokens de um usuário (logout de todos dispositivos)"""
+        prefix = f"refresh_token:{user_id}:"
+        keys_to_remove = [key for key in self._memory_refresh_tokens if key.startswith(prefix)]
+        for key in keys_to_remove:
+            self._memory_refresh_tokens.pop(key, None)
+
+        self._ensure_connection()
         if not self.is_available or not self.redis_client:
-            return False
-        
+            return True
+
         try:
-            # Buscar todos os refresh tokens do usuário
-            pattern = f"refresh_token:{user_id}:*"
+            pattern = f"{prefix}*"
             keys = self.redis_client.keys(pattern)
             if keys:
                 self.redis_client.delete(*keys)
             return True
-        except Exception as e:
-            print(f"[TokenBlacklist] Erro ao revogar tokens do usuário: {e}")
-            return False
+        except Exception as exc:
+            self._disable_temporarily(exc)
+            return True
 
-# Instância global
+
 token_blacklist = TokenBlacklist()
 
-# Funções de conveniência
+
 def blacklist_token(token: str, expires_in: int = 3600) -> bool:
-    """Adiciona token à blacklist"""
     return token_blacklist.add_to_blacklist(token, expires_in)
 
+
 def is_token_blacklisted(token: str) -> bool:
-    """Verifica se token está na blacklist"""
     return token_blacklist.is_blacklisted(token)
+
+
+def add_refresh_token(
+    refresh_token: str, user_id: int, expires_in: int = 604800
+) -> bool:
+    return token_blacklist.add_refresh_token(refresh_token, user_id, expires_in)
+
+
+def is_refresh_token_valid(refresh_token: str, user_id: int) -> bool:
+    return token_blacklist.is_refresh_token_valid(refresh_token, user_id)
+
+
+def revoke_refresh_token(refresh_token: str, user_id: int) -> bool:
+    return token_blacklist.revoke_refresh_token(refresh_token, user_id)
+
+
+def revoke_all_user_tokens(user_id: int) -> bool:
+    return token_blacklist.revoke_all_user_tokens(user_id)

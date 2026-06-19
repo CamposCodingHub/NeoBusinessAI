@@ -53,6 +53,13 @@ def sanitize_plain_text(text: str) -> str:
     if not text:
         return text
     
+    # Remover blocos executaveis inteiros antes de stripar tags
+    text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'on\w+\s*=\s*[^\s>]+', '', text, flags=re.IGNORECASE)
+
     # Remove tags HTML completamente
     text = re.sub(r'<[^>]+>', '', text)
     # Escapa caracteres especiais

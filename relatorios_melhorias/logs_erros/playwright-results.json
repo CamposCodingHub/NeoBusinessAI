@@ -1,0 +1,142 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Projetos\\NeoBusinessAI\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "e2e/active-user-homologation.spec.ts"
+    ],
+    "configFile": "C:\\Projetos\\NeoBusinessAI\\frontend\\playwright.config.ts",
+    "rootDir": "C:/Projetos/NeoBusinessAI/frontend/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Projetos/NeoBusinessAI/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Projetos/NeoBusinessAI/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 240000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../relatorios_melhorias/logs_erros/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "active-user-homologation.spec.ts",
+      "file": "active-user-homologation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "homologacao completa de usuario ativo, documentos, relatorios e IA",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 1500000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 71508,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "criar cliente, prazo e fatura como usuario ativo",
+                      "duration": 1727
+                    },
+                    {
+                      "title": "gerar e renderizar uma peca juridica",
+                      "duration": 1954
+                    },
+                    {
+                      "title": "enviar, analisar e abrir tres arquivos diferentes",
+                      "duration": 21092
+                    },
+                    {
+                      "title": "validar dados persistidos e central de relatorios",
+                      "duration": 1192
+                    },
+                    {
+                      "title": "conversa prolongada com tres arquivos e pesquisa atual",
+                      "duration": 43909
+                    }
+                  ],
+                  "startTime": "2026-06-19T23:07:22.640Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b6d1dace4738f7fa8629-afd08953941ed1d54f94",
+          "file": "active-user-homologation.spec.ts",
+          "line": 27,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-06-19T23:07:21.344Z",
+    "duration": 73204.07,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

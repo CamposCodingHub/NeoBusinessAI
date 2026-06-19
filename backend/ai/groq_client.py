@@ -13,6 +13,17 @@ except ImportError:
     GROQ_AVAILABLE = False
     print("[GROQ] Biblioteca nao instalada. Execute: pip install groq")
 
+
+def external_ai_allowed() -> bool:
+    """Bloqueia provedores externos quando a operacao soberana esta ativa."""
+    routing_policy = os.getenv("AI_ROUTING_POLICY", "local_only").strip().lower()
+    fallback_enabled = (
+        os.getenv("AI_EXTERNAL_FALLBACK_ENABLED", "false").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    return routing_policy != "local_only" and fallback_enabled
+
+
 class GroqClient:
     """Cliente Groq usando biblioteca oficial"""
     
@@ -20,6 +31,10 @@ class GroqClient:
         self.api_key = api_key or os.getenv("GROQ_API_KEY")
         self.client = None
         self.available = False
+
+        if not external_ai_allowed():
+            print("[GROQ] Desabilitada pela politica de IA local.")
+            return
         
         if not GROQ_AVAILABLE:
             print("[GROQ] Biblioteca groq nao disponivel")

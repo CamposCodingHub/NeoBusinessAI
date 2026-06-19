@@ -1,0 +1,28 @@
+{
+    "tested_at":  "2026-06-19T14:40:46.1925453-03:00",
+    "elapsed_seconds":  335.543,
+    "passed":  true,
+    "provider":  "local-primary",
+    "model":  "lex-juridica-rapida:3b",
+    "route":  "balanced_legal",
+    "latency_ms":  323556,
+    "tokens":  2486,
+    "official_source_codes":  [
+                                  "CPP"
+                              ],
+    "sovereign_sources":  3,
+    "inline_citations":  9,
+    "suppressed_mismatched_paragraph_lines":  0,
+    "checks":  {
+                   "local_provider":  true,
+                   "local_model":  true,
+                   "has_statutory_basis":  true,
+                   "has_authorship":  true,
+                   "has_liberty_danger":  true,
+                   "has_verified_base":  true,
+                   "no_false_paragraph_five":  true,
+                   "no_false_paragraph_six":  true,
+                   "uses_sovereign_search":  true
+               },
+    "response":  "## Base normativa verificada\n\n- Nao trate gravidade abstrata como fundamento automatico. O art. 312 exige prova da existencia do crime, indicio suficiente de autoria e perigo gerado pela liberdade, ligado a garantia da ordem publica ou economica, conveniencia da instrucao criminal ou aplicacao da lei penal. Confira tambem admissibilidade no art. 313, fundamentacao concreta no art. 315, criterios do art. 282 e alternativas do art. 319. A regra de que preventiva so cabe quando nao for possivel substitui-la por cautelar diversa esta no art. 282, par. 6; nao a atribua ao caput do art. 312. [Fonte 1]\n\n## Analise complementar\n\nO artigo 312 do CÃ³digo de Processo Penal estabelece requisitos para a decretaÃ§Ã£o da prisÃ£o preventiva, garantindo que seja aplicada somente quando houver provas concretas da existÃªncia do crime e indÃ­cios suficientes de autoria e perigo gerado pela liberdade do imputado. Segundo o artigo 312, a prisÃ£o preventiva pode ser decretada como garantia da ordem pÃºblica, da ordem econÃ´mica, por conveniÃªncia da instruÃ§Ã£o criminal ou para assegurar a aplicaÃ§Ã£o da lei penal.\n\nOs requisitos especÃ­ficos estabelecidos pelo artigo sÃ£o:\n\n- **Prova da existÃªncia do crime**: O artigo 312 exige que haja provas concretas de que um crime tenha ocorrido. Isso significa que o fato deve ser documentado e confirmado por evidÃªncias, como testemunhos, documentos ou material incriminador.\n\n- **IndÃ­cio suficiente de autoria**: AlÃ©m da existÃªncia do crime, Ã© necessÃ¡rio ter indÃ­cios claros sobre quem pode ser o autor do delito. Isso inclui provas que possam apontar a pessoa responsÃ¡vel pelo crime, como testemunhas ou material incriminador.\n\n- **Perigo gerado pela liberdade**: O artigo 312 tambÃ©m exige que haja um perigo concreto e real em relaÃ§Ã£o Ã  ordem pÃºblica ou econÃ´mica se o acusado permanecer em liberdade. Isso pode incluir indicativos de reiteraÃ§Ã£o delitiva, uso de violÃªncia ou ameaÃ§a grave, participaÃ§Ã£o em organizaÃ§Ã£o criminosa, entre outros.\n\nFontes recuperadas:\n- [Fonte 1] Codigo de Processo Penal - Decreto-Lei 3.689/1941\n- [Fonte 2] Lei nÂº 13.964/2019 (redaÃ§Ã£o dada pela Lei nÂº 13.964, de 2019)\n- [Fonte 3] Lei nÂº 15.272/2025 (inclusÃ£o do Â§ 3Âº)\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Penal - Decreto-Lei 3.689/1941](https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm)"
+}

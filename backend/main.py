@@ -4,12 +4,14 @@ NeoBusiness AI - Backend API
 Sistema de IA jurídica com segurança enterprise-grade.
 """
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Security
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Security, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import asyncio
 import os
+import re
+from contextlib import asynccontextmanager
 from typing import List, Dict, Optional
 from datetime import datetime
 import logging
@@ -50,12 +52,14 @@ from security import (
     validate_schema, ChatMessageSchema, DocumentUploadSchema, UserCreateSchema
 )
 from middleware.security_middleware import setup_security_middleware
+from middleware.tenant_middleware import MultiTenantMiddleware
+from security.file_validation import validate_upload
 from routes.auth_routes import router as auth_router
 from routes.document_routes import router as document_router
 from routes.legal_routes import router as legal_router
 from routes.deadline_routes import router as deadline_router
 from routes.client_routes import router as client_router
-from routes.finance_routes import router as finance_router
+from routes.finance_routes import router as finance_router, compat_router as finance_compat_router
 from routes.whatsapp_routes import router as whatsapp_router
 from routes.twilio_quick_setup import router as twilio_quick_router
 from routes.gdpr_routes import router as gdpr_router
@@ -67,12 +71,16 @@ from routes.fila_atendimento_routes import router as fila_atendimento_router
 from routes.cobranca_routes import router as cobranca_router
 from routes.busca_semantica_routes import router as busca_semantica_router
 from routes.marketing_routes import router as marketing_router
+from routes.operations_routes import router as operations_router
+from routes.sovereign_ai_routes import router as sovereign_ai_router
 from routes.whatsapp_integrado_routes import router as whatsapp_integrado_router
 
 # AI Imports
 from ai.lexscan_engine import lexscan_engine
 from ai.engine import NeoBusinessAI
 from ai.premium_conversational_engine import create_premium_ai_engine, PremiumConversationalEngine
+from services.legal_ai_orchestrator import LegalAIOrchestrator
+from sovereign_ai.search import sovereign_legal_search
 
 # Tools
 from tools.ocr_real import process_uploaded_file
@@ -93,9 +101,14 @@ except ImportError:
 # ==================== AI ENGINE INITIALIZATION ====================
 try:
     premium_ai_engine = create_premium_ai_engine()
+    legal_ai_orchestrator = LegalAIOrchestrator(
+        premium_ai_engine,
+        local_search=sovereign_legal_search,
+    )
     PREMIUM_AI_AVAILABLE = True
     logger.info("[OK] Motor Premium de IA carregado! Sistema de 25 etapas ativo.")
 except Exception as e:
+    legal_ai_orchestrator = None
     PREMIUM_AI_AVAILABLE = False
     logger.error(f"[ERRO] Falha ao carregar motor Premium: {e}")
     print(f"[WARNING] Motor Premium não disponível: {e}")
@@ -109,10 +122,21 @@ from database import (
     create_deadline, get_user_deadlines,
     document_to_dict, deadline_to_dict, user_to_dict, get_user_stats
 )
+@asynccontextmanager
+async def app_lifespan(app: FastAPI):
+    """Inicializa recursos globais da API durante o ciclo de vida da aplicacao."""
+    try:
+        init_db()
+        logger.info("[DB] Estrutura do banco validada/inicializada com sucesso")
+    except Exception as exc:
+        logger.error(f"[DB] Falha ao inicializar banco: {exc}")
+        raise
+
+    yield
 
 
-
-app = FastAPI(redirect_slashes=False)
+app = FastAPI(redirect_slashes=False, lifespan=app_lifespan)
+app.add_middleware(MultiTenantMiddleware)
 
 # ==================== CORS FIRST ====================
 # CORS deve ser o PRIMEIRO middleware para evitar erros de preflight
@@ -157,6 +181,7 @@ app.include_router(legal_router)
 app.include_router(deadline_router)
 app.include_router(client_router)
 app.include_router(finance_router)
+app.include_router(finance_compat_router)
 app.include_router(whatsapp_router)
 app.include_router(twilio_quick_router)
 app.include_router(gdpr_router)
@@ -170,8 +195,9 @@ app.include_router(fila_atendimento_router)
 app.include_router(cobranca_router)
 app.include_router(busca_semantica_router)
 app.include_router(marketing_router)
+app.include_router(operations_router)
+app.include_router(sovereign_ai_router)
 app.include_router(whatsapp_integrado_router)
-
 # CRITICAL-003 FIX: Global error handler to prevent stack trace leaks
 import uuid
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -224,9 +250,16 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         }
     )
 
+ai_instance: Optional[NeoBusinessAI] = None
 
 
-ai = NeoBusinessAI()
+def get_primary_ai() -> NeoBusinessAI:
+    global ai_instance
+
+    if ai_instance is None:
+        ai_instance = NeoBusinessAI()
+
+    return ai_instance
 
 
 
@@ -243,7 +276,7 @@ async def chat_stream(data: dict):
 
 
     async def generator():
-        response = ai.ask(user_input)
+        response = get_primary_ai().ask(user_input)
         
         # ⚡ streaming que PRESERVA quebras de linha e markdown
         # Envia caractere por caractere mantendo a formatação
@@ -302,6 +335,10 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         
         # CRITICAL-002 FIX: Sanitize filename and validate temp paths
         safe_filename = sanitize_filename(file.filename)
+        validated_file = await validate_upload(
+            file,
+            max_size_mb=settings.MAX_FILE_SIZE_MB,
+        )
         
         # Additional path traversal validation
         if not safe_filename or safe_filename == 'unnamed_file':
@@ -332,7 +369,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
                 }, status_code=400)
         
         # Ler conteúdo
-        content = await file.read()
+        content = validated_file["content"]
         
         print(f"[UPLOAD] Recebido: {safe_filename} ({len(content)} bytes)")
         
@@ -1302,6 +1339,10 @@ async def upload_document_async(file: UploadFile = File(...), manual_text: str =
         
         # SECURITY: Sanitize filename
         safe_filename = sanitize_filename(file.filename)
+        validated_file = await validate_upload(
+            file,
+            max_size_mb=settings.MAX_FILE_SIZE_MB,
+        )
         
         # SECURITY: Check prompt injection
         if manual_text:
@@ -1314,7 +1355,7 @@ async def upload_document_async(file: UploadFile = File(...), manual_text: str =
                 }, status_code=400)
         
         # Ler conteúdo
-        content = await file.read()
+        content = validated_file["content"]
         
         # Criar documento no banco (status: pending)
         user_id = user.id if user else None
@@ -1422,16 +1463,34 @@ async def rate_limit_middleware(request: Request, call_next):
         return await call_next(request)
     
     # Get client IP
-    client_ip = request.headers.get('X-Forwarded-For', request.client.host)
+    client_ip = request.headers.get('X-Forwarded-For')
+    if not client_ip and request.client:
+        client_ip = request.client.host
     if client_ip:
         client_ip = client_ip.split(',')[0].strip()
+    else:
+        client_ip = "127.0.0.1"  # Fallback para testes
+
+    # Em desenvolvimento local, nao bloquear navegacao e testes automatizados.
+    if settings.ENVIRONMENT != "production" and client_ip in {"127.0.0.1", "::1", "localhost"}:
+        response = await call_next(request)
+        response.headers['X-RateLimit-Bypass'] = 'local-development'
+        response.headers['X-RateLimit-Limit'] = '100'
+        response.headers['X-RateLimit-Remaining'] = '100'
+        return response
     
     # Check rate limit (100 requests per minute per IP)
     allowed, info = check_rate_limit(f"ip:{client_ip}", max_requests=100, window_seconds=60)
     
     if not allowed:
         return JSONResponse(
-            rate_limit_response(info),
+            {
+                'success': False,
+                'error': 'Rate limit excedido',
+                'retry_after': info.get('retry_after', 60),
+                'limit': info.get('limit', 100),
+                'remaining': info.get('remaining', 0),
+            },
             status_code=429,
             headers={'Retry-After': str(info.get('retry_after', 60))}
         )
@@ -1445,7 +1504,11 @@ async def rate_limit_middleware(request: Request, call_next):
 
 
 @app.post("/api/chat/premium")
-async def premium_chat_endpoint(data: dict):
+async def premium_chat_endpoint(
+    data: dict,
+    current_user=Depends(get_current_user),
+    db=Depends(get_db),
+):
     """
     Endpoint Premium de Chat
     Usa o motor de IA com 25 etapas de humanização e contexto
@@ -1458,8 +1521,24 @@ async def premium_chat_endpoint(data: dict):
     - Detecção de intenção
     """
     user_message = data.get('message', '')
-    user_id = data.get('user_id', 'anonymous')
     document_context = data.get('document_context', '')
+    response_mode = data.get('response_mode', 'balanced')
+    jurisdiction = data.get('jurisdiction', 'Brasil - federal')
+    legal_area = data.get('legal_area')
+
+    user = db.query(User).filter(User.id == int(current_user.user_id)).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=401,
+            detail="Usuario nao encontrado ou inativo",
+        )
+
+    conversation_id = re.sub(
+        r"[^a-zA-Z0-9_-]",
+        "",
+        str(data.get('conversation_id') or "default"),
+    )[:64] or "default"
+    user_id = f"{user.id}:{conversation_id}"
     
     if not user_message:
         return JSONResponse({
@@ -1467,7 +1546,18 @@ async def premium_chat_endpoint(data: dict):
             'error': 'Mensagem não fornecida'
         }, status_code=400)
     
-    if not PREMIUM_AI_AVAILABLE or not premium_ai_engine:
+    if len(user_message) > 12000:
+        return JSONResponse({
+            'success': False,
+            'error': 'Mensagem excede o limite de 12000 caracteres'
+        }, status_code=400)
+
+    document_context = str(document_context)[:20000]
+
+    if response_mode not in {'quick', 'balanced', 'deep'}:
+        response_mode = 'balanced'
+
+    if not PREMIUM_AI_AVAILABLE or not premium_ai_engine or not legal_ai_orchestrator:
         return JSONResponse({
             'success': False,
             'error': 'Motor Premium não disponível',
@@ -1476,11 +1566,15 @@ async def premium_chat_endpoint(data: dict):
     
     try:
         # Gerar resposta premium
-        result = await premium_ai_engine.generate_premium_response(
+        result = await legal_ai_orchestrator.answer(
             user_message=user_message,
             user_id=user_id,
-            document_context=document_context
+            document_context=document_context,
+            response_mode=response_mode,
+            jurisdiction=jurisdiction,
+            legal_area=legal_area,
         )
+        legal_metadata = result.get('legal_metadata', {})
         
         return JSONResponse({
             'success': True,
@@ -1492,7 +1586,149 @@ async def premium_chat_endpoint(data: dict):
                 'emotional_state': result.get('emotional_state', 'neutral'),
                 'context_summary': result.get('context_summary', ''),
                 'ai_mode': 'premium',
-                'interaction_count': result.get('metadata', {}).get('interaction_count', 0)
+                'plan_tier': user.plan_tier or 'starter',
+                'conversation_id': conversation_id,
+                'interaction_count': result.get('metadata', {}).get('interaction_count', 0),
+                'document_context_used': bool(document_context),
+                'response_mode': legal_metadata.get('response_mode', response_mode),
+                'is_legal_query': legal_metadata.get('is_legal_query', False),
+                'is_professional_query': legal_metadata.get(
+                    'is_professional_query',
+                    legal_metadata.get('is_legal_query', False),
+                ),
+                'legal_area': legal_metadata.get('legal_area', 'geral'),
+                'professional_domain': legal_metadata.get(
+                    'professional_domain',
+                    'geral',
+                ),
+                'jurisdiction': legal_metadata.get('jurisdiction', jurisdiction),
+                'grounding_status': legal_metadata.get('grounding_status', 'unverified'),
+                'sources': legal_metadata.get('sources', []),
+                'sovereign_sources': legal_metadata.get(
+                    'sovereign_sources',
+                    [],
+                ),
+                'sovereign_search_used': legal_metadata.get(
+                    'sovereign_search_used',
+                    False,
+                ),
+                'realtime_web_used': legal_metadata.get(
+                    'realtime_web_used',
+                    False,
+                ),
+                'realtime_web_status': legal_metadata.get(
+                    'realtime_web_status',
+                    'not_requested',
+                ),
+                'realtime_retrieved_at': legal_metadata.get(
+                    'realtime_retrieved_at',
+                ),
+                'realtime_latency_ms': legal_metadata.get(
+                    'realtime_latency_ms',
+                    0,
+                ),
+                'realtime_cache_hit': legal_metadata.get(
+                    'realtime_cache_hit',
+                    False,
+                ),
+                'realtime_sources': legal_metadata.get(
+                    'realtime_sources',
+                    [],
+                ),
+                'realtime_errors': legal_metadata.get(
+                    'realtime_errors',
+                    [],
+                ),
+                'inline_citations': legal_metadata.get('inline_citations', 0),
+                'source_markers': legal_metadata.get('source_markers', 0),
+                'verified_article_citations': legal_metadata.get(
+                    'verified_article_citations',
+                    [],
+                ),
+                'citation_quality': legal_metadata.get('citation_quality', 'none'),
+                'confidence_level': legal_metadata.get('confidence_level', 'geral'),
+                'response_complete': legal_metadata.get('response_complete', True),
+                'finish_reason': legal_metadata.get('finish_reason', 'stop'),
+                'verified_articles': legal_metadata.get('verified_articles', []),
+                'unverified_article_references': legal_metadata.get(
+                    'unverified_article_references',
+                    [],
+                ),
+                'suppressed_article_references': legal_metadata.get(
+                    'suppressed_article_references',
+                    [],
+                ),
+                'suppressed_unsupported_lines': legal_metadata.get(
+                    'suppressed_unsupported_lines',
+                    0,
+                ),
+                'suppressed_unsupported_jurisprudence_lines': legal_metadata.get(
+                    'suppressed_unsupported_jurisprudence_lines',
+                    0,
+                ),
+                'suppressed_mismatched_paragraph_lines': legal_metadata.get(
+                    'suppressed_mismatched_paragraph_lines',
+                    0,
+                ),
+                'suppressed_mismatched_curated_claim_lines': legal_metadata.get(
+                    'suppressed_mismatched_curated_claim_lines',
+                    0,
+                ),
+                'suppressed_invalid_source_lines': legal_metadata.get(
+                    'suppressed_invalid_source_lines',
+                    0,
+                ),
+                'suppressed_invalid_realtime_lines': legal_metadata.get(
+                    'suppressed_invalid_realtime_lines',
+                    0,
+                ),
+                'prompt_leak_blocked': legal_metadata.get(
+                    'prompt_leak_blocked',
+                    False,
+                ),
+                'requires_human_review': legal_metadata.get('requires_human_review', False),
+                'review_role': legal_metadata.get('review_role', 'usuario'),
+                'contingency_mode': legal_metadata.get(
+                    'contingency_mode',
+                    False,
+                ),
+                'answer_scope': legal_metadata.get('answer_scope', 'assistencia_geral'),
+                'model': legal_metadata.get(
+                    'model',
+                    result.get('metadata', {}).get('model', 'llama-3.1-8b-instant'),
+                ),
+                'requested_model': legal_metadata.get(
+                    'requested_model',
+                    result.get('metadata', {}).get('model', 'llama-3.1-8b-instant'),
+                ),
+                'provider': legal_metadata.get(
+                    'provider',
+                    result.get('metadata', {}).get('provider', 'unknown'),
+                ),
+                'route': legal_metadata.get(
+                    'route',
+                    result.get('metadata', {}).get('route', ''),
+                ),
+                'usage': legal_metadata.get(
+                    'usage',
+                    result.get('metadata', {}).get('usage', {}),
+                ),
+                'latency_ms': legal_metadata.get(
+                    'latency_ms',
+                    result.get('metadata', {}).get('latency_ms', 0),
+                ),
+                'provider_fallback_used': legal_metadata.get(
+                    'provider_fallback_used',
+                    result.get('metadata', {}).get(
+                        'provider_fallback_used',
+                        False,
+                    ),
+                ),
+                'model_degraded': legal_metadata.get('model_degraded', False),
+                'model_fallback_used': legal_metadata.get(
+                    'model_fallback_used',
+                    False,
+                ),
             }
         })
         

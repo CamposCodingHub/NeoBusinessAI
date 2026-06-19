@@ -1,15 +1,16 @@
-"""
-Busca Semântica em Documentos
-Módulo 5 - Vector search nos documentos
-"""
+"""Busca semantica local em documentos e fontes juridicas."""
 
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from database import get_db, Document, User
-from security import get_current_user
 
-router = APIRouter(prefix="/busca", tags=["Busca Semântica"])
+from database import Document, User, get_db
+from security import get_current_user
+from sovereign_ai.search import sovereign_legal_search
+
+router = APIRouter(prefix="/busca", tags=["Busca Semantica"])
+
 
 @router.post("/semantic")
 async def semantic_search(
@@ -17,43 +18,37 @@ async def semantic_search(
     document_type: Optional[str] = None,
     top_k: int = 5,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    Busca semântica nos documentos usando embeddings
-    Placeholder - requer implementação de vector store
-    """
-    return {
-        "query": query,
-        "results": [],
-        "message": "Busca semântica em desenvolvimento",
-        "requirements": [
-            "1. Implementar vector store (Pinecone/Weaviate/Qdrant)",
-            "2. Criar embeddings dos documentos",
-            "3. Indexar conteúdo extraído",
-            "4. Buscar por similaridade de vetores"
-        ],
-        "suggestion": "Para MVP, usar busca por texto completo com PostgreSQL tsvector"
-    }
+    """Combina embeddings locais, termos juridicos e autoridade da fonte."""
+    return await sovereign_legal_search.search(
+        db,
+        query=query,
+        top_k=max(1, min(top_k, 20)),
+        legal_area=document_type,
+        user_id=int(current_user.user_id),
+        include_private=True,
+    )
+
 
 @router.post("/index-document/{document_id}")
 async def index_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """Indexa documento para busca semântica"""
+    """Indexa o texto extraido de um documento privado do usuario."""
     document = db.query(Document).filter(
         Document.id == document_id,
-        Document.user_id == current_user.id
+        Document.user_id == int(current_user.user_id),
     ).first()
-    
     if not document:
-        raise HTTPException(status_code=404, detail="Documento não encontrado")
-    
+        raise HTTPException(status_code=404, detail="Documento nao encontrado")
+
+    result = await sovereign_legal_search.index_user_document(db, document)
     return {
         "success": True,
         "document_id": document_id,
-        "indexed": False,
-        "message": "Indexação em desenvolvimento - configurar vector store"
+        "indexed": True,
+        **result,
     }

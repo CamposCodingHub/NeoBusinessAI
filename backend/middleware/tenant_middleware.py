@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 import logging
 from functools import wraps
 
-from database import get_db, User
+from database import SessionLocal, get_db, User
 from security.auth import get_current_user, TokenData
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class MultiTenantMiddleware(BaseHTTPMiddleware):
                 payload = verify_token(token)
                 
                 # Buscar usuário no banco
-                db = next(get_db())
+                db = SessionLocal()
                 try:
                     user = db.query(User).filter(User.id == int(payload["sub"])).first()
                     if user:

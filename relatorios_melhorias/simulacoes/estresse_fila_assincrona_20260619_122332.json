@@ -1,0 +1,179 @@
+{
+  "generated_at": "2026-06-19T12:23:32.117060",
+  "api_url": "http://127.0.0.1:8000",
+  "documents": 4,
+  "passed": 4,
+  "total_elapsed_seconds": 110.125,
+  "results": [
+    {
+      "file": "atlas_12mb.txt",
+      "upload_latency_seconds": 0.562,
+      "message": "Documento enviado para analise",
+      "document_id": 37,
+      "filename": "atlas_12mb.txt",
+      "status": "queued",
+      "file_size": 12582620,
+      "mime_type": "text/plain",
+      "sha256": "2326102b0a5d9583b16bfe8526bf98fa336756e28d1cd4ceb28853e23d786af5",
+      "enqueue_latency_seconds": 0.043,
+      "task_id": "0f01ee81-3ef2-4a91-93cc-ca019e636a41",
+      "progress": 5,
+      "check_status_url": "/documents/37/processing-status",
+      "first_processing_seconds": 2.098,
+      "completed_seconds": 3.188,
+      "last_status": "completed",
+      "progress_samples": [
+        {
+          "elapsed_seconds": 2.098,
+          "status": "processing",
+          "progress": 55,
+          "stage": "analyzing"
+        },
+        {
+          "elapsed_seconds": 3.188,
+          "status": "completed",
+          "progress": 100,
+          "stage": "completed"
+        }
+      ],
+      "error_message": null,
+      "processing_time_ms": 2528,
+      "passed": true
+    },
+    {
+      "file": "atlas_250_paginas.pdf",
+      "upload_latency_seconds": 0.074,
+      "message": "Documento enviado para analise",
+      "document_id": 35,
+      "filename": "atlas_250_paginas.pdf",
+      "status": "queued",
+      "file_size": 227764,
+      "mime_type": "application/pdf",
+      "sha256": "263a11e444baf29a23c952a55b2118ae526efc577acb0d6211be3124506a3289",
+      "enqueue_latency_seconds": 0.053,
+      "task_id": "8eec3900-0d74-4343-8ff1-dd70af3ce5e5",
+      "progress": 5,
+      "check_status_url": "/documents/35/processing-status",
+      "first_processing_seconds": 3.22,
+      "completed_seconds": 27.604,
+      "last_status": "completed",
+      "progress_samples": [
+        {
+          "elapsed_seconds": 2.133,
+          "status": "queued",
+          "progress": 5,
+          "stage": "queued"
+        },
+        {
+          "elapsed_seconds": 3.22,
+          "status": "processing",
+          "progress": 25,
+          "stage": "extracting"
+        },
+        {
+          "elapsed_seconds": 4.339,
+          "status": "processing",
+          "progress": 55,
+          "stage": "analyzing"
+        },
+        {
+          "elapsed_seconds": 27.604,
+          "status": "completed",
+          "progress": 100,
+          "stage": "completed"
+        }
+      ],
+      "error_message": null,
+      "processing_time_ms": 24833,
+      "passed": true
+    },
+    {
+      "file": "atlas_9000_paragrafos.docx",
+      "upload_latency_seconds": 0.071,
+      "message": "Documento enviado para analise",
+      "document_id": 34,
+      "filename": "atlas_9000_paragrafos.docx",
+      "status": "queued",
+      "file_size": 94394,
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "sha256": "4ef044bc6526b3d2ada4fc84acdac723b7938bb2b0823c4e1f4580ab6f80adf8",
+      "enqueue_latency_seconds": 0.057,
+      "task_id": "63c7652a-e2f3-431b-8bbd-f68cda020d38",
+      "progress": 5,
+      "check_status_url": "/documents/34/processing-status",
+      "first_processing_seconds": 70.459,
+      "completed_seconds": 109.995,
+      "last_status": "completed",
+      "progress_samples": [
+        {
+          "elapsed_seconds": 2.143,
+          "status": "queued",
+          "progress": 5,
+          "stage": "queued"
+        },
+        {
+          "elapsed_seconds": 70.459,
+          "status": "processing",
+          "progress": 55,
+          "stage": "analyzing"
+        },
+        {
+          "elapsed_seconds": 109.995,
+          "status": "completed",
+          "progress": 100,
+          "stage": "completed"
+        }
+      ],
+      "error_message": null,
+      "processing_time_ms": 39345,
+      "passed": true
+    },
+    {
+      "file": "atlas_5mb.rtf",
+      "upload_latency_seconds": 0.345,
+      "message": "Documento enviado para analise",
+      "document_id": 36,
+      "filename": "atlas_5mb.rtf",
+      "status": "queued",
+      "file_size": 5242726,
+      "mime_type": "application/rtf",
+      "sha256": "2ea38618580789beb34c0850b5e45ee005c3e7ec932e0666a99b8d09a84868bd",
+      "enqueue_latency_seconds": 0.054,
+      "task_id": "4be8562b-8f3d-47bf-9dc6-dabe3cb5eb81",
+      "progress": 5,
+      "check_status_url": "/documents/36/processing-status",
+      "first_processing_seconds": 27.669,
+      "completed_seconds": 70.48,
+      "last_status": "completed",
+      "progress_samples": [
+        {
+          "elapsed_seconds": 2.163,
+          "status": "queued",
+          "progress": 5,
+          "stage": "queued"
+        },
+        {
+          "elapsed_seconds": 27.669,
+          "status": "processing",
+          "progress": 25,
+          "stage": "extracting"
+        },
+        {
+          "elapsed_seconds": 28.79,
+          "status": "processing",
+          "progress": 55,
+          "stage": "analyzing"
+        },
+        {
+          "elapsed_seconds": 70.48,
+          "status": "completed",
+          "progress": 100,
+          "stage": "completed"
+        }
+      ],
+      "error_message": null,
+      "processing_time_ms": 42780,
+      "passed": true
+    }
+  ]
+}

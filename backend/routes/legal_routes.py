@@ -19,7 +19,7 @@ router = APIRouter(prefix="/legal", tags=["Jurídico"])
 
 
 # Schemas Pydantic
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class GeneratePieceRequest(BaseModel):
@@ -31,17 +31,25 @@ class GeneratePieceRequest(BaseModel):
     facts: str = Field(..., description="Fatos relevantes")
     requests: str = Field(..., description="Pedidos")
     additional_context: Optional[str] = Field(None, description="Contexto adicional")
+
+    @field_validator("document_id", mode="before")
+    @classmethod
+    def normalize_empty_document_id(cls, value):
+        if value in ("", None):
+            return None
+        return value
     
-    @validator('piece_type')
-    def validate_piece_type(cls, v):
+    @field_validator("piece_type")
+    @classmethod
+    def validate_piece_type(cls, value: str) -> str:
         valid_types = [
             'peticao_inicial', 'contestacao', 'recurso_apelacao',
             'embargos_declaracao', 'agravo', 'habeas_corpus',
             'acao_cautelar', 'contrato', 'parecer'
         ]
-        if v not in valid_types:
+        if value not in valid_types:
             raise ValueError(f"Tipo inválido. Use: {', '.join(valid_types)}")
-        return v
+        return value
 
 
 @router.post("/generate-piece", response_model=dict)
@@ -138,6 +146,7 @@ async def list_legal_pieces(
             "piece_type": piece.piece_type,
             "jurisdiction": piece.jurisdiction,
             "status": piece.status,
+            "content": piece.content,
             "created_at": piece.created_at.isoformat() if piece.created_at else None,
             "generated_at": piece.generated_at.isoformat() if piece.generated_at else None
         }

@@ -4,12 +4,13 @@ Cobertura: Login, registro, tokens, refresh, logout
 """
 
 import pytest
+import main as main_module
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 
-from database import Base, get_db
+from database import Base, get_db, get_db_async
 from main import app
 from security import create_access_token, verify_token
 
@@ -17,6 +18,7 @@ from security import create_access_token, verify_token
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TEST_PASSWORD = "SenhaForte123!"
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +30,7 @@ def override_get_db():
         db.close()
 
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_db_async] = override_get_db
 
 client = TestClient(app)
 
@@ -38,7 +41,7 @@ class TestAuthentication:
         """Teste: Registro de usuário com sucesso"""
         response = client.post("/auth/register", json={
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Test User"
         })
         assert response.status_code == 201
@@ -52,14 +55,14 @@ class TestAuthentication:
         # Primeiro registro
         client.post("/auth/register", json={
             "email": "duplicate@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Test User"
         })
         
         # Segundo registro com mesmo email
         response = client.post("/auth/register", json={
             "email": "duplicate@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Test User 2"
         })
         assert response.status_code == 400
@@ -69,14 +72,14 @@ class TestAuthentication:
         # Registrar usuário
         client.post("/auth/register", json={
             "email": "login@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Login Test"
         })
         
         # Login
         response = client.post("/auth/login", json={
             "email": "login@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         assert response.status_code == 200
         data = response.json()
@@ -91,6 +94,36 @@ class TestAuthentication:
             "password": "wrongpassword"
         })
         assert response.status_code == 401
+
+    def test_refresh_token_rotation_prevents_reuse(self):
+        """Refresh tokens devem ser rotacionados e aceitos apenas uma vez."""
+        register_response = client.post("/auth/register", json={
+            "email": "refresh-rotation@example.com",
+            "password": TEST_PASSWORD,
+            "name": "Refresh Rotation"
+        })
+        assert register_response.status_code == 201
+        original_refresh = register_response.json()["refresh_token"]
+
+        first_refresh = client.post(
+            "/auth/refresh",
+            headers={"Authorization": f"Bearer {original_refresh}"}
+        )
+        assert first_refresh.status_code == 200
+        rotated_refresh = first_refresh.json()["refresh_token"]
+        assert rotated_refresh != original_refresh
+
+        reused_refresh = client.post(
+            "/auth/refresh",
+            headers={"Authorization": f"Bearer {original_refresh}"}
+        )
+        assert reused_refresh.status_code == 401
+
+        second_refresh = client.post(
+            "/auth/refresh",
+            headers={"Authorization": f"Bearer {rotated_refresh}"}
+        )
+        assert second_refresh.status_code == 200
     
     def test_token_verification(self):
         """Teste: Verificação de token JWT"""
@@ -119,19 +152,69 @@ class TestAuthentication:
             headers={"Authorization": "Bearer invalid_token"}
         )
         assert response.status_code == 401
+
+    def test_premium_ai_requires_authentication(self):
+        response = client.post(
+            "/api/chat/premium",
+            json={"message": "Explique o artigo 18 do Codigo Penal"}
+        )
+
+        assert response.status_code == 401
+
+    def test_premium_ai_uses_authenticated_identity(self, monkeypatch):
+        captured = {}
+
+        class FakeOrchestrator:
+            async def answer(self, **kwargs):
+                captured.update(kwargs)
+                return {
+                    "response": "Resposta segura de teste.",
+                    "quality_score": 100,
+                    "metadata": {},
+                    "legal_metadata": {},
+                }
+
+        monkeypatch.setattr(
+            main_module,
+            "legal_ai_orchestrator",
+            FakeOrchestrator(),
+        )
+        monkeypatch.setattr(main_module, "PREMIUM_AI_AVAILABLE", True)
+        monkeypatch.setattr(main_module, "premium_ai_engine", object())
+
+        register_response = client.post("/auth/register", json={
+            "email": "ai-identity@example.com",
+            "password": TEST_PASSWORD,
+            "name": "AI Identity"
+        })
+        user_id = register_response.json()["id"]
+        access_token = register_response.json()["access_token"]
+
+        response = client.post(
+            "/api/chat/premium",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json={
+                "message": "Organize os fatos.",
+                "user_id": "forged-user",
+                "conversation_id": "case!42",
+            },
+        )
+
+        assert response.status_code == 200
+        assert captured["user_id"] == f"{user_id}:case42"
     
     def test_logout_invalidates_token(self):
         """Teste: Logout invalida o token"""
         # Registrar e fazer login
         client.post("/auth/register", json={
             "email": "logout@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Logout Test"
         })
         
         login_response = client.post("/auth/login", json={
             "email": "logout@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         token = login_response.json()["access_token"]
         
@@ -180,7 +263,7 @@ class TestPasswordRecovery:
         # Criar usuário
         client.post("/auth/register", json={
             "email": "recover@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Recover Test"
         })
         

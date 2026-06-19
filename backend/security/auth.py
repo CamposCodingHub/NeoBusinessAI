@@ -45,6 +45,14 @@ class TokenData:
         self.role = role
         self.permissions = permissions
 
+    @property
+    def id(self):
+        """Compatibilidade com rotas legadas que esperam `current_user.id`."""
+        try:
+            return int(self.user_id)
+        except (TypeError, ValueError):
+            return self.user_id
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha corresponde ao hash - trunca em 72 bytes para bcrypt"""
@@ -72,8 +80,12 @@ def get_password_hash(password: str) -> str:
     return hashed.decode('utf-8')
 
 
-def create_access_token(user_id: str, role: Role = Role.USER, 
-                       permissions: list = None) -> str:
+def create_access_token(
+    user_id: str,
+    role: Role = Role.USER,
+    permissions: list = None,
+    expires_delta: Optional[timedelta] = None,
+) -> str:
     """
     Cria token JWT de acesso
     
@@ -88,7 +100,9 @@ def create_access_token(user_id: str, role: Role = Role.USER,
     if permissions is None:
         permissions = []
     
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     
     payload = {
         "sub": str(user_id),  # Subject (user_id)

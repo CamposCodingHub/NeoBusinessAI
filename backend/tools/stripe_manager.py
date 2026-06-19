@@ -19,60 +19,60 @@ class PlanTier(Enum):
 # Configurações dos planos
 PLANS = {
     PlanTier.STARTER: {
-        "name": "Starter",
-        "price_brl": 29700,  # R$ 297,00 em centavos
-        "documents_limit": 50,
+        "name": "Explorar",
+        "price_brl": 0,
+        "documents_limit": 3,
         "users_limit": 1,
         "features": [
-            "OCR basico",
-            "Resumo automatico",
-            "Suporte por email"
+            "10 consultas de IA por mes",
+            "Motor juridico de alta precisao",
+            "Fontes oficiais",
+            "3 documentos por mes"
         ],
         "stripe_price_id": None  # Será configurado no Stripe Dashboard
     },
     PlanTier.PROFESSIONAL: {
-        "name": "Professional",
-        "price_brl": 89700,  # R$ 897,00 em centavos
-        "documents_limit": 200,
-        "users_limit": 5,
+        "name": "Profissional",
+        "price_brl": 14900,
+        "documents_limit": 50,
+        "users_limit": 1,
         "features": [
-            "OCR avancado + IA",
-            "Deteccao de prazos",
-            "Chat contextual",
-            "API basica",
-            "Suporte prioritario"
+            "150 consultas juridicas por mes",
+            "Motor juridico de alta precisao em todas as consultas",
+            "30 pesquisas profundas por mes",
+            "Citacoes e fontes oficiais",
+            "Geracao e revisao de pecas",
+            "Memoria contextual"
         ],
         "stripe_price_id": None,
         "popular": True
     },
     PlanTier.BUSINESS: {
-        "name": "Business",
-        "price_brl": 250000,  # R$ 2.500,00 em centavos
-        "documents_limit": float('inf'),  # Ilimitado
-        "users_limit": 20,
+        "name": "Escritorio",
+        "price_brl": 69900,
+        "documents_limit": 500,
+        "users_limit": 5,
         "features": [
-            "Documentos ilimitados",
-            "IA treinavel personalizada",
-            "White-label",
-            "Integracoes ERP",
-            "API completa",
-            "Consultoria incluida",
-            "SLA garantido"
+            "1.000 consultas e 300 pesquisas profundas",
+            "Fila prioritaria do motor juridico",
+            "Base de conhecimento do escritorio",
+            "WhatsApp, cobranca e portal",
+            "Fluxos de aprovacao e auditoria",
+            "Dashboard de produtividade e risco"
         ],
         "stripe_price_id": None
     },
     PlanTier.ENTERPRISE: {
-        "name": "Enterprise",
+        "name": "Scale",
         "price_brl": None,  # Sob consulta
         "documents_limit": float('inf'),
         "users_limit": float('inf'),
         "features": [
-            "Infraestrutura dedicada",
-            "IA customizada",
-            "Integracoes enterprise",
-            "Usuarios ilimitados",
-            "Suporte 24/7",
-            "Auditoria e compliance"
+            "A partir de 15 usuarios",
+            "Franquia customizada de IA",
+            "API e integracoes dedicadas",
+            "SSO, auditoria e ambientes segregados",
+            "SLA e implantacao sob medida"
         ],
         "stripe_price_id": None,
         "contact_sales": True

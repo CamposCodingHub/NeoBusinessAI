@@ -15,6 +15,7 @@ class OCRProcessor:
     
     def __init__(self):
         self.supported_formats = ['.pdf', '.jpg', '.jpeg', '.png', '.tiff', '.bmp']
+        self.max_extracted_items = 100
         
     def extract_text(self, image_data: bytes) -> str:
         """
@@ -103,6 +104,8 @@ class OCRProcessor:
                     'context': context.strip(),
                     'urgency': 'high' if int(days) <= 5 else 'medium' if int(days) <= 15 else 'low'
                 })
+                if len(deadlines) >= self.max_extracted_items:
+                    return deadlines
         
         return deadlines
     
@@ -150,6 +153,8 @@ class OCRProcessor:
             matches = re.finditer(pattern, text, re.IGNORECASE)
             for match in matches:
                 parties['advogados'].append(match.group(0).strip())
+                if len(parties['advogados']) >= self.max_extracted_items:
+                    break
         
         return parties
     
@@ -200,6 +205,8 @@ class OCRProcessor:
                     'value': value_str,
                     'context': text[context_start:context_end].strip()
                 })
+                if len(values) >= self.max_extracted_items:
+                    return values
         
         return values
     

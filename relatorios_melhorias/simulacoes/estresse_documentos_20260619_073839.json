@@ -1,0 +1,325 @@
+{
+  "generated_at": "2026-06-19T07:38:39.852190",
+  "api_url": "http://127.0.0.1:8000",
+  "passed": 8,
+  "total": 8,
+  "remote_ai_analyses": 5,
+  "local_structured_analyses": 0,
+  "results": [
+    {
+      "scenario": "large_txt",
+      "file": "atlas_12mb.txt",
+      "size_bytes": 12582620,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 0.432,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 13,
+          "filename": "atlas_12mb.txt",
+          "status": "uploaded",
+          "file_size": 12582620,
+          "mime_type": "text/plain",
+          "sha256": "2326102b0a5d9583b16bfe8526bf98fa336756e28d1cd4ceb28853e23d786af5"
+        }
+      },
+      "analysis": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 2.746,
+        "body": {
+          "message": "Analise concluida",
+          "document_id": 13,
+          "status": "completed",
+          "metadata": {
+            "sha256": "2326102b0a5d9583b16bfe8526bf98fa336756e28d1cd4ceb28853e23d786af5",
+            "mime_type": "text/plain",
+            "upload_mode": "streamed",
+            "pages": 1,
+            "language": "pt-BR",
+            "extraction_method": "streamed_text_sample",
+            "text_characters": 1999999,
+            "text_truncated": true,
+            "max_text_characters": 2000000,
+            "analysis_mode": "remote_ai",
+            "ai_analysis_used": true,
+            "ai_error": ""
+          },
+          "summary_characters": 503,
+          "analysis_characters": 2646,
+          "extracted_text_characters_returned": 100000
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "large_pdf",
+      "file": "atlas_250_paginas.pdf",
+      "size_bytes": 227764,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 0.023,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 14,
+          "filename": "atlas_250_paginas.pdf",
+          "status": "uploaded",
+          "file_size": 227764,
+          "mime_type": "application/pdf",
+          "sha256": "263a11e444baf29a23c952a55b2118ae526efc577acb0d6211be3124506a3289"
+        }
+      },
+      "analysis": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 33.289,
+        "body": {
+          "message": "Analise concluida",
+          "document_id": 14,
+          "status": "completed",
+          "metadata": {
+            "sha256": "263a11e444baf29a23c952a55b2118ae526efc577acb0d6211be3124506a3289",
+            "mime_type": "application/pdf",
+            "upload_mode": "streamed",
+            "pages": 250,
+            "language": "pt-BR",
+            "extraction_method": "pdf_embedded_text",
+            "text_characters": 1134532,
+            "text_truncated": false,
+            "max_text_characters": 2000000,
+            "analysis_mode": "remote_ai",
+            "ai_analysis_used": true,
+            "ai_error": ""
+          },
+          "summary_characters": 503,
+          "analysis_characters": 2184,
+          "extracted_text_characters_returned": 100000
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "large_docx",
+      "file": "atlas_9000_paragrafos.docx",
+      "size_bytes": 94394,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 0.031,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 15,
+          "filename": "atlas_9000_paragrafos.docx",
+          "status": "uploaded",
+          "file_size": 94394,
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "sha256": "4ef044bc6526b3d2ada4fc84acdac723b7938bb2b0823c4e1f4580ab6f80adf8"
+        }
+      },
+      "analysis": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 33.748,
+        "body": {
+          "message": "Analise concluida",
+          "document_id": 15,
+          "status": "completed",
+          "metadata": {
+            "sha256": "4ef044bc6526b3d2ada4fc84acdac723b7938bb2b0823c4e1f4580ab6f80adf8",
+            "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "upload_mode": "streamed",
+            "pages": 1,
+            "language": "pt-BR",
+            "extraction_method": "docx_xml",
+            "text_characters": 2000000,
+            "text_truncated": true,
+            "max_text_characters": 2000000,
+            "analysis_mode": "remote_ai",
+            "ai_analysis_used": true,
+            "ai_error": ""
+          },
+          "summary_characters": 503,
+          "analysis_characters": 2496,
+          "extracted_text_characters_returned": 100000
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "large_rtf",
+      "file": "atlas_5mb.rtf",
+      "size_bytes": 5242726,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 0.17,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 16,
+          "filename": "atlas_5mb.rtf",
+          "status": "uploaded",
+          "file_size": 5242726,
+          "mime_type": "application/rtf",
+          "sha256": "2ea38618580789beb34c0850b5e45ee005c3e7ec932e0666a99b8d09a84868bd"
+        }
+      },
+      "analysis": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 39.774,
+        "body": {
+          "message": "Analise concluida",
+          "document_id": 16,
+          "status": "completed",
+          "metadata": {
+            "sha256": "2ea38618580789beb34c0850b5e45ee005c3e7ec932e0666a99b8d09a84868bd",
+            "mime_type": "application/rtf",
+            "upload_mode": "streamed",
+            "pages": 1,
+            "language": "pt-BR",
+            "extraction_method": "rtf_parser",
+            "text_characters": 1999998,
+            "text_truncated": true,
+            "max_text_characters": 2000000,
+            "analysis_mode": "remote_ai",
+            "ai_analysis_used": true,
+            "ai_error": ""
+          },
+          "summary_characters": 503,
+          "analysis_characters": 2644,
+          "extracted_text_characters_returned": 100000
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "official_irpf",
+      "file": "receita_irpf_2026.pdf",
+      "size_bytes": 4751936,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 2.406,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 17,
+          "filename": "receita_irpf_2026.pdf",
+          "status": "uploaded",
+          "file_size": 4751936,
+          "mime_type": "application/pdf",
+          "sha256": "f3740385c07fa4dc52f8614d009dd5bd038fbeb8bd935f89da4e9bc26ed2a3b0"
+        }
+      },
+      "analysis": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 45.555,
+        "body": {
+          "message": "Analise concluida",
+          "document_id": 17,
+          "status": "completed",
+          "metadata": {
+            "sha256": "f3740385c07fa4dc52f8614d009dd5bd038fbeb8bd935f89da4e9bc26ed2a3b0",
+            "mime_type": "application/pdf",
+            "upload_mode": "streamed",
+            "pages": 340,
+            "language": "pt-BR",
+            "extraction_method": "pdf_embedded_text",
+            "text_characters": 1166490,
+            "text_truncated": false,
+            "max_text_characters": 2000000,
+            "analysis_mode": "remote_ai",
+            "ai_analysis_used": true,
+            "ai_error": ""
+          },
+          "summary_characters": 503,
+          "analysis_characters": 2769,
+          "extracted_text_characters_returned": 100000
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "page_limit_pdf",
+      "file": "acima_limite_501_paginas.pdf",
+      "size_bytes": 455793,
+      "upload": {
+        "status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "latency_seconds": 0.026,
+        "body": {
+          "message": "Documento uploadado com sucesso",
+          "document_id": 18,
+          "filename": "acima_limite_501_paginas.pdf",
+          "status": "uploaded",
+          "file_size": 455793,
+          "mime_type": "application/pdf",
+          "sha256": "48273bec6cb2e67f7cd797ffab990f105ab6e1866dc2f211ded2e27637e29751"
+        }
+      },
+      "analysis": {
+        "status": 422,
+        "expected_status": 422,
+        "passed": true,
+        "latency_seconds": 0.112,
+        "body": {
+          "message": null,
+          "document_id": null,
+          "status": null,
+          "metadata": {},
+          "summary_characters": 0,
+          "analysis_characters": 0,
+          "extracted_text_characters_returned": 0
+        }
+      },
+      "passed": true
+    },
+    {
+      "scenario": "oversized",
+      "file": "acima_limite_51mb.txt",
+      "size_bytes": 53477376,
+      "upload": {
+        "status": 413,
+        "expected_status": 413,
+        "passed": true,
+        "latency_seconds": 1.066,
+        "body": {
+          "success": false,
+          "error": "Arquivo muito grande. Maximo: 50MB"
+        }
+      },
+      "analysis": null,
+      "passed": true
+    },
+    {
+      "scenario": "disguised",
+      "file": "executavel_disfarcado.pdf",
+      "size_bytes": 19,
+      "upload": {
+        "status": 400,
+        "expected_status": 400,
+        "passed": true,
+        "latency_seconds": 0.026,
+        "body": {
+          "success": false,
+          "error": "Conteudo do arquivo nao corresponde a extensao .pdf"
+        }
+      },
+      "analysis": null,
+      "passed": true
+    }
+  ]
+}

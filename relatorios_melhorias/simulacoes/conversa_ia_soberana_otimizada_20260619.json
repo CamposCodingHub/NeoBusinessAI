@@ -1,0 +1,26 @@
+{
+    "tested_at":  "2026-06-19T14:29:59.1500994-03:00",
+    "email":  "validacao_local_f37a209f@example.com",
+    "elapsed_seconds":  328.589,
+    "success":  true,
+    "provider":  "local-primary",
+    "model":  null,
+    "route":  "balanced_legal",
+    "latency_ms":  313614,
+    "tokens":  2538,
+    "sovereign_search_used":  true,
+    "sovereign_sources":  3,
+    "official_sources":  1,
+    "inline_citations":  8,
+    "verified_articles":  [
+                              "282",
+                              "312",
+                              "313",
+                              "315",
+                              "319"
+                          ],
+    "unverified_articles":  [
+
+                            ],
+    "response":  "O art. 312 do CÃ³digo de Processo Penal estabelece requisitos para a prisÃ£o preventiva. Essa medida deve ser tomada quando nÃ£o Ã© possÃ­vel substituÃ­-la por cautelas alternativas, observado o Â§ 6Âº do mesmo artigo. De acordo com os Â§Â§ 1Âº e 2Âº do art. 312, a prisÃ£o preventiva somente serÃ¡ determinada se nÃ£o for cabÃ­vel sua substituiÃ§Ã£o por outra medida cautelar.\n\nPara que seja aplicada a prisÃ£o preventiva, Ã© necessÃ¡rio demonstrar a existÃªncia de fatos novos ou contemporÃ¢neos que justifiquem a adoÃ§Ã£o da medida (Â§ 1Âº do art. 315). Essa exigÃªncia diferenciada do Â§ 2Âº do mesmo artigo implica em uma anÃ¡lise mais detalhada, onde nÃ£o basta apenas referir-se a um ato normativo; Ã© necessÃ¡rio explicar sua relaÃ§Ã£o com a causa ou questÃ£o decidida.\n\nO Â§ 5Âº do art. 312 permite que o juiz, de ofÃ­cio ou a pedido das partes, revogue a medida cautelar ou substitua-a quando verificar a falta de motivo para que subsista a prisÃ£o preventiva e, eventualmente, voltar a decretÃ¡-la se sobrevierem razÃµes que a justifiquem.\n\nEm relaÃ§Ã£o Ã  prova da existÃªncia do crime, indÃ­cio de autoria e perigo gerado pela liberdade, o Â§ 1Âº do art. 315 estabelece que a decisÃ£o judicial deve ser motivada e fundamentada, indicando concretamente a existÃªncia de fatos novos ou contemporÃ¢neos que justifiquem a aplicaÃ§Ã£o da prisÃ£o preventiva.\n\nFontes:\n- [Fonte 1] Codigo de Processo Penal - Decreto-Lei 3.689/1941, art. 312\n- [Fonte 2] Codigo de Processo Penal - Decreto-Lei 3.689/1941, art. 315\n\nLimites da resposta: A anÃ¡lise se baseia nos requisitos do art. 312 e Â§ 1Âº do art. 315 do CÃ³digo de Processo Penal, sem incluir elementos nÃ£o verificados nas fontes recuperadas.\n\n## Controles factuais aplicados\n\n- Nao trate gravidade abstrata como fundamento automatico. O art. 312 exige prova da existencia do crime, indicio suficiente de autoria e perigo gerado pela liberdade, ligado a garantia da ordem publica ou economica, conveniencia da instrucao criminal ou aplicacao da lei penal. Confira tambem admissibilidade no art. 313, fundamentacao concreta no art. 315, criterios do art. 282 e alternativas do art. 319. A regra de que preventiva so cabe quando nao for possivel substitui-la por cautelar diversa esta no art. 282, par. 6; nao a atribua ao caput do art. 312. [Fonte 1]\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Penal - Decreto-Lei 3.689/1941](https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm)"
+}

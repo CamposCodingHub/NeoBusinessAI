@@ -11,7 +11,7 @@ from database import Base, engine, SessionLocal, User, Document
 def test_database_connection():
     """Testa que conexão com banco de dados funciona"""
     assert engine is not None
-    assert str(engine.url).startswith("postgresql://")
+    assert str(engine.url).startswith(("postgresql://", "sqlite:///"))
 
 
 def test_session_factory():

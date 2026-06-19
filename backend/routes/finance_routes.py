@@ -17,6 +17,7 @@ from security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/finance", tags=["Financeiro"])
+compat_router = APIRouter(prefix="/invoices", tags=["Financeiro"])
 
 
 def generate_invoice_number():
@@ -26,6 +27,7 @@ def generate_invoice_number():
     return f"FAT-{year}-{random_code}"
 
 
+@compat_router.get("/")
 @router.get("/invoices")
 async def list_invoices(
     status: Optional[str] = Query(None, description="pending, paid, overdue, cancelled"),
@@ -77,6 +79,7 @@ async def list_invoices(
     }
 
 
+@compat_router.post("/", status_code=status.HTTP_201_CREATED)
 @router.post("/invoices", status_code=status.HTTP_201_CREATED)
 async def create_invoice(
     invoice_data: dict,
@@ -85,9 +88,18 @@ async def create_invoice(
 ):
     """Cria uma nova fatura"""
     try:
-        amount_cents = int(invoice_data.get("amount", 0) * 100)
-        discount_cents = int(invoice_data.get("discount", 0) * 100)
-        total_cents = amount_cents - discount_cents
+        if invoice_data.get("total_cents") is not None:
+            total_cents = int(invoice_data.get("total_cents", 0))
+            amount_cents = int(invoice_data.get("amount_cents", total_cents))
+            discount_cents = int(invoice_data.get("discount_cents", max(0, amount_cents - total_cents)))
+        else:
+            amount_value = invoice_data.get("amount")
+            if amount_value is None:
+                amount_value = invoice_data.get("total", 0)
+            discount_value = invoice_data.get("discount", 0)
+            amount_cents = int(float(amount_value or 0) * 100)
+            discount_cents = int(float(discount_value or 0) * 100)
+            total_cents = amount_cents - discount_cents
         
         # Calcular data de vencimento
         due_days = invoice_data.get("due_days", 7)
@@ -118,10 +130,14 @@ async def create_invoice(
         db.refresh(invoice)
         
         logger.info(f"Fatura criada: {invoice.invoice_number} - R$ {total_cents/100}")
-        
+
+        invoice_payload = invoice.to_dict()
         return {
             "message": "Fatura criada com sucesso",
-            "invoice": invoice.to_dict()
+            "id": invoice.id,
+            "status": invoice.status,
+            **invoice_payload,
+            "invoice": invoice_payload,
         }
         
     except Exception as e:
@@ -132,6 +148,7 @@ async def create_invoice(
         )
 
 
+@compat_router.patch("/{invoice_id}/mark-paid")
 @router.patch("/invoices/{invoice_id}/pay")
 async def mark_invoice_paid(
     invoice_id: int,
@@ -157,12 +174,17 @@ async def mark_invoice_paid(
     db.commit()
     db.refresh(invoice)
     
+    invoice_payload = invoice.to_dict()
     return {
         "message": "Fatura marcada como paga",
-        "invoice": invoice.to_dict()
+        "id": invoice.id,
+        "status": invoice.status,
+        **invoice_payload,
+        "invoice": invoice_payload,
     }
 
 
+@compat_router.patch("/{invoice_id}/cancel")
 @router.patch("/invoices/{invoice_id}/cancel")
 async def cancel_invoice(
     invoice_id: int,
@@ -185,12 +207,17 @@ async def cancel_invoice(
     db.commit()
     db.refresh(invoice)
     
+    invoice_payload = invoice.to_dict()
     return {
         "message": "Fatura cancelada",
-        "invoice": invoice.to_dict()
+        "id": invoice.id,
+        "status": invoice.status,
+        **invoice_payload,
+        "invoice": invoice_payload,
     }
 
 
+@compat_router.delete("/{invoice_id}")
 @router.delete("/invoices/{invoice_id}")
 async def delete_invoice(
     invoice_id: int,
@@ -212,6 +239,7 @@ async def delete_invoice(
     return {"message": "Fatura removida com sucesso"}
 
 
+@compat_router.get("/dashboard")
 @router.get("/dashboard")
 async def get_finance_dashboard(
     period_days: int = Query(30, description="Período em dias para análise"),
@@ -298,6 +326,10 @@ async def get_finance_dashboard(
     ]
     
     return {
+        "total_paid": total_billed / 100,
+        "total_pending": total_pending / 100,
+        "total_overdue": total_overdue / 100,
+        "total_outstanding": (total_pending + total_overdue) / 100,
         "summary": {
             "total_billed": total_billed / 100,
             "total_pending": total_pending / 100,
@@ -366,6 +398,7 @@ async def get_overdue_invoices(
     }
 
 
+@compat_router.post("/{invoice_id}/send-reminder")
 @router.post("/invoices/{invoice_id}/send-reminder")
 async def send_invoice_reminder(
     invoice_id: int,

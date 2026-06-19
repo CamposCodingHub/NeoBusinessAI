@@ -68,6 +68,7 @@ class TestFileValidation:
         assert ".docx" in ALLOWED_TYPES
         assert ".jpg" in ALLOWED_TYPES
         assert ".png" in ALLOWED_TYPES
+        assert ".doc" not in ALLOWED_TYPES
     
     def test_dangerous_extensions_blocked(self):
         """Teste: Extensões perigosas bloqueadas"""
@@ -137,6 +138,8 @@ class TestSecurityUtils:
     
     def test_path_traversal_prevention(self):
         """Teste: Prevenção de path traversal"""
+        from security.file_validation import sanitize_filename
+
         malicious_paths = [
             "../../../etc/passwd",
             "..\\..\\windows\\system32\\config\\sam",
@@ -145,8 +148,10 @@ class TestSecurityUtils:
         ]
         
         for path in malicious_paths:
-            # Deve ser sanitizado
-            assert ".." not in path.replace("%2e", ".") or len(path) < 10
+            cleaned = sanitize_filename(path.replace("%2e", "."))
+            assert ".." not in cleaned
+            assert "/" not in cleaned
+            assert "\\" not in cleaned
 
 
 # Marcar testes que requerem dependências externas

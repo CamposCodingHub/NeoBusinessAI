@@ -1,4 +1,5 @@
 from transformers import pipeline
+import os
 from ai.brain import Brain
 from ai.memory import Memory
 from ai.vector_store import VectorStore
@@ -32,15 +33,25 @@ class NeoBusinessAI:
         # 🧠 módulos
         self.brain = Brain()
         self.memory = Memory()
-        self.vector_store = VectorStore()
-
-        try:
-            self.vector_store.load_pdfs()
-        except Exception as e:
-            print(f"[AVISO] PDFs: {e}")
+        self.vector_store = None
+        self.vector_store_loaded = False
+        self.rag_enabled = os.getenv("ENABLE_LOCAL_RAG", "true").lower() in {"1", "true", "yes", "on"}
 
         mode = "API GROQ" if self.use_api else "Local"
         print(f"[OK] NeoBusiness AI pronta! Modo: {mode}\n")
+
+    def _ensure_vector_store(self):
+        if not self.rag_enabled or self.vector_store_loaded:
+            return
+
+        try:
+            self.vector_store = VectorStore()
+            self.vector_store.load_pdfs()
+            self.vector_store_loaded = True
+            print("[OK] Base vetorial carregada sob demanda.")
+        except Exception as e:
+            self.rag_enabled = False
+            print(f"[AVISO] RAG desativado neste runtime: {e}")
 
     def ask(self, user_input: str):
         try:
@@ -54,8 +65,10 @@ class NeoBusinessAI:
             knowledge = ""
             if len(user_input) > 10:
                 try:
-                    knowledge = self.vector_store.search(user_input, top_k=2)
-                except:
+                    self._ensure_vector_store()
+                    if self.vector_store is not None:
+                        knowledge = self.vector_store.search(user_input, top_k=2)
+                except Exception:
                     knowledge = ""
 
             # 🎯 Prompt do sistema DINÂMICO (varia a cada conversa)

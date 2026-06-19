@@ -128,7 +128,7 @@ async def portal_dashboard(
     # Documentos compartilhados
     documents = db.query(Document).filter(
         Document.user_id == client.user_id,
-        Document.custom_data.contains({"client_id": client_id}),
+        Document.custom_data["client_id"].as_integer() == client_id,
         Document.status == "processed"
     ).order_by(Document.created_at.desc()).limit(5).all()
     
@@ -271,7 +271,7 @@ async def portal_list_documents(
     
     query = db.query(Document).filter(
         Document.user_id == client.user_id,
-        Document.custom_data.contains({"client_id": client_id}),
+        Document.custom_data["client_id"].as_integer() == client_id,
         Document.status == "processed"
     )
     

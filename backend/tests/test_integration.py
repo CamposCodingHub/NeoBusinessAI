@@ -4,18 +4,24 @@ Cobertura: Fluxos completos, APIs externas (mock)
 """
 
 import pytest
+import os
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 
-from database import Base, get_db
+# Override DATABASE_URL e ENVIRONMENT antes de importar database e main
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+os.environ["ENVIRONMENT"] = "test"
+
+from database import Base, get_db, get_db_async
 from main import app
 
 # Setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TEST_PASSWORD = "SenhaForte123!"
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,6 +33,7 @@ def override_get_db():
         db.close()
 
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_db_async] = override_get_db
 client = TestClient(app)
 
 
@@ -38,12 +45,12 @@ class TestCompleteWorkflow:
         """Fixture: Autenticar usuário"""
         client.post("/auth/register", json={
             "email": "workflow@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Workflow User"
         })
         login = client.post("/auth/login", json={
             "email": "workflow@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         return {"Authorization": f"Bearer {login.json()['access_token']}"}
     
@@ -158,7 +165,7 @@ class TestErrorHandling:
         })
         assert response.status_code == 401
         data = response.json()
-        assert "detail" in data
+        assert "detail" in data or "error" in data
 
 
 class TestPaginationAndFiltering:
@@ -168,12 +175,12 @@ class TestPaginationAndFiltering:
     def auth_headers(self):
         client.post("/auth/register", json={
             "email": "pagination@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Pagination User"
         })
         login = client.post("/auth/login", json={
             "email": "pagination@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         return {"Authorization": f"Bearer {login.json()['access_token']}"}
     

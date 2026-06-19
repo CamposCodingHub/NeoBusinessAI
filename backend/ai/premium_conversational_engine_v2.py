@@ -27,7 +27,7 @@ import asyncio
 from collections import deque, Counter
 
 # Importar do arquivo original
-from premium_conversational_engine import (
+from .premium_conversational_engine import (
     PremiumConversationalEngine,
     ConversationMemory,
     UserIntent,
@@ -248,12 +248,23 @@ class FeedbackSystem:
         if len(ratings) >= 3:
             recent = ratings[-3:]
             older = ratings[:-3]
-            if sum(recent) / len(recent) > sum(older) / len(older):
-                trend = 'improving'
-            elif sum(recent) / len(recent) < sum(older) / len(older):
-                trend = 'declining'
+            recent_average = sum(recent) / len(recent)
+
+            if older:
+                older_average = sum(older) / len(older)
+                if recent_average > older_average:
+                    trend = 'improving'
+                elif recent_average < older_average:
+                    trend = 'declining'
+                else:
+                    trend = 'stable'
             else:
-                trend = 'stable'
+                if recent[-1] > recent[0]:
+                    trend = 'improving'
+                elif recent[-1] < recent[0]:
+                    trend = 'declining'
+                else:
+                    trend = 'stable'
         else:
             trend = 'neutral'
         

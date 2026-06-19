@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 import logging
+import uuid
 
-from database import get_db, Deadline, User
+from database import get_db, Deadline, User, Document
 from security import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,27 @@ async def create_deadline(
     }
     """
     try:
+        document_id = deadline_data.get("document_id")
+
+        # Bancos locais antigos ainda podem exigir document_id.
+        # Criamos um artefato tecnico minimo para manter o prazo manual funcional.
+        if document_id is None:
+            placeholder_document = Document(
+                user_id=current_user.id,
+                filename=f"prazo-manual-{uuid.uuid4().hex[:8]}.txt",
+                original_filename="prazo-manual.txt",
+                file_path=None,
+                file_size=0,
+                file_type=".txt",
+                title=deadline_data.get("description") or "Prazo manual",
+                status="uploaded",
+                content={"source": "manual_deadline"},
+                custom_data={"generated_by": "deadline_routes"},
+            )
+            db.add(placeholder_document)
+            db.flush()
+            document_id = placeholder_document.id
+
         # Parse due_date if provided
         due_date = None
         if "due_date" in deadline_data and deadline_data["due_date"]:
@@ -109,7 +131,7 @@ async def create_deadline(
         
         deadline = Deadline(
             user_id=current_user.id,
-            document_id=deadline_data.get("document_id"),
+            document_id=document_id,
             description=deadline_data.get("description", ""),
             days=deadline_data.get("days"),
             due_date=due_date,

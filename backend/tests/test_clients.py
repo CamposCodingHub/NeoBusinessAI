@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database import Base, get_db, User, Client
+from database import Base, get_db, get_db_async, User, Client, Document
 from main import app
 from security import create_access_token
 
@@ -16,6 +16,7 @@ from security import create_access_token
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TEST_PASSWORD = "SenhaForte123!"
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,6 +28,7 @@ def override_get_db():
         db.close()
 
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_db_async] = override_get_db
 client = TestClient(app)
 
 class TestClientCRUD:
@@ -38,14 +40,14 @@ class TestClientCRUD:
         # Registrar
         client.post("/auth/register", json={
             "email": "clientuser@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Client User"
         })
         
         # Login
         login = client.post("/auth/login", json={
             "email": "clientuser@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         token = login.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
@@ -100,6 +102,42 @@ class TestClientCRUD:
         response = client.get(f"/clients/{client_id}", headers=auth_headers)
         assert response.status_code == 200
         assert response.json()["name"] == "Maria Souza"
+
+    def test_client_details_and_timeline_include_linked_document(self, auth_headers):
+        create_response = client.post("/clients/", json={
+            "name": "Cliente com Documento",
+            "email": "documento@example.com"
+        }, headers=auth_headers)
+        client_id = create_response.json()["client"]["id"]
+
+        db = TestingSessionLocal()
+        try:
+            user = db.query(User).filter(
+                User.email == "clientuser@example.com"
+            ).first()
+            db.add(Document(
+                user_id=user.id,
+                filename="contrato-cliente.txt",
+                custom_data={"client_id": client_id},
+                status="completed",
+            ))
+            db.commit()
+        finally:
+            db.close()
+
+        details = client.get(f"/clients/{client_id}", headers=auth_headers)
+        timeline = client.get(
+            f"/clients/{client_id}/timeline",
+            headers=auth_headers,
+        )
+
+        assert details.status_code == 200
+        assert details.json()["documents"][0]["filename"] == "contrato-cliente.txt"
+        assert timeline.status_code == 200
+        assert any(
+            event["type"] == "document_uploaded"
+            for event in timeline.json()["events"]
+        )
     
     def test_update_client(self, auth_headers):
         """Teste: Atualizar cliente"""
@@ -144,14 +182,14 @@ class TestIDORProtection:
         # Registrar
         client.post("/auth/register", json={
             "email": "user1@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "User 1"
         })
         
         # Login
         login = client.post("/auth/login", json={
             "email": "user1@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         token1 = login.json()["access_token"]
         headers1 = {"Authorization": f"Bearer {token1}"}
@@ -171,14 +209,14 @@ class TestIDORProtection:
         # Registrar
         client.post("/auth/register", json={
             "email": "user2@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "User 2"
         })
         
         # Login
         login = client.post("/auth/login", json={
             "email": "user2@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         token2 = login.json()["access_token"]
         headers2 = {"Authorization": f"Bearer {token2}"}
@@ -243,12 +281,12 @@ class TestInputValidation:
     def auth_headers(self):
         client.post("/auth/register", json={
             "email": "validation@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "name": "Validation User"
         })
         login = client.post("/auth/login", json={
             "email": "validation@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORD
         })
         return {"Authorization": f"Bearer {login.json()['access_token']}"}
     

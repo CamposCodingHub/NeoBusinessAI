@@ -126,7 +126,7 @@ async def get_client(
     # Buscar documentos relacionados
     documents = db.query(Document).filter(
         Document.user_id == current_user.id,
-        Document.custom_data.contains({"client_id": client_id})
+        Document.custom_data["client_id"].as_integer() == client_id,
     ).all()
     
     # Buscar faturas
@@ -245,7 +245,7 @@ async def get_client_timeline(
     # Documentos
     documents = db.query(Document).filter(
         Document.user_id == current_user.id,
-        Document.custom_data.contains({"client_id": client_id})
+        Document.custom_data["client_id"].as_integer() == client_id,
     ).order_by(Document.created_at.desc()).limit(limit).all()
     
     for doc in documents:

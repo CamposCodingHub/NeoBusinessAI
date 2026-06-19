@@ -6,7 +6,7 @@ Baseado em referências enterprise (SAP, Snowflake)
 """
 
 from sqlalchemy import Column, String, Integer, CheckConstraint, Index
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import declared_attr
 from database import Base
 
 

@@ -4,13 +4,14 @@ SQLAlchemy ORM para persistência de dados
 """
 
 import os
+import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, JSON, Float, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Session
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, JSON, Float, Boolean, text
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
 from sqlalchemy.pool import QueuePool
 
 # Importar configuração validada
@@ -18,19 +19,50 @@ from config import settings
 
 # Base declarativa
 Base = declarative_base()
+logger = logging.getLogger(__name__)
 
 # Configuração da conexão - PostgreSQL obrigatório
 DATABASE_URL = settings.DATABASE_URL
+ACTIVE_DATABASE_URL = DATABASE_URL
+LOCAL_SQLITE_PATH = (Path(__file__).resolve().parent.parent / "neobusiness_local.db").as_posix()
+
+
+def _create_sqlite_engine(sqlite_url: str):
+    return create_engine(
+        sqlite_url,
+        echo=False,
+        connect_args={"check_same_thread": False}
+    )
+
+
+def _create_primary_engine(database_url: str):
+    if database_url.startswith('sqlite'):
+        return _create_sqlite_engine(database_url)
+    return create_engine(
+        database_url,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        echo=False,
+        connect_args={"client_encoding": "utf8"}
+    )
 
 # Engine com pool de conexões - PostgreSQL apenas
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    echo=False,
-    connect_args={"client_encoding": "utf8"}
-)
+# Para SQLite em testes, não usar connect_args
+engine = _create_primary_engine(DATABASE_URL)
+
+if not DATABASE_URL.startswith('sqlite') and settings.ENVIRONMENT != 'production':
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        logger.info("Banco PostgreSQL validado com sucesso.")
+    except Exception as exc:
+        ACTIVE_DATABASE_URL = f"sqlite:///{LOCAL_SQLITE_PATH}"
+        logger.warning(
+            "Falha ao conectar no PostgreSQL configurado. Ativando fallback SQLite local em desenvolvimento. Erro: %s",
+            exc,
+        )
+        engine = _create_sqlite_engine(ACTIVE_DATABASE_URL)
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -61,12 +93,17 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, server_default='true')
     
     # Relacionamentos
     documents = relationship("Document", back_populates="owner", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.is_active is None:
+            self.is_active = True
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -99,22 +136,21 @@ class Document(Base):
     custom_data = Column(JSON)  # Renamed from 'metadata' to avoid SQLAlchemy reserved word
     status = Column(String(50), default='uploaded')  # uploaded, processing, completed, error
     # Partes (JSON)
-    parties = Column(JSON, default=dict)
+    parties = Column(JSON)
     
     # Dados extraídos (JSON)
-    deadlines = Column(JSON, default=list)
-    values = Column(JSON, default=list)
-    dates = Column(JSON, default=list)
+    deadlines = Column(JSON)
+    values = Column(JSON)
+    dates = Column(JSON)
     
     # Análises
     summary = Column(Text)
     analysis = Column(Text)
-    key_points = Column(JSON, default=list)
-    risks = Column(JSON, default=list)
-    recommendations = Column(JSON, default=list)
+    key_points = Column(JSON)
+    risks = Column(JSON)
+    recommendations = Column(JSON)
     
     # Metadados
-    status = Column(String(50), default='processing')
     processing_time_ms = Column(Integer)
     error_message = Column(Text)
     
@@ -125,6 +161,23 @@ class Document(Base):
     # Relacionamentos
     owner = relationship("User", back_populates="documents")
     chat_messages = relationship("ChatMessage", back_populates="document", cascade="all, delete-orphan")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.deadlines is None:
+            self.deadlines = []
+        if self.values is None:
+            self.values = []
+        if self.dates is None:
+            self.dates = []
+        if self.parties is None:
+            self.parties = {}
+        if self.key_points is None:
+            self.key_points = []
+        if self.risks is None:
+            self.risks = []
+        if self.recommendations is None:
+            self.recommendations = []
 
 
 class LegalDocument(Base):
@@ -152,32 +205,20 @@ class LegalDocument(Base):
         result = {
             'id': self.id,
             'user_id': self.user_id,
-            'filename': self.filename,
-            'file_type': self.file_type,
-            'file_size': self.file_size,
-            'pages': self.pages,
-            'ocr_method': self.ocr_method,
-            'document_type': self.document_type,
-            'document_subtype': self.document_subtype,
-            'process_number': self.process_number,
-            'court': self.court,
+            'document_id': self.document_id,
+            'piece_type': self.piece_type,
+            'jurisdiction': self.jurisdiction,
             'parties': self.parties,
-            'deadlines': self.deadlines,
-            'values': self.values,
-            'dates': self.dates,
-            'summary': self.summary,
-            'analysis': self.analysis[:500] if self.analysis else None,
-            'key_points': self.key_points,
-            'risks': self.risks,
-            'recommendations': self.recommendations,
+            'facts': self.facts,
+            'requests': self.requests,
+            'additional_context': self.additional_context,
             'status': self.status,
-            'processing_time_ms': self.processing_time_ms,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'generated_at': self.generated_at.isoformat() if self.generated_at else None,
         }
         
         if include_text:
-            result['text_content'] = self.text_content_truncated or self.text_content[:2000] if self.text_content else None
+            result['content'] = self.content
         
         return result
 
@@ -189,16 +230,218 @@ class ChatMessage(Base):
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(Integer, ForeignKey('documents.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True)
     
-    role = Column(String(20), nullable=False)  # 'user' ou 'assistant'
-    content = Column(Text, nullable=False)
+    role = Column(String(20), nullable=True)  # 'user' ou 'assistant'
+    content = Column(Text, nullable=True)
     context_used = Column(JSON, default=dict)
     confidence = Column(Float)
+    sender_type = Column(String(20), default='user')
+    sender_name = Column(String(255))
+    sender_phone = Column(String(50), index=True)
+    message = Column(Text, nullable=True)
+    message_type = Column(String(50), default='text')
+    media_url = Column(String(500))
+    is_read = Column(Boolean, default=False)
+    read_at = Column(DateTime)
+    is_from_whatsapp = Column(Boolean, default=False)
+    whatsapp_message_id = Column(String(255))
+    context_type = Column(String(50))
+    context_id = Column(Integer)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relacionamentos
     document = relationship("Document", back_populates="chat_messages")
+
+    def __init__(self, **kwargs):
+        message = kwargs.get('message')
+        content = kwargs.get('content')
+        sender_type = kwargs.get('sender_type')
+        role = kwargs.get('role')
+
+        if message and not content:
+            kwargs['content'] = message
+        if content and not message:
+            kwargs['message'] = content
+        if sender_type and not role:
+            kwargs['role'] = sender_type
+
+        super().__init__(**kwargs)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'document_id': self.document_id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'role': self.role,
+            'content': self.content,
+            'message': self.message or self.content,
+            'sender_type': self.sender_type,
+            'sender_name': self.sender_name,
+            'sender_phone': self.sender_phone,
+            'message_type': self.message_type,
+            'media_url': self.media_url,
+            'is_read': self.is_read,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'is_from_whatsapp': self.is_from_whatsapp,
+            'whatsapp_message_id': self.whatsapp_message_id,
+            'context_type': self.context_type,
+            'context_id': self.context_id,
+            'confidence': self.confidence,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class LegalKnowledgeSource(Base):
+    """Fonte versionada da base juridica soberana."""
+
+    __tablename__ = "legal_knowledge_sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    source_key = Column(String(160), unique=True, nullable=False, index=True)
+    title = Column(String(500), nullable=False)
+    source_type = Column(String(80), nullable=False, index=True)
+    authority = Column(String(255), index=True)
+    jurisdiction = Column(String(160), index=True)
+    legal_area = Column(String(120), index=True)
+    url = Column(String(1000))
+    status = Column(String(50), default="active", nullable=False, index=True)
+    content_hash = Column(String(64), index=True)
+    custom_data = Column(JSON, default=dict)
+    last_collected_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class LegalKnowledgeChunk(Base):
+    """Trecho citavel usado pela busca lexical e semantica."""
+
+    __tablename__ = "legal_knowledge_chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    source_id = Column(
+        Integer,
+        ForeignKey("legal_knowledge_sources.id"),
+        nullable=False,
+        index=True,
+    )
+    external_id = Column(String(255), index=True)
+    ordinal = Column(Integer, default=0, nullable=False)
+    title = Column(String(500))
+    content = Column(Text, nullable=False)
+    normalized_content = Column(Text, nullable=False)
+    embedding = Column(JSON)
+    embedding_model = Column(String(160))
+    token_count = Column(Integer)
+    citation = Column(String(1000))
+    court = Column(String(80), index=True)
+    legal_area = Column(String(120), index=True)
+    document_date = Column(DateTime, index=True)
+    custom_data = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    source = relationship("LegalKnowledgeSource")
+
+
+class AIInferenceEvent(Base):
+    """Auditoria tecnica e financeira de cada tentativa de inferencia."""
+
+    __tablename__ = "ai_inference_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(String(64), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    conversation_id = Column(String(128), index=True)
+    provider = Column(String(80), nullable=False, index=True)
+    endpoint = Column(String(500))
+    route = Column(String(80), index=True)
+    requested_model = Column(String(160), index=True)
+    actual_model = Column(String(160), index=True)
+    status = Column(String(50), nullable=False, index=True)
+    error_code = Column(String(80), index=True)
+    error_message = Column(Text)
+    latency_ms = Column(Integer)
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+    estimated_cost_usd = Column(Float, default=0)
+    fallback_used = Column(Boolean, default=False)
+    custom_data = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class AIEvaluationRun(Base):
+    """Resultado versionado dos benchmarks de promocao de modelos."""
+
+    __tablename__ = "ai_evaluation_runs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_id = Column(String(64), unique=True, nullable=False, index=True)
+    dataset_name = Column(String(160), nullable=False, index=True)
+    dataset_version = Column(String(80), nullable=False)
+    candidate_provider = Column(String(80), nullable=False)
+    candidate_model = Column(String(160), nullable=False)
+    baseline_provider = Column(String(80))
+    baseline_model = Column(String(160))
+    status = Column(String(50), nullable=False, index=True)
+    score = Column(Float, default=0)
+    metrics = Column(JSON, default=dict)
+    results = Column(JSON, default=list)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime)
+
+
+class AIResearchJob(Base):
+    """Pesquisa profunda executada fora do ciclo HTTP."""
+
+    __tablename__ = "ai_research_jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    conversation_id = Column(String(128), index=True)
+    task_id = Column(String(64), index=True)
+    status = Column(String(50), default="queued", nullable=False, index=True)
+    progress = Column(Integer, default=0)
+    stage = Column(String(80), default="queued")
+    query = Column(Text, nullable=False)
+    document_context = Column(Text)
+    jurisdiction = Column(String(160), default="Brasil - federal")
+    legal_area = Column(String(120))
+    requested_model = Column(String(160))
+    actual_model = Column(String(160))
+    provider = Column(String(80))
+    result = Column(Text)
+    result_metadata = Column(JSON, default=dict)
+    error_message = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime)
+    completed_at = Column(DateTime)
+
+
+class FineTuningExample(Base):
+    """Exemplo juridico revisavel para especializacao futura do modelo."""
+
+    __tablename__ = "fine_tuning_examples"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content_hash = Column(String(64), unique=True, nullable=False, index=True)
+    source_type = Column(String(80), nullable=False, index=True)
+    domain = Column(String(120), nullable=False, index=True)
+    instruction = Column(Text, nullable=False)
+    input_text = Column(Text, default="")
+    output_text = Column(Text, nullable=False)
+    citations = Column(JSON, default=list)
+    custom_data = Column(JSON, default=dict)
+    review_status = Column(String(50), default="pending", index=True)
+    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewer_notes = Column(Text)
+    quality_score = Column(Float)
+    dataset_split = Column(String(20), default="train", index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    reviewed_at = Column(DateTime)
 
 
 class Deadline(Base):
@@ -206,7 +449,7 @@ class Deadline(Base):
     __tablename__ = 'deadlines'
     
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey('documents.id'), nullable=False)
+    document_id = Column(Integer, ForeignKey('documents.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     
     days = Column(Integer)
@@ -459,22 +702,23 @@ class WhatsAppConfig(Base):
     context_type = Column(String(50))  # deadline, invoice, document, general
     context_id = Column(Integer)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
     def to_dict(self) -> Dict[str, Any]:
         return {
             'id': self.id,
-            'sender_type': self.sender_type,
-            'sender_name': self.sender_name,
-            'sender_phone': self.sender_phone,
-            'message': self.message,
-            'message_type': self.message_type,
-            'media_url': self.media_url,
-            'is_read': self.is_read,
-            'is_from_whatsapp': self.is_from_whatsapp,
+            'user_id': self.user_id,
+            'provider': self.provider,
+            'twilio_phone_number': self.twilio_phone_number,
+            'evolution_api_url': self.evolution_api_url,
+            'evolution_instance': self.evolution_instance,
+            'is_active': self.is_active,
+            'is_connected': self.is_connected,
+            'connected_at': self.connected_at.isoformat() if self.connected_at else None,
+            'auto_notify_deadlines': self.auto_notify_deadlines,
+            'auto_notify_invoices': self.auto_notify_invoices,
             'context_type': self.context_type,
             'context_id': self.context_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 
@@ -538,16 +782,102 @@ async def get_db_async():
         db.close()
 
 
+def get_db():
+    """Sync dependency for FastAPI. Use: db: Session = Depends(get_db)."""
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@contextmanager
+def db_session():
+    """Context manager para scripts, tarefas e utilitarios locais."""
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def _apply_sqlite_development_migrations():
+    """Ajustes de schema para ambientes locais SQLite."""
+    if not ACTIVE_DATABASE_URL.startswith("sqlite"):
+        return
+
+    with engine.begin() as connection:
+        columns = connection.exec_driver_sql("PRAGMA table_info(deadlines)").fetchall()
+        if not columns:
+            return
+
+        document_column = next((column for column in columns if column[1] == "document_id"), None)
+        if not document_column or document_column[3] == 0:
+            return
+
+        logger.info(
+            "Aplicando migracao local SQLite: liberando document_id opcional na tabela deadlines."
+        )
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE deadlines_new (
+                id INTEGER NOT NULL PRIMARY KEY,
+                document_id INTEGER,
+                user_id INTEGER NOT NULL,
+                days INTEGER,
+                due_date DATETIME,
+                urgency VARCHAR(20),
+                context VARCHAR(500),
+                description TEXT,
+                is_completed BOOLEAN,
+                completed_at DATETIME,
+                notification_sent BOOLEAN,
+                notification_sent_at DATETIME,
+                created_at DATETIME,
+                FOREIGN KEY(document_id) REFERENCES documents (id),
+                FOREIGN KEY(user_id) REFERENCES users (id)
+            )
+            """
+        )
+        connection.exec_driver_sql(
+            """
+            INSERT INTO deadlines_new (
+                id, document_id, user_id, days, due_date, urgency, context,
+                description, is_completed, completed_at, notification_sent,
+                notification_sent_at, created_at
+            )
+            SELECT
+                id, document_id, user_id, days, due_date, urgency, context,
+                description, is_completed, completed_at, notification_sent,
+                notification_sent_at, created_at
+            FROM deadlines
+            """
+        )
+        connection.exec_driver_sql("DROP TABLE deadlines")
+        connection.exec_driver_sql("ALTER TABLE deadlines_new RENAME TO deadlines")
+        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
+
 def init_db():
     """Inicializa o banco de dados (cria tabelas)"""
     Base.metadata.create_all(bind=engine)
-    print("✅ Banco de dados inicializado com sucesso!")
+    _apply_sqlite_development_migrations()
+    print("Banco de dados inicializado com sucesso!")
 
 
 def drop_db():
     """Remove todas as tabelas (cuidado!)"""
     Base.metadata.drop_all(bind=engine)
-    print("⚠️  Todas as tabelas foram removidas")
+    print("Todas as tabelas foram removidas")
 
 
 def reset_db():
@@ -856,7 +1186,7 @@ if __name__ == "__main__":
     init_db()
     
     # Testar operações
-    with get_db() as db:
+    with db_session() as db:
         # Criar usuário de teste
         user = create_user(db, "teste@lexscan.ai", "firebase-123", "Usuário Teste")
         print(f"✅ Usuário criado: ID {user.id}")

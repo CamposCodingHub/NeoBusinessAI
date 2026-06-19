@@ -7,12 +7,21 @@ import os
 from celery import Celery
 from typing import Dict, Any
 import json
+from datetime import datetime, timezone
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from celery_config import celery_config, task_routes
 
 # Configuração Celery com Redis
 # URL do broker (Redis)
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 
 app = Celery('lexscan_tasks', broker=REDIS_URL, backend=REDIS_URL)
+app.conf.update(**celery_config)
+app.conf.task_routes = task_routes
 
 # Configurações Celery
 app.conf.update(
@@ -30,6 +39,16 @@ app.conf.update(
 # =============================================================================
 # TAREFAS DE PROCESSAMENTO DE DOCUMENTOS
 # =============================================================================
+
+@app.task(name='tasks.system_health_probe')
+def system_health_probe() -> Dict[str, Any]:
+    """Tarefa leve para validar broker, worker e result backend."""
+    return {
+        'status': 'ok',
+        'service': 'jurisflow-worker',
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+    }
+
 
 @app.task(bind=True, max_retries=3)
 def process_document_async(self, file_bytes: bytes, filename: str, user_id: int, doc_id: int = None):
@@ -124,6 +143,188 @@ def process_document_async(self, file_bytes: bytes, filename: str, user_id: int,
         print(f"[CELERY] Erro no processamento: {exc}")
         # Retry com backoff
         self.retry(countdown=60, exc=exc)
+
+
+@app.task(
+    bind=True,
+    name="tasks.process_document_path_async",
+    max_retries=0,
+)
+def process_document_path_async(
+    self,
+    document_id: int,
+    user_id: int,
+) -> Dict[str, Any]:
+    """Process a persisted document without sending file bytes through Redis."""
+    from database import Document, SessionLocal
+    from services.document_processing_service import process_document_record
+
+    db = SessionLocal()
+    try:
+        document = (
+            db.query(Document)
+            .filter(
+                Document.id == document_id,
+                Document.user_id == user_id,
+            )
+            .first()
+        )
+        if not document:
+            raise ValueError("Documento nao encontrado para processamento")
+
+        def report(progress: int, stage: str, message: str) -> None:
+            self.update_state(
+                state="PROGRESS",
+                meta={
+                    "document_id": document_id,
+                    "progress": progress,
+                    "stage": stage,
+                    "message": message,
+                },
+            )
+
+        processed = process_document_record(db, document, report)
+        try:
+            index_document_knowledge_async.delay(document_id, user_id)
+        except Exception as exc:
+            print(
+                "[CELERY] Documento concluido, mas indexacao soberana "
+                f"nao foi enfileirada: {exc}"
+            )
+        return {
+            "success": True,
+            "document_id": processed.id,
+            "status": processed.status,
+            "processing_time_ms": processed.processing_time_ms,
+            "progress": 100,
+        }
+    finally:
+        db.close()
+
+
+@app.task(name="tasks.index_document_knowledge_async")
+def index_document_knowledge_async(document_id: int, user_id: int):
+    """Materializa o documento na base privada de busca do usuario."""
+    import asyncio
+
+    from database import Document, SessionLocal
+    from sovereign_ai.search import sovereign_legal_search
+
+    db = SessionLocal()
+    try:
+        document = db.query(Document).filter(
+            Document.id == document_id,
+            Document.user_id == user_id,
+            Document.status == "completed",
+        ).first()
+        if not document:
+            return {
+                "success": False,
+                "document_id": document_id,
+                "reason": "document_not_ready",
+            }
+        result = asyncio.run(
+            sovereign_legal_search.index_user_document(db, document)
+        )
+        return {"success": True, **result}
+    finally:
+        db.close()
+
+
+@app.task(
+    bind=True,
+    name="tasks.process_deep_research_job",
+    time_limit=3600,
+    soft_time_limit=3300,
+)
+def process_deep_research_job(self, job_id: int, user_id: int):
+    """Executa pesquisa juridica profunda no modelo local de 14B."""
+    import asyncio
+
+    from ai.premium_conversational_engine import create_premium_ai_engine
+    from database import AIResearchJob, SessionLocal
+    from services.legal_ai_orchestrator import LegalAIOrchestrator
+    from sovereign_ai.search import sovereign_legal_search
+
+    db = SessionLocal()
+    try:
+        job = db.query(AIResearchJob).filter(
+            AIResearchJob.id == job_id,
+            AIResearchJob.user_id == user_id,
+        ).first()
+        if not job:
+            raise ValueError("Job de pesquisa nao encontrado")
+
+        job.status = "processing"
+        job.stage = "retrieval_and_reasoning"
+        job.progress = 15
+        job.started_at = datetime.utcnow()
+        db.commit()
+        self.update_state(
+            state="PROGRESS",
+            meta={"progress": 15, "stage": job.stage},
+        )
+
+        engine = create_premium_ai_engine()
+        orchestrator = LegalAIOrchestrator(
+            engine,
+            local_search=sovereign_legal_search,
+        )
+
+        job.progress = 35
+        job.stage = "deep_local_inference"
+        db.commit()
+        self.update_state(
+            state="PROGRESS",
+            meta={"progress": 35, "stage": job.stage},
+        )
+
+        result = asyncio.run(
+            orchestrator.answer(
+                user_message=job.query,
+                user_id=f"{user_id}:{job.conversation_id or 'research'}",
+                document_context=job.document_context or "",
+                response_mode="deep",
+                jurisdiction=job.jurisdiction or "Brasil - federal",
+                legal_area=job.legal_area,
+            )
+        )
+        legal_metadata = result.get("legal_metadata") or {}
+        job.status = "completed"
+        job.progress = 100
+        job.stage = "completed"
+        job.result = result.get("response") or ""
+        job.result_metadata = {
+            "legal_metadata": legal_metadata,
+            "quality_score": result.get("quality_score"),
+        }
+        job.requested_model = legal_metadata.get("requested_model")
+        job.actual_model = legal_metadata.get("model")
+        job.provider = legal_metadata.get("provider")
+        job.completed_at = datetime.utcnow()
+        db.commit()
+        return {
+            "success": True,
+            "job_id": job.id,
+            "status": job.status,
+            "provider": job.provider,
+            "model": job.actual_model,
+        }
+    except Exception as exc:
+        db.rollback()
+        job = db.query(AIResearchJob).filter(
+            AIResearchJob.id == job_id
+        ).first()
+        if job:
+            job.status = "error"
+            job.stage = "error"
+            job.progress = 100
+            job.error_message = str(exc)[:2000]
+            job.completed_at = datetime.utcnow()
+            db.commit()
+        raise
+    finally:
+        db.close()
 
 
 @app.task(bind=True, max_retries=2)
@@ -368,6 +569,17 @@ def queue_document_processing(file_bytes: bytes, filename: str, user_id: int, do
     return task.id
 
 
+def queue_document_path_processing(document_id: int, user_id: int) -> str:
+    """Queue processing by database identity instead of serializing the file."""
+    task = process_document_path_async.delay(document_id, user_id)
+    return task.id
+
+
+def queue_deep_research(job_id: int, user_id: int) -> str:
+    task = process_deep_research_job.delay(job_id, user_id)
+    return task.id
+
+
 def queue_email(to_email: str, subject: str, html_content: str, text_content: str = None):
     """
     Enfileira envio de email
@@ -396,6 +608,7 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
         Dict com status e resultado
     """
     result = app.AsyncResult(task_id)
+    meta = result.info if isinstance(result.info, dict) else None
     
     return {
         'task_id': task_id,
@@ -403,7 +616,12 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
         'ready': result.ready(),
         'successful': result.successful() if result.ready() else None,
         'result': result.result if result.ready() and result.successful() else None,
-        'error': str(result.result) if result.ready() and not result.successful() else None
+        'error': (
+            str(result.result)
+            if result.ready() and not result.successful()
+            else None
+        ),
+        'meta': meta,
     }
 
 

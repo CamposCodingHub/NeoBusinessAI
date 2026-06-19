@@ -1,0 +1,19 @@
+[run]
+source = .
+omit =
+    venv311/*
+    tests/*
+    scripts/*
+    sil/*
+    test_*.py
+    check_users.py
+    init_db_with_admin.py
+    start_server.py
+
+[report]
+show_missing = True
+skip_covered = False
+fail_under = 40
+
+[html]
+directory = htmlcov

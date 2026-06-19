@@ -1,62 +1,86 @@
-"""
-Pesquisa Jurisprudencial por IA
-Módulo 1 - Integração com Groq para busca de jurisprudência
-"""
+"""Pesquisa jurisprudencial sobre a base soberana local."""
 
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import Optional
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from database import get_db
+from security import get_current_user
+from sovereign_ai.search import sovereign_legal_search
 
 router = APIRouter(prefix="/jurisprudencia", tags=["Pesquisa Jurisprudencial"])
 
+
 class SearchRequest(BaseModel):
-    query: str
-    court: Optional[str] = None  # STJ, STF, TJSP, etc
+    query: str = Field(min_length=2, max_length=4000)
+    court: Optional[str] = None
     subject: Optional[str] = None
     date_from: Optional[str] = None
     date_to: Optional[str] = None
-    page: int = 1
+    page: int = Field(1, ge=1)
+
 
 @router.post("/search")
-async def search_jurisprudencia(request: SearchRequest):
-    """
-    Pesquisa jurisprudência usando IA (Groq)
-    """
-    # Placeholder - integração real requer acesso a APIs dos tribunais
+async def search_jurisprudencia(
+    request: SearchRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Pesquisa decisoes e precedentes que ja foram coletados e indexados."""
+    search = await sovereign_legal_search.search(
+        db,
+        query=request.query,
+        top_k=10,
+        legal_area=request.subject,
+        court=request.court,
+        user_id=int(current_user.user_id),
+        include_private=False,
+    )
     return {
         "query": request.query,
-        "results": [],
-        "total": 0,
-        "message": "Integração com STJ/STF/TJs em desenvolvimento",
-        "suggestion": "Para produção, implementar:"
-                      "\n1. API do STJ (Pesquisa LEXML)"
-                      "\n2. API do STF (Sicon)" 
-                      "\n3. Web scraping TJSP (esaj)"
-                      "\n4. Vector store para embeddings",
-        "ai_summary": None
+        "results": search["results"],
+        "total": len(search["results"]),
+        "hybrid_search": True,
+        "embedding_model": search["embedding_model"],
+        "ai_summary": None,
     }
+
 
 @router.get("/courts")
 async def list_available_courts():
-    """Lista tribunais disponíveis para pesquisa"""
     return {
         "courts": [
-            {"code": "STJ", "name": "Superior Tribunal de Justiça", "status": "planned"},
-            {"code": "STF", "name": "Supremo Tribunal Federal", "status": "planned"},
-            {"code": "TJSP", "name": "Tribunal de Justiça de SP", "status": "planned"},
-            {"code": "TJRJ", "name": "Tribunal de Justiça do RJ", "status": "planned"},
-            {"code": "TRF", "name": "Tribunal Regional Federal", "status": "planned"}
+            {"code": "STF", "name": "Supremo Tribunal Federal", "status": "indexable"},
+            {"code": "STJ", "name": "Superior Tribunal de Justica", "status": "indexable"},
+            {"code": "TST", "name": "Tribunal Superior do Trabalho", "status": "indexable"},
+            {"code": "TJSP", "name": "Tribunal de Justica de SP", "status": "planned"},
+            {"code": "TJRJ", "name": "Tribunal de Justica do RJ", "status": "planned"},
         ]
     }
 
+
 @router.post("/analyze")
-async def analyze_case_with_precedents(case_description: str):
-    """
-    Analisa caso e sugere precedentes relevantes
-    """
+async def analyze_case_with_precedents(
+    case_description: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    search = await sovereign_legal_search.search(
+        db,
+        query=case_description,
+        top_k=8,
+        user_id=int(current_user.user_id),
+        include_private=False,
+    )
     return {
-        "analysis": "Integração com IA em desenvolvimento",
-        "suggested_precedents": [],
-        "confidence": 0,
-        "legal_basis": []
+        "analysis": "Precedentes recuperados para analise pelo copiloto.",
+        "suggested_precedents": search["results"],
+        "confidence": (
+            search["results"][0]["score"] if search["results"] else 0
+        ),
+        "legal_basis": [
+            result["citation"] for result in search["results"]
+        ],
     }

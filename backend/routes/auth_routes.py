@@ -28,6 +28,12 @@ from security import (
     rate_limit,
     LOGIN_RATE_LIMIT,
 )
+from security.token_blacklist import (
+    add_refresh_token,
+    is_refresh_token_valid,
+    revoke_all_user_tokens,
+    revoke_refresh_token,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +41,7 @@ router = APIRouter(prefix="/auth", tags=["Autenticação"])
 security = HTTPBearer()
 
 
-@router.post("/register", response_model=dict)
+@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
 @rate_limit(requests_per_minute=5)
 async def register(
     user_data: UserCreateSchema,
@@ -82,10 +88,14 @@ async def register(
     refresh_token = create_refresh_token(
         user_id=str(new_user.id),
     )
+    add_refresh_token(refresh_token, new_user.id)
 
     return {
         "message": "Usuário registrado com sucesso",
+        "id": new_user.id,
         "user_id": new_user.id,
+        "email": new_user.email,
+        "name": new_user.name,
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
@@ -138,6 +148,7 @@ async def login(
     refresh_token = create_refresh_token(
         user_id=str(user.id),
     )
+    add_refresh_token(refresh_token, user.id)
 
     logger.info(f"Login bem-sucedido: {user.email} (Role: {user_role.value})")
 
@@ -246,6 +257,7 @@ async def reset_password(
 @router.post("/refresh", response_model=dict)
 async def refresh_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db_async),
 ):
     """
     Renova access token usando refresh token.
@@ -258,15 +270,37 @@ async def refresh_token(
         )
 
         user_id = payload["sub"]
+        user = db.query(User).filter(User.id == int(user_id)).first()
+        if not user or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token invalido ou usuario inativo",
+            )
+        if not is_refresh_token_valid(
+            credentials.credentials,
+            int(user_id),
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token revogado ou desconhecido",
+            )
 
         new_access_token = create_access_token(
             user_id=user_id,
+            role=Role(user.role) if user.role in Role._value2member_map_ else Role.USER,
         )
+        new_refresh_token = create_refresh_token(user_id=user_id)
+        revoke_refresh_token(credentials.credentials, int(user_id))
+        add_refresh_token(new_refresh_token, int(user_id))
 
         return {
             "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
             "token_type": "bearer",
         }
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         logger.error(f"Erro ao renovar token: {e}")
@@ -335,6 +369,7 @@ async def logout(
 
         logger.info(f"Token adicionado à blacklist: {current_user.user_id}")
 
+    revoke_all_user_tokens(int(current_user.user_id))
     logger.info(f"Logout realizado: {current_user.user_id}")
 
     return {

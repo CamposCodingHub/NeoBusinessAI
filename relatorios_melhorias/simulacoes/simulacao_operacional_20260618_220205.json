@@ -1,0 +1,113 @@
+{
+  "generated_at": "2026-06-18T22:02:05.700305",
+  "workspace": {
+    "documents": {
+      "total": 3,
+      "uploaded": 1,
+      "processing": 1,
+      "completed": 1
+    },
+    "deadlines": {
+      "total": 2,
+      "pending": 2,
+      "overdue": 1,
+      "due_next_7_days": 2
+    },
+    "clients": {
+      "total": 3,
+      "active": 1,
+      "prospects": 1,
+      "inactive": 1
+    },
+    "finance": {
+      "paid_total": 4500.0,
+      "pending_total": 1800.0,
+      "overdue_total": 950.0,
+      "open_total": 2750.0
+    },
+    "legal_pieces": {
+      "total": 2,
+      "draft_like": 1,
+      "ready": 1
+    },
+    "automation": {
+      "whatsapp_connected": false,
+      "auto_notify_deadlines": false,
+      "auto_notify_invoices": true
+    }
+  },
+  "maturity_score": 66.8,
+  "maturity_breakdown": {
+    "document_ops": 73.0,
+    "deadline_ops": 68.0,
+    "client_ops": 80.0,
+    "financial_ops": 68.2,
+    "automation_ops": 45.0
+  },
+  "recommendations": [
+    {
+      "priority": "critical",
+      "module": "deadlines",
+      "title": "Zerar prazos atrasados",
+      "description": "Existem 1 prazos atrasados exigindo acao imediata.",
+      "expected_impact": "reduzir risco processual e retrabalho"
+    },
+    {
+      "priority": "critical",
+      "module": "finance",
+      "title": "Ativar regua de cobranca sobre inadimplentes",
+      "description": "1 faturas estao atrasadas e impactam o caixa.",
+      "expected_impact": "recuperar receita e melhorar previsao financeira"
+    },
+    {
+      "priority": "high",
+      "module": "documents",
+      "title": "Processar backlog documental",
+      "description": "1 documentos ainda nao viraram prazo, resumo nem acao.",
+      "expected_impact": "acelerar intake e reduzir trabalho manual"
+    },
+    {
+      "priority": "high",
+      "module": "whatsapp",
+      "title": "Ligar notificacoes automaticas de prazo",
+      "description": "O escritorio ja tem prazos proximos e ainda nao automatizou avisos.",
+      "expected_impact": "reduzir esquecimentos e melhorar experiencia do cliente"
+    },
+    {
+      "priority": "medium",
+      "module": "clients",
+      "title": "Converter prospects em clientes ativos",
+      "description": "1 oportunidades ainda nao entraram no fluxo operacional.",
+      "expected_impact": "aumentar receita e ocupacao da equipe"
+    },
+    {
+      "priority": "medium",
+      "module": "documents",
+      "title": "Revisar documentos em processamento",
+      "description": "1 documentos ainda aguardam fechamento do pipeline.",
+      "expected_impact": "garantir consistencia do funil documental"
+    },
+    {
+      "priority": "medium",
+      "module": "legal",
+      "title": "Fechar rascunhos de pecas",
+      "description": "1 pecas ainda aguardam revisao humana.",
+      "expected_impact": "diminuir tempo ate protocolo ou envio"
+    },
+    {
+      "priority": "medium",
+      "module": "whatsapp",
+      "title": "Conectar canal WhatsApp",
+      "description": "O principal diferencial operacional do produto ainda esta desligado.",
+      "expected_impact": "fortalecer portal, cobranca e comunicacao"
+    }
+  ],
+  "next_best_actions": [
+    "Zerar prazos atrasados",
+    "Ativar regua de cobranca sobre inadimplentes",
+    "Processar backlog documental",
+    "Ligar notificacoes automaticas de prazo",
+    "Converter prospects em clientes ativos"
+  ],
+  "executive_summary": "O escritorio opera hoje com score de maturidade 66.8/100. A principal prioridade imediata e conter 1 prazos atrasados. Ha 1 oportunidades comerciais prontas para nutricao ou conversao. A automacao omnicanal ainda nao esta ativada, o que reduz o potencial de diferenciacao do produto."
+}

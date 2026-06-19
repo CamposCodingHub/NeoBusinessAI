@@ -1,0 +1,23 @@
+{
+  "email": "soberana_2c5da4fe3d@example.com",
+  "search_seconds": 17.636,
+  "search_results": 5,
+  "top_citations": [
+    "Codigo de Processo Penal - Decreto-Lei 3.689/1941, art. 312",
+    "Codigo de Processo Penal - Decreto-Lei 3.689/1941, art. 312",
+    "Codigo de Processo Penal - Decreto-Lei 3.689/1941, art. 313"
+  ],
+  "chat_seconds": 709.446,
+  "success": true,
+  "provider": "local-primary",
+  "model": "lex-juridica-rapida:3b",
+  "route": "balanced_legal",
+  "latency_ms": 90032,
+  "tokens": 3936,
+  "sovereign_search_used": true,
+  "sovereign_sources": 6,
+  "official_sources": 1,
+  "inline_citations": 1,
+  "prompt_leak_blocked": false,
+  "response": "Artigo 312 do Código de Processo Penal (CPP) estabelece critérios para a decretação da prisão preventiva, que é uma medida cautelar restritiva da liberdade de um acusado. Os requisitos principais são:\n\n\n- **Fundamentos**: A prisão preventiva é decretada em situações como garantia da ordem pública e econômica, conveniência da instrução criminal ou para assegurar a aplicação da lei penal (art. 312). Essa decisão deve ser fundamentada e motivada pela existência de provas do crime, indícios suficientes de autoria e risco ao status social do acusado.\n\n\nEsses requisitos garantem que a prisão preventiva seja aplicada apenas quando absolutamente necessário para preservar a ordem pública, evitar perigos iminentes ou assegurar a aplicação da lei penal.\n\n## Auditoria automatica de fundamentacao\n\nA Lex suprimiu 2 trecho(s) que mencionavam referencias numericas nao recuperadas (319). Consulte o texto integral antes de reintroduzir essas afirmacoes.\n\n## Fontes oficiais consultadas\n\n- [Fonte 1] [Codigo de Processo Penal - Decreto-Lei 3.689/1941](https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm)"
+}

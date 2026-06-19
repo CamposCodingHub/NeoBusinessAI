@@ -233,20 +233,20 @@ class MercadoPagoService:
     def _get_plan_price(self, plan_tier: str, billing_interval: str) -> float:
         """Retorna preço do plano"""
         prices = {
-            "starter": {"monthly": 49.90, "yearly": 499.00},
-            "professional": {"monthly": 149.90, "yearly": 1499.00},
-            "business": {"monthly": 499.90, "yearly": 4999.00},
-            "enterprise": {"monthly": 1499.90, "yearly": 14999.00}
+            "starter": {"monthly": 0.0, "yearly": 0.0},
+            "professional": {"monthly": 149.00, "yearly": 1430.00},
+            "business": {"monthly": 699.00, "yearly": 6710.00},
+            "enterprise": {"monthly": 1990.00, "yearly": 19100.00}
         }
         return prices.get(plan_tier, {}).get(billing_interval, 0)
     
     def _get_plan_name(self, plan_tier: str) -> str:
         """Retorna nome do plano"""
         names = {
-            "starter": "Starter",
-            "professional": "Professional",
-            "business": "Business",
-            "enterprise": "Enterprise"
+            "starter": "Explorar",
+            "professional": "Profissional",
+            "business": "Escritorio",
+            "enterprise": "Scale"
         }
         return names.get(plan_tier, "Starter")
 

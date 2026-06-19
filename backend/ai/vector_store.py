@@ -1,8 +1,5 @@
 import os
-import faiss
-import numpy as np
 
-from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,14 +9,31 @@ class VectorStore:
     def __init__(self):
 
         self.documents = []
+        self.model = None
+        self.faiss = None
+        self.np = None
+        self.index = None
 
-        self.model = SentenceTransformer(
-            "sentence-transformers/all-MiniLM-L6-v2"
-        )
+    def _ensure_backend(self):
+        if self.index is None:
+            import faiss
+            import numpy as np
 
-        self.index = faiss.IndexFlatL2(384)
+            self.faiss = faiss
+            self.np = np
+            self.index = faiss.IndexFlatL2(384)
+
+    def _ensure_model(self):
+        if self.model is None:
+            from sentence_transformers import SentenceTransformer
+
+            self.model = SentenceTransformer(
+                "sentence-transformers/all-MiniLM-L6-v2"
+            )
 
     def load_pdfs(self):
+        self._ensure_backend()
+        self._ensure_model()
 
         pdf_dir = os.path.join(BASE_DIR, "knowledge", "docs")
 
@@ -62,7 +76,7 @@ class VectorStore:
                 embedding = self.model.encode([text])
 
                 self.index.add(
-                    np.array(embedding).astype("float32")
+                    self.np.array(embedding).astype("float32")
                 )
 
                 print(f"✅ PDF carregado: {file}")
@@ -71,7 +85,9 @@ class VectorStore:
 
                 print(f"⚠️ Erro no PDF {file}: {e}")
 
-    def search(self, query):
+    def search(self, query, top_k=1):
+        self._ensure_backend()
+        self._ensure_model()
 
         if not self.documents:
             return ""
@@ -79,13 +95,13 @@ class VectorStore:
         query_embedding = self.model.encode([query])
 
         D, I = self.index.search(
-            np.array(query_embedding).astype("float32"),
-            1
+            self.np.array(query_embedding).astype("float32"),
+            max(1, top_k)
         )
+        matches = []
 
-        idx = I[0][0]
+        for idx in I[0]:
+            if idx < len(self.documents):
+                matches.append(self.documents[idx][:3000])
 
-        if idx < len(self.documents):
-            return self.documents[idx][:3000]
-
-        return ""
+        return "\n\n---\n\n".join(matches)
