@@ -241,6 +241,7 @@ class QA:
             (["/tasks", "/tasks/"], "tasks"),
             (["/contacts/logs"], "contacts"),
             (["/matter-docs", "/matter-docs/"], "matter_docs"),
+            (["/matter-notes", "/matter-notes/"], "matter_notes"),
             (["/finance/aging"], "aging"),
             (["/finance/expenses"], "expenses"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),

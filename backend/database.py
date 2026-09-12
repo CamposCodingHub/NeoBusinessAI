@@ -1488,6 +1488,33 @@ class Hearing(Base):
 
 
 
+
+
+class MatterNote(Base):
+    """Anotação interna do caso / cliente (CRM leve — não é petição nem parecer)."""
+    __tablename__ = 'matter_notes'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    body = Column(Text, nullable=False)
+    # pinned | normal
+    pinned = Column(Boolean, default=False, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'body': self.body,
+            'pinned': bool(self.pinned),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class MatterDocItem(Base):
     """Item de checklist documental do caso (o que falta do cliente — não é DMS)."""
     __tablename__ = 'matter_doc_items'

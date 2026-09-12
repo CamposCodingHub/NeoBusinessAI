@@ -30,6 +30,7 @@ REQUIRED_INCLUDE_ROUTERS = (
     "tasks_router",
     "contacts_router",
     "matter_docs_router",
+    "matter_notes_router",
     "compliance_router",
     "billing_router",
 )
