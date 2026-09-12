@@ -243,6 +243,7 @@ class QA:
             (["/contacts/logs"], "contacts"),
             (["/matter-docs", "/matter-docs/"], "matter_docs"),
             (["/matter-notes", "/matter-notes/"], "matter_notes"),
+            (["/followups", "/followups/"], "followups"),
             (["/finance/aging"], "aging"),
             (["/finance/expenses"], "expenses"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),

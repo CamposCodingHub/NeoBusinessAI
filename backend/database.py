@@ -1490,6 +1490,39 @@ class Hearing(Base):
 
 
 
+
+
+class FollowUp(Base):
+    """Lembrete de retorno / follow-up com cliente (CRM leve — não é prazo judicial)."""
+    __tablename__ = 'follow_ups'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    subject = Column(String(255), nullable=False)
+    # open | done | cancelled
+    status = Column(String(20), default='open', nullable=False, index=True)
+    due_at = Column(DateTime, nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'subject': self.subject,
+            'status': self.status,
+            'due_at': self.due_at.isoformat() if self.due_at else None,
+            'notes': self.notes,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class MatterNote(Base):
     """Anotação interna do caso / cliente (CRM leve — não é petição nem parecer)."""
     __tablename__ = 'matter_notes'

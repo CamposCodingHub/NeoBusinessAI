@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta, timezone
-from database import ActivityEvent, Deadline, Hearing, MatterDocItem, MatterNote, OfficeTask, PowerOfAttorney, get_db_async
+from database import ActivityEvent, Deadline, FollowUp, Hearing, MatterDocItem, MatterNote, OfficeTask, PowerOfAttorney, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -114,6 +114,11 @@ OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
         "label": "Anotacoes",
         "path": "/dashboard/anotacoes",
         "description": "Notas internas do caso / cliente",
+    },
+    {
+        "label": "Follow-ups",
+        "path": "/dashboard/followups",
+        "description": "Lembretes de retorno ao cliente",
     },
     {
         "label": "Agenda",
@@ -317,6 +322,19 @@ async def get_operations_today(
         .all()
     )
 
+
+    open_followups = (
+        db.query(FollowUp)
+        .filter(
+            FollowUp.user_id == user_id,
+            FollowUp.status == "open",
+            FollowUp.due_at < end,
+        )
+        .order_by(FollowUp.due_at.asc())
+        .limit(40)
+        .all()
+    )
+
     return {
         "success": True,
         "generated_at": now.isoformat(),
@@ -353,6 +371,8 @@ async def get_operations_today(
         "docs_pending_count": len(pending_docs),
         "notes_recent": [n.to_dict() for n in recent_notes],
         "notes_recent_count": len(recent_notes),
+        "followups_due": [f.to_dict() for f in open_followups],
+        "followups_due_count": len(open_followups),
     }
 
 
@@ -436,6 +456,13 @@ def _format_today_brief(board: Dict[str, Any]) -> str:
                 body = body[:117] + "..."
             pin = " (fixada)" if n.get("pinned") else ""
             lines.append(f"- {body}{pin}")
+    followups = board.get("followups_due") or []
+    lines.append(f"## Follow-ups ({board.get('followups_due_count', len(followups))})")
+    if not followups:
+        lines.append("- Nenhum.")
+    else:
+        for f in followups[:10]:
+            lines.append(f"- {f.get('subject')} — `{f.get('due_at') or '—'}`")
     lines.append("")
     lines.append("_Briefing operacional local — não é parecer jurídico._")
     return "\n".join(lines)
