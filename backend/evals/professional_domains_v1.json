@@ -1,0 +1,119 @@
+{
+  "name": "professional-domains-v1",
+  "version": "1.0.0",
+  "description": "Offline gate for Lex domain detectors + prompt addenda (legal, accounting, document recall).",
+  "cases": [
+    {
+      "id": "trab-justa-causa",
+      "prompt": "Quais cuidados em uma rescisao por justa causa na CLT?",
+      "expected_domains": ["trabalhista"],
+      "required_addenda_terms": ["ADDENDUM TRABALHISTA", "CLT"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "civel-danos-morais",
+      "prompt": "Cliente sofreu danos morais por inadimplemento contratual. Como estruturar a peticao inicial no CPC?",
+      "expected_domains": ["civel"],
+      "required_addenda_terms": ["ADDENDUM CIVEL", "prescricao"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "trib-credito",
+      "prompt": "Analise defesa em autuacao fiscal com credito tributario discutido no CARF.",
+      "expected_domains": ["tributario"],
+      "required_addenda_terms": ["ADDENDUM TRIBUTARIO", "aliquota"],
+      "required_disclaimer_terms": ["parecer vinculante", "Nunca invente aliquota"],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "contabil-iss-simples",
+      "prompt": "Como classificar despesa de ISS no Simples Nacional sem inventar aliquota?",
+      "expected_domains": ["contabil_fiscal"],
+      "required_addenda_terms": ["ADDENDUM CONTABIL", "Nunca invente aliquota"],
+      "required_disclaimer_terms": ["parecer vinculante", "nao verificado nas fontes"],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "contabil-dctfweb",
+      "prompt": "Quais cuidados operacionais na DCTFWeb e obrigacoes acessorias do periodo?",
+      "expected_domains": ["contabil_fiscal"],
+      "required_addenda_terms": ["ADDENDUM CONTABIL", "obrigacoes acessorias"],
+      "required_disclaimer_terms": ["parecer vinculante"],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "societario-ltda",
+      "prompt": "Preciso alterar o contrato social de uma sociedade limitada na Junta Comercial.",
+      "expected_domains": ["societario"],
+      "required_addenda_terms": ["ADDENDUM SOCIETARIO", "Junta"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "ops-prazos",
+      "prompt": "Mostre a rotina do escritorio para controle de prazos e lembrete de audiencia.",
+      "expected_domains": ["escritorio_ops"],
+      "required_addenda_terms": ["ADDENDUM OPERACAO DO ESCRITORIO", "prazos"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "ops-doc-recall-contrato",
+      "prompt": "O que diz o meu contrato sobre remuneracao? Busque no documento.",
+      "expected_domains": ["escritorio_ops"],
+      "required_addenda_terms": ["ADDENDUM OPERACAO DO ESCRITORIO", "acervo"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "ops-doc-recall-pdf",
+      "prompt": "Nos meus documentos, o que diz o PDF que enviei sobre multa?",
+      "expected_domains": ["escritorio_ops"],
+      "required_addenda_terms": ["documentos recuperados", "Nao invente clausulas"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "fiscal-safe-no-aliquota",
+      "prompt": "Qual a aliquota exata de ISS do meu municipio para advocacia?",
+      "expected_domains": ["contabil_fiscal"],
+      "required_addenda_terms": ["REGRAS FISCAIS SEGURAS", "Nunca invente aliquota"],
+      "required_disclaimer_terms": ["incerteza", "parecer vinculante"],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "hibrido-trab-folha",
+      "prompt": "Como tratar desligamento na folha de pagamento e eSocial com verbas rescisorias e lancamento contabil?",
+      "expected_domains": ["trabalhista", "contabil_fiscal"],
+      "required_addenda_terms": ["ADDENDUM TRABALHISTA", "ADDENDUM CONTABIL"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "hibrido-societario-fiscal",
+      "prompt": "Alteracao de capital social na LTDA e impacto no regime tributario lucro presumido.",
+      "expected_domains": ["societario", "contabil_fiscal"],
+      "required_addenda_terms": ["ADDENDUM SOCIETARIO", "REGRAS FISCAIS SEGURAS"],
+      "required_disclaimer_terms": ["parecer vinculante"],
+      "forbidden_addenda_terms": []
+    },
+    {
+      "id": "negativo-penal-sem-dominio-fiscal",
+      "prompt": "Resuma o artigo 121 do Codigo Penal sem falar de impostos.",
+      "expected_domains": [],
+      "required_addenda_terms": [],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": ["REGRAS FISCAIS SEGURAS", "ADDENDUM CONTABIL"]
+    },
+    {
+      "id": "civel-tutela",
+      "prompt": "Cabe tutela de urgencia por probabilidade do direito e perigo de dano no processo civil?",
+      "expected_domains": ["civel"],
+      "required_addenda_terms": ["ADDENDUM CIVEL", "estrategia processual"],
+      "required_disclaimer_terms": [],
+      "forbidden_addenda_terms": ["Nunca invente aliquota"]
+    }
+  ]
+}

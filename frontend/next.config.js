@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Required for multi-stage Docker image (frontend/Dockerfile)
+  output: 'standalone',
   async headers() {
     return [
       {

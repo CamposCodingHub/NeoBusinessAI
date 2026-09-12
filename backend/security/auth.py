@@ -8,7 +8,7 @@ import jwt
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Dict, Any
-from fastapi import HTTPException, Security, Depends
+from fastapi import HTTPException, Security, Depends, Request, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import bcrypt
 import os
@@ -24,10 +24,54 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
+# Cookie HttpOnly (produção). JSON access_token no body permanece para Bearer/localStorage.
+ACCESS_TOKEN_COOKIE = "access_token"
+
 # Usar bcrypt diretamente (evita incompatibilidade passlib+bcrypt)
 
 # Schema de segurança HTTP Bearer
 security = HTTPBearer(auto_error=False)
+
+
+def cookie_secure_flag() -> bool:
+    """Secure=True apenas em staging/production (HTTPS)."""
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    return env in {"staging", "production"}
+
+
+def set_access_token_cookie(response: Response, token: str) -> None:
+    """Define cookie HttpOnly com o access token (mantém Bearer no JSON)."""
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=cookie_secure_flag(),
+        path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
+
+def clear_access_token_cookie(response: Response) -> None:
+    """Remove o cookie de access token."""
+    response.delete_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        path="/",
+        httponly=True,
+        samesite="lax",
+        secure=cookie_secure_flag(),
+    )
+
+
+def extract_access_token(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = None,
+) -> Optional[str]:
+    """Prefere Authorization Bearer; fallback para cookie access_token."""
+    if credentials and credentials.credentials:
+        return credentials.credentials
+    cookie_token = request.cookies.get(ACCESS_TOKEN_COOKIE)
+    return cookie_token or None
 
 
 class Role(str, Enum):
@@ -195,34 +239,36 @@ def verify_token(token: str, token_type: str = "access") -> Dict[str, Any]:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security)
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> TokenData:
     """
-    Dependência FastAPI para obter usuário atual a partir do token
-    
+    Dependência FastAPI: Authorization Bearer OU cookie HttpOnly `access_token`.
+
     Usage:
         @app.get("/protected")
         async def protected_route(current_user: TokenData = Depends(get_current_user)):
             return {"user_id": current_user.user_id}
     """
-    if not credentials:
+    token = extract_access_token(request, credentials)
+    if not token:
         raise HTTPException(
             status_code=401,
             detail="Cabeçalho de autorização ausente",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Verificar se token está na blacklist (revogado)
     from security.token_blacklist import is_token_blacklisted
-    if is_token_blacklisted(credentials.credentials):
+    if is_token_blacklisted(token):
         raise HTTPException(
             status_code=401,
             detail="Token revogado",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    payload = verify_token(credentials.credentials, token_type="access")
-    
+
+    payload = verify_token(token, token_type="access")
+
     return TokenData(
         user_id=payload["sub"],
         role=Role(payload.get("role", "user")),
@@ -306,17 +352,19 @@ def require_permission(permission: str):
 
 
 async def get_optional_user(
-    credentials: HTTPAuthorizationCredentials = Security(security)
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> Optional[TokenData]:
     """
-    Obtém usuário se autenticado, ou None se não autenticado
-    Útil para rotas que funcionam para usuários logados e anônimos
+    Obtém usuário se autenticado (Bearer ou cookie), ou None se não autenticado.
+    Útil para rotas que funcionam para usuários logados e anônimos.
     """
-    if not credentials:
+    token = extract_access_token(request, credentials)
+    if not token:
         return None
-    
+
     try:
-        payload = verify_token(credentials.credentials, token_type="access")
+        payload = verify_token(token, token_type="access")
         return TokenData(
             user_id=payload["sub"],
             role=Role(payload.get("role", "user")),

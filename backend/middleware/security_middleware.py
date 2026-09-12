@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 import time
 import logging
+import os
 import re
 from typing import Optional
 
@@ -54,12 +55,22 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     logger.warning(f"Invalid Content-Type: {content_type}")
                     raise HTTPException(status_code=415, detail="Content-Type não suportado")
             
-            # 4. Rate limiting global por IP
+            # 4. Rate limiting global por IP (relaxado em development para localhost/QA)
             client_ip = self._get_client_ip(request)
-            allowed, rate_info = _rate_limiter.check_rate_limit(
-                f"ip:{client_ip}",
-                API_RATE_LIMIT
-            )
+            env = (os.getenv("ENVIRONMENT") or "development").strip().lower()
+            skip_rl = env in {"development", "test", "dev"} and client_ip in {
+                "127.0.0.1",
+                "::1",
+                "localhost",
+                "testclient",
+            }
+            if skip_rl:
+                allowed, rate_info = True, {"limit": 0, "remaining": 9999, "retry_after": 0}
+            else:
+                allowed, rate_info = _rate_limiter.check_rate_limit(
+                    f"ip:{client_ip}",
+                    API_RATE_LIMIT
+                )
             
             if not allowed:
                 logger.warning(f"Rate limit exceeded for IP: {client_ip}")

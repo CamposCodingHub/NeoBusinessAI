@@ -6,7 +6,7 @@ Endpoints para gestão completa de prazos com alertas
 from fastapi import APIRouter, HTTPException, Depends, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 import uuid
 
@@ -413,6 +413,71 @@ async def get_upcoming_alerts(
     }
 
 
+
+@router.post("/compute-business")
+async def compute_business_deadline_endpoint(
+    data: dict,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calcula vencimento em dias uteis (feriados nacionais fixos incompletos).
+
+    Body JSON:
+    {
+        "start_date": "2026-09-12",
+        "business_days": 15
+    }
+
+    Returns: due_date, calendar_days_span, note
+    """
+    from services.business_days import compute_business_deadline
+
+    start_raw = data.get("start_date")
+    business_days = data.get("business_days")
+
+    if start_raw is None or business_days is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date e business_days sao obrigatorios",
+        )
+
+    try:
+        business_days_int = int(business_days)
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="business_days deve ser inteiro",
+        )
+
+    if business_days_int < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="business_days deve ser >= 0",
+        )
+
+    try:
+        if isinstance(start_raw, str):
+            start = date.fromisoformat(start_raw[:10])
+        elif isinstance(start_raw, date):
+            start = start_raw
+        else:
+            raise ValueError("invalid start_date")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date deve ser ISO (YYYY-MM-DD)",
+        )
+
+    result = compute_business_deadline(start, business_days_int)
+    return {
+        "due_date": result["due_date"],
+        "calendar_days_span": result["calendar_days_span"],
+        "note": result["note"],
+        "start_date": result["start_date"],
+        "business_days": result["business_days"],
+    }
+
+
 @router.post("/batch/calculate-due-date")
 async def calculate_due_date(
     data: dict,
@@ -429,56 +494,44 @@ async def calculate_due_date(
         "consider_business_days": true
     }
     """
-    from datetime import datetime
-    
+    from services.business_days import (
+        add_business_days,
+        is_business_day,
+        default_fixed_national_holidays,
+    )
+
     start_date_str = data.get("start_date")
-    days = data.get("days", 15)
+    days = int(data.get("days", 15))
     consider_business_days = data.get("consider_business_days", True)
-    
+
     if start_date_str:
-        start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
+        start_dt = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
+        start_d = start_dt.date()
     else:
-        start_date = datetime.utcnow()
-    
-    # Feriados brasileiros comuns (simplificado - pode ser expandido)
-    holidays = [
-        "01-01",  # Confraternização Universal
-        "04-21",  # Tiradentes
-        "05-01",  # Dia do Trabalho
-        "09-07",  # Independência
-        "10-12",  # Nossa Senhora Aparecida
-        "11-02",  # Finados
-        "11-15",  # Proclamação da República
-        "12-25",  # Natal
-    ]
-    
+        start_dt = datetime.utcnow()
+        start_d = start_dt.date()
+
+    holidays = default_fixed_national_holidays(reference=start_d)
+
     if consider_business_days:
-        # Calculate business days (excluding weekends and holidays)
-        current_date = start_date
-        business_days_count = 0
-        
-        while business_days_count < days:
-            current_date += timedelta(days=1)
-            
-            # Skip weekends
-            if current_date.weekday() >= 5:  # 5=Saturday, 6=Sunday
-                continue
-            
-            # Skip holidays (check MM-DD format)
-            date_str = current_date.strftime("%m-%d")
-            if date_str in holidays:
-                continue
-            
-            business_days_count += 1
-        
-        due_date = current_date
+        due_d = add_business_days(start_d, days, holidays)
+        due_date = datetime.combine(
+            due_d,
+            start_dt.timetz() if start_dt.tzinfo else start_dt.time(),
+        )
     else:
-        due_date = start_date + timedelta(days=days)
-    
+        due_date = start_dt + timedelta(days=days)
+        due_d = due_date.date()
+
     return {
-        "start_date": start_date.isoformat(),
+        "start_date": start_dt.isoformat(),
         "days_requested": days,
         "consider_business_days": consider_business_days,
         "due_date": due_date.isoformat(),
-        "is_business_day": due_date.weekday() < 5 and due_date.strftime("%m-%d") not in holidays
+        "is_business_day": is_business_day(due_d, holidays),
+        "note": (
+            "Feriados padrao incompletos (apenas nacionais fixos). "
+            "Prefira POST /deadlines/compute-business para o helper dedicado."
+        ),
     }
+

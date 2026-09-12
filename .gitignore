@@ -88,3 +88,9 @@ backend/htmlcov/
 # =========================
 secrets/
 credentials/
+
+# Local Python env (never commit)
+backend/venv311/
+*.db
+lexscan_dev.db
+

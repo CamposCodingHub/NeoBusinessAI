@@ -180,35 +180,48 @@ def sanitize_for_prompt(text: str) -> str:
 # 3. IDOR PROTECTION (Authorization)
 # =============================================================================
 
-def verify_document_access(doc: Dict[str, Any], user_email: Optional[str]) -> bool:
+def verify_document_access(
+    doc: Dict[str, Any],
+    user_id: Optional[Any] = None,
+    user_email: Optional[str] = None,
+) -> bool:
     """
     Verifica se o usuário tem permissão para acessar o documento.
     Previne IDOR (Insecure Direct Object Reference).
-    
+
+    Fail-closed: retorna False a menos que a propriedade seja comprovada.
+
     Args:
-        doc: Dicionário do documento
-        user_email: Email do usuário solicitante
-        
+        doc: Dicionário do documento (espera `user_id` e/ou `uploaded_by`)
+        user_id: ID do usuário autenticado (preferencial; JWT)
+        user_email: Email legado (opcional; só válido com `uploaded_by`)
+
     Returns:
         True se acesso permitido, False caso contrário
-        
-    Rules:
-        - Se user_email é None/empty: permite acesso (modo público/dev)
-        - Se doc não tem uploaded_by: permite (documentos antigos)
-        - Se uploaded_by == user_email: permite
-        - Caso contrário: nega
     """
-    # Modo público ou sem identificação
-    if not user_email:
-        return True
-    
-    # Documento sem dono definido (compatibilidade)
-    doc_owner = doc.get('uploaded_by')
-    if not doc_owner:
-        return True
-    
-    # Verifica propriedade
-    return doc_owner == user_email
+    if doc is None or not isinstance(doc, dict):
+        return False
+
+    # Sem identidade autenticada => negar
+    if user_id is None and not user_email:
+        return False
+
+    # Preferência: ownership por user_id (JWT)
+    doc_user_id = doc.get("user_id")
+    if user_id is not None and doc_user_id is not None:
+        try:
+            if str(doc_user_id) == str(user_id):
+                return True
+        except Exception:
+            return False
+
+    # Legado: ownership por email apenas quando ambos existem
+    if user_email:
+        doc_owner = doc.get("uploaded_by")
+        if doc_owner and str(doc_owner).lower() == str(user_email).lower():
+            return True
+
+    return False
 
 
 def require_auth_error() -> Dict[str, Any]:

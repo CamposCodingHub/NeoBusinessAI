@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-12T03:15:23.457941+00:00",
+  "base": "http://127.0.0.1:8000",
+  "passed": 0,
+  "total": 3,
+  "rows": [
+    {
+      "path": "/health",
+      "status": 0,
+      "passed": false,
+      "preview": "<urlopen error [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente>"
+    },
+    {
+      "path": "/api/ai/status",
+      "status": 0,
+      "passed": false,
+      "preview": "<urlopen error [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente>"
+    },
+    {
+      "path": "/docs",
+      "status": 0,
+      "passed": false,
+      "preview": "<urlopen error [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente>"
+    }
+  ]
+}

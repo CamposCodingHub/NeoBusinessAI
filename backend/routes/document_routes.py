@@ -10,10 +10,11 @@ from typing import Any, Dict, Optional
 
 import aiofiles
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from config import settings
-from database import Document, User, get_db_async
+from database import Client, Document, Matter, User, get_db_async
 from security import UPLOAD_RATE_LIMIT, get_current_user, rate_limit
 from security.file_validation import (
     ALLOWED_TYPES,
@@ -45,6 +46,13 @@ UPLOAD_CHUNK_SIZE = 1024 * 1024
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
+class SharePortalRequest(BaseModel):
+    """Compartilha documento com cliente do portal via custom_data.client_id."""
+
+    client_id: int = Field(..., gt=0)
+    matter_id: Optional[int] = Field(None, gt=0)
+
+
 def _user_id(current_user) -> int:
     return int(current_user.user_id)
 
@@ -55,6 +63,34 @@ def _owned_document(db: Session, document_id: int, user_id: int) -> Optional[Doc
         .filter(Document.id == document_id, Document.user_id == user_id)
         .first()
     )
+
+
+def _owned_client(db: Session, client_id: int, user_id: int) -> Client:
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id, Client.user_id == user_id)
+        .first()
+    )
+    if not client:
+        raise HTTPException(
+            status_code=400,
+            detail="client_id inválido ou não pertence ao usuário",
+        )
+    return client
+
+
+def _owned_matter(db: Session, matter_id: int, user_id: int) -> Matter:
+    matter = (
+        db.query(Matter)
+        .filter(Matter.id == matter_id, Matter.user_id == user_id)
+        .first()
+    )
+    if not matter:
+        raise HTTPException(
+            status_code=400,
+            detail="matter_id inválido ou não pertence ao usuário",
+        )
+    return matter
 
 
 def _processing_fields(document: Document) -> Dict[str, Any]:
@@ -82,16 +118,32 @@ async def upload_document(
     file_ext = validate_filename(original_filename)
     user_id = _user_id(current_user)
 
-    user = db.query(User).filter(User.id == user_id).first()
-    if user and user.documents_limit:
-        document_count = (
-            db.query(Document).filter(Document.user_id == user_id).count()
+    try:
+        from services.usage_metering import (
+            check_can_upload,
+            usage_limit_http_payload,
         )
-        if document_count >= user.documents_limit:
+
+        gate = check_can_upload(db, user_id)
+        if not gate.get("allowed"):
             raise HTTPException(
-                status_code=403,
-                detail="Limite de documentos do plano atingido",
+                status_code=402,
+                detail=usage_limit_http_payload(gate),
             )
+    except HTTPException:
+        raise
+    except Exception:
+        # Fallback legado se metering falhar
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and user.documents_limit:
+            document_count = (
+                db.query(Document).filter(Document.user_id == user_id).count()
+            )
+            if document_count >= user.documents_limit:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Limite de documentos do plano atingido",
+                )
 
     safe_filename = f"{uuid.uuid4()}{file_ext}"
     file_path = UPLOAD_DIR / safe_filename
@@ -233,6 +285,33 @@ async def list_documents(
     }
 
 
+@router.get("/search", response_model=Dict[str, Any])
+async def search_documents(
+    q: str = Query(..., min_length=1, max_length=300, description="Termo de busca"),
+    limit: int = Query(10, ge=1, le=50),
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db_async),
+):
+    """Busca autenticada nos documentos do usuario atual."""
+    from services.internal_document_search import search_user_documents
+
+    query = (q or "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Parametro q e obrigatorio")
+
+    results = search_user_documents(
+        db,
+        _user_id(current_user),
+        query,
+        top_k=limit,
+    )
+    return {
+        "query": query,
+        "count": len(results),
+        "results": results,
+    }
+
+
 @router.get("/stats", response_model=dict)
 async def get_document_stats(
     current_user=Depends(get_current_user),
@@ -314,6 +393,55 @@ async def delete_document(
     if file_path:
         file_path.unlink(missing_ok=True)
     return {"message": "Documento deletado com sucesso"}
+
+
+@router.post("/{document_id}/share-portal", response_model=dict)
+async def share_document_with_portal(
+    document_id: int,
+    body: SharePortalRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db_async),
+):
+    """
+    Marca documento para o portal do cliente (custom_data.client_id).
+    IDOR-safe: documento e cliente devem pertencer ao usuário autenticado.
+    Opcionalmente vincula matter_id (também owned).
+    """
+    user_id = _user_id(current_user)
+    document = _owned_document(db, document_id, user_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Documento nao encontrado")
+
+    client = _owned_client(db, body.client_id, user_id)
+
+    if body.matter_id is not None:
+        matter = _owned_matter(db, body.matter_id, user_id)
+        if matter.client_id is not None and matter.client_id != client.id:
+            raise HTTPException(
+                status_code=400,
+                detail="matter_id não pertence ao client_id informado",
+            )
+        document.matter_id = matter.id
+
+    metadata = dict(document.custom_data or {})
+    metadata["client_id"] = int(client.id)
+    if body.matter_id is not None:
+        metadata["matter_id"] = int(body.matter_id)
+    document.custom_data = metadata
+    db.commit()
+    db.refresh(document)
+
+    return {
+        "success": True,
+        "message": "Documento compartilhado com o portal do cliente",
+        "document_id": document.id,
+        "client_id": client.id,
+        "matter_id": document.matter_id,
+        "custom_data": {
+            "client_id": metadata.get("client_id"),
+            "matter_id": metadata.get("matter_id"),
+        },
+    }
 
 
 @router.get("/{document_id}/processing-status", response_model=dict)

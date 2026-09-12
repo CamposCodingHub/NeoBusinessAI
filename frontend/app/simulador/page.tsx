@@ -1185,6 +1185,18 @@ export default function SimuladorPage() {
               </SecondaryButton>
               <SecondaryButton onClick={resetSimulation}>Reiniciar ambiente</SecondaryButton>
               <Link
+                href="/sim-real"
+                className="rounded-xl border border-teal-500/35 bg-teal-500/10 px-4 py-2.5 text-sm font-medium text-teal-100 transition hover:bg-teal-500/20"
+              >
+                Tela real
+              </Link>
+              <Link
+                href="/qa-lab"
+                className="rounded-xl border border-teal-500/35 bg-teal-500/10 px-4 py-2.5 text-sm font-medium text-teal-100 transition hover:bg-teal-500/20"
+              >
+                QA Lab
+              </Link>
+              <Link
                 href="/"
                 className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10"
               >

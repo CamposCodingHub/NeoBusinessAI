@@ -5,12 +5,12 @@ SQLAlchemy ORM para persistência de dados
 
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, JSON, Float, Boolean, text
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Date, ForeignKey, JSON, Float, Boolean, text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
 from sqlalchemy.pool import QueuePool
 
@@ -94,6 +94,8 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime)
     is_active = Column(Boolean, default=True, server_default='true')
+    # Optional home org (nullable — existing rows stay valid)
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True, index=True)
     
     # Relacionamentos
     documents = relationship("Document", back_populates="owner", cascade="all, delete-orphan")
@@ -135,6 +137,11 @@ class Document(Base):
     content = Column(JSON)
     custom_data = Column(JSON)  # Renamed from 'metadata' to avoid SQLAlchemy reserved word
     status = Column(String(50), default='uploaded')  # uploaded, processing, completed, error
+    # Classificação / metadados jurídicos (colunas usadas por document_to_dict e busca)
+    document_type = Column(String(100), index=True)
+    process_number = Column(String(100), index=True)
+    court = Column(String(255))
+    text_content = Column(Text)  # texto extraído (OCR / parser)
     # Partes (JSON)
     parties = Column(JSON)
     
@@ -153,6 +160,9 @@ class Document(Base):
     # Metadados
     processing_time_ms = Column(Integer)
     error_message = Column(Text)
+
+    # Vínculo opcional ao caso / matter (nullable — não quebra fluxos existentes)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -231,6 +241,7 @@ class ChatMessage(Base):
     document_id = Column(Integer, ForeignKey('documents.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=True)
+    conversation_id = Column(String(128), nullable=True, index=True)
     
     role = Column(String(20), nullable=True)  # 'user' ou 'assistant'
     content = Column(Text, nullable=True)
@@ -246,7 +257,7 @@ class ChatMessage(Base):
     read_at = Column(DateTime)
     is_from_whatsapp = Column(Boolean, default=False)
     whatsapp_message_id = Column(String(255))
-    context_type = Column(String(50))
+    context_type = Column(String(50), index=True)
     context_id = Column(Integer)
     
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -275,6 +286,7 @@ class ChatMessage(Base):
             'document_id': self.document_id,
             'user_id': self.user_id,
             'client_id': self.client_id,
+            'conversation_id': self.conversation_id,
             'role': self.role,
             'content': self.content,
             'message': self.message or self.content,
@@ -373,6 +385,39 @@ class AIInferenceEvent(Base):
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 
+class AIAuditEvent(Base):
+    """Trilha de auditoria de compliance para respostas Lex (2026 legal AI)."""
+
+    __tablename__ = "ai_audit_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    conversation_id = Column(String(128), index=True)
+    message_preview = Column(String(200))
+    response_preview = Column(String(300))
+    model = Column(String(160), index=True)
+    provider = Column(String(80), index=True)
+    legal_area = Column(String(120), index=True)
+    grounding_status = Column(String(80), index=True)
+    requires_human_review = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "conversation_id": self.conversation_id,
+            "message_preview": self.message_preview,
+            "response_preview": self.response_preview,
+            "model": self.model,
+            "provider": self.provider,
+            "legal_area": self.legal_area,
+            "grounding_status": self.grounding_status,
+            "requires_human_review": bool(self.requires_human_review),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class AIEvaluationRun(Base):
     """Resultado versionado dos benchmarks de promocao de modelos."""
 
@@ -451,6 +496,8 @@ class Deadline(Base):
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(Integer, ForeignKey('documents.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # Vínculo opcional ao caso / matter (nullable — não quebra fluxos existentes)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
     
     days = Column(Integer)
     due_date = Column(DateTime)
@@ -470,6 +517,7 @@ class Deadline(Base):
         return {
             'id': self.id,
             'document_id': self.document_id,
+            'matter_id': self.matter_id,
             'days': self.days,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'urgency': self.urgency,
@@ -505,6 +553,37 @@ class Notification(Base):
     user = relationship("User", back_populates="notifications")
 
 
+class NotificationPreference(Base):
+    """Preferências de alerta de prazos por usuário (firm user)."""
+    __tablename__ = 'notification_preferences'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True, index=True)
+
+    email_enabled = Column(Boolean, default=True, nullable=False)
+    whatsapp_enabled = Column(Boolean, default=False, nullable=False)
+    days_before = Column(Integer, default=3, nullable=False)
+    # Horas do dia 0–23; null = sem quiet hours
+    quiet_hours_start = Column(Integer, nullable=True)
+    quiet_hours_end = Column(Integer, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'email_enabled': bool(self.email_enabled),
+            'whatsapp_enabled': bool(self.whatsapp_enabled),
+            'days_before': int(self.days_before or 3),
+            'quiet_hours_start': self.quiet_hours_start,
+            'quiet_hours_end': self.quiet_hours_end,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class ActivityLog(Base):
     """Log de atividades (auditoria)"""
     __tablename__ = 'activity_logs'
@@ -521,6 +600,30 @@ class ActivityLog(Base):
     user_agent = Column(String(500))
     
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ActivityEvent(Base):
+    """Feed operacional leve do escritório (observability; distinto de ActivityLog/auditoria)."""
+    __tablename__ = 'activity_events'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    action = Column(String(100), nullable=False, index=True)
+    entity_type = Column(String(50), nullable=True)
+    entity_id = Column(Integer, nullable=True)
+    summary = Column(String(500), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'action': self.action,
+            'entity_type': self.entity_type,
+            'entity_id': self.entity_id,
+            'summary': self.summary,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
 
 
 class SubscriptionHistory(Base):
@@ -606,6 +709,128 @@ class Client(Base):
             self.zip_code = encrypt_field(kwargs['zip_code'])
 
 
+class Lead(Base):
+    """Lead / intake comercial do escritório (pipeline de captação)."""
+    __tablename__ = 'intake_leads'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+
+    name = Column(String(255), nullable=False, index=True)
+    email = Column(String(255), index=True)
+    phone = Column(String(50))
+    practice_area = Column(String(120), index=True)
+    source = Column(String(120), index=True)
+    status = Column(String(50), default='new', index=True)  # new|qualified|meeting|won|lost
+    notes = Column(Text)
+    conflict_flag = Column(Boolean, default=False, server_default='false')
+    conflict_detail = Column(Text)  # resumo automático do screening COI
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'email': self.email,
+            'phone': self.phone,
+            'practice_area': self.practice_area,
+            'source': self.source,
+            'status': self.status,
+            'notes': self.notes,
+            'conflict_flag': bool(self.conflict_flag),
+            'conflict_detail': self.conflict_detail,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class Matter(Base):
+    """Caso / matter — ciclo de vida unificado do processo."""
+    __tablename__ = 'matters'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+
+    title = Column(String(255), nullable=False, index=True)
+    practice_area = Column(String(120), index=True)
+    status = Column(String(50), default='open', index=True)  # open|pending|closed
+    opposing_party = Column(String(255))
+    court = Column(String(255))
+    process_number = Column(String(100), index=True)
+    notes = Column(Text)
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True, index=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'title': self.title,
+            'practice_area': self.practice_area,
+            'status': self.status,
+            'opposing_party': self.opposing_party,
+            'court': self.court,
+            'process_number': self.process_number,
+            'notes': self.notes,
+            'organization_id': self.organization_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class TimeEntry(Base):
+    """Lançamento de horas faturáveis (time entry) — PMS must-have."""
+    __tablename__ = 'time_entries'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+
+    description = Column(Text, nullable=False)
+    minutes = Column(Integer, nullable=False)
+    hourly_rate = Column(Float, nullable=True)
+    billable = Column(Boolean, default=True)
+    work_date = Column(Date, nullable=False, index=True)
+    invoiced_at = Column(DateTime, nullable=True, index=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        estimated = None
+        if self.billable and self.hourly_rate is not None and self.minutes is not None:
+            estimated = round((self.minutes / 60.0) * float(self.hourly_rate), 2)
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'matter_id': self.matter_id,
+            'client_id': self.client_id,
+            'description': self.description,
+            'minutes': self.minutes,
+            'hourly_rate': self.hourly_rate,
+            'billable': bool(self.billable) if self.billable is not None else True,
+            'work_date': self.work_date.isoformat() if self.work_date else None,
+            'invoiced_at': self.invoiced_at.isoformat() if self.invoiced_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'estimated_amount': estimated,
+        }
+
+
 class Invoice(Base):
     """Fatura/Cobrança do cliente"""
     __tablename__ = 'invoices'
@@ -640,6 +865,7 @@ class Invoice(Base):
     # Método de pagamento
     payment_method = Column(String(50))  # boleto, pix, credit_card
     payment_reference = Column(String(255))  # Código do boleto/pix
+    payment_url = Column(String(1024), nullable=True)  # Link Stripe/stub PIX
     
     # Régua de cobrança
     reminder_sent = Column(Boolean, default=False)
@@ -663,6 +889,7 @@ class Invoice(Base):
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'paid_at': self.paid_at.isoformat() if self.paid_at else None,
             'payment_method': self.payment_method,
+            'payment_url': self.payment_url,
             'reminder_sent': self.reminder_sent,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
@@ -750,6 +977,363 @@ class NotificationQueue(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class TeamInvite(Base):
+    """Convite de membro para escritório multi-usuário (stub pragmático)."""
+    __tablename__ = 'team_invites'
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    # user | admin (papel no time do escritório)
+    role = Column(String(50), default='user', nullable=False)
+    # pending | accepted | revoked
+    status = Column(String(50), default='pending', nullable=False, index=True)
+    token = Column(String(128), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    accepted_at = Column(DateTime, nullable=True)
+
+    def to_dict(self, *, include_token: bool = False) -> Dict[str, Any]:
+        data = {
+            'id': self.id,
+            'owner_user_id': self.owner_user_id,
+            'email': self.email,
+            'role': self.role,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'accepted_at': self.accepted_at.isoformat() if self.accepted_at else None,
+        }
+        if include_token:
+            data['token'] = self.token
+        return data
+
+
+
+class Organization(Base):
+    """Organizacao multi-tenant (MVP)."""
+    __tablename__ = 'organizations'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    slug = Column(String(120), unique=True, nullable=False, index=True)
+    owner_user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    plan_tier = Column(String(50), default='free', nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'owner_user_id': self.owner_user_id,
+            'plan_tier': self.plan_tier,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class OrganizationMember(Base):
+    """Membro de uma Organization (owner|admin|member)."""
+    __tablename__ = 'organization_members'
+    __table_args__ = (
+        UniqueConstraint('org_id', 'user_id', name='uq_org_member_org_user'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    org_id = Column(Integer, ForeignKey('organizations.id'), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    role = Column(String(50), default='member', nullable=False)  # owner|admin|member
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'org_id': self.org_id,
+            'user_id': self.user_id,
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class OutboundMessageApproval(Base):
+    """Gate de aprovação humana antes de envio WhatsApp (AI agents não auto-enviam)."""
+    __tablename__ = 'outbound_message_approvals'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+
+    channel = Column(String(50), default='whatsapp', nullable=False, index=True)
+    recipient = Column(String(80), nullable=False)
+    body = Column(Text, nullable=False)
+    # pending | approved | rejected | sent | failed
+    status = Column(String(50), default='pending', nullable=False, index=True)
+    # lex | deadline | finance | manual
+    source = Column(String(50), default='manual', nullable=False, index=True)
+    related_matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    decided_at = Column(DateTime, nullable=True)
+    error = Column(Text, nullable=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'channel': self.channel,
+            'recipient': self.recipient,
+            'body': self.body,
+            'status': self.status,
+            'source': self.source,
+            'related_matter_id': self.related_matter_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'decided_at': self.decided_at.isoformat() if self.decided_at else None,
+            'error': self.error,
+        }
+
+
+
+
+class WhatsAppConsent(Base):
+    """LGPD consent stub for outbound WhatsApp (client/phone level)."""
+    __tablename__ = 'whatsapp_consents'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+
+    phone_hash = Column(String(128), nullable=True, index=True)
+    phone = Column(String(80), nullable=True)
+
+    consented_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    channel = Column(String(50), default='whatsapp', nullable=False, index=True)
+    # intake | manual
+    source = Column(String(50), default='manual', nullable=False, index=True)
+    revoked_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'phone_hash': self.phone_hash,
+            'phone': self.phone,
+            'consented_at': self.consented_at.isoformat() if self.consented_at else None,
+            'channel': self.channel,
+            'source': self.source,
+            'revoked_at': self.revoked_at.isoformat() if self.revoked_at else None,
+            'active': self.revoked_at is None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class TrustAccount(Base):
+    """Conta de valores em custódia (IOLTA-style stub — NÃO é integração bancária)."""
+    __tablename__ = 'trust_accounts'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True, index=True)
+    name = Column(String(255), nullable=False)
+    currency = Column(String(10), default='BRL', nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'organization_id': self.organization_id,
+            'name': self.name,
+            'currency': self.currency,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class TrustLedgerEntry(Base):
+    """Lançamento no livro-razão de trust (deposit|withdrawal|transfer|adjustment)."""
+    __tablename__ = 'trust_ledger_entries'
+
+    id = Column(Integer, primary_key=True, index=True)
+    trust_account_id = Column(Integer, ForeignKey('trust_accounts.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    # deposit | withdrawal | transfer | adjustment
+    entry_type = Column(String(30), nullable=False, index=True)
+    amount = Column(Float, nullable=False)
+    memo = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_by_user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'trust_account_id': self.trust_account_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'entry_type': self.entry_type,
+            'amount': self.amount,
+            'memo': self.memo,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_by_user_id': self.created_by_user_id,
+        }
+
+
+
+class ESignEnvelope(Base):
+    """Envelope de assinatura eletrônica (ClickSign-style stub — NÃO é provedor real)."""
+    __tablename__ = 'esign_envelopes'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    document_id = Column(Integer, ForeignKey('documents.id'), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    # draft | sent | signed | cancelled
+    status = Column(String(30), default='draft', nullable=False, index=True)
+    signer_email = Column(String(255), nullable=False)
+    signer_name = Column(String(255), nullable=False)
+    provider = Column(String(50), default='stub', nullable=False)
+    external_id = Column(String(120), nullable=True, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    signed_at = Column(DateTime, nullable=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'document_id': self.document_id,
+            'title': self.title,
+            'status': self.status,
+            'signer_email': self.signer_email,
+            'signer_name': self.signer_name,
+            'provider': self.provider,
+            'external_id': self.external_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'signed_at': self.signed_at.isoformat() if self.signed_at else None,
+        }
+
+
+class MonitoredProcess(Base):
+    """Processo monitorado para intimacoes (DJEn stub — NAO e scrape CNJ/API real)."""
+    __tablename__ = 'monitored_processes'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True, index=True)
+    process_number = Column(String(80), nullable=False, index=True)
+    court = Column(String(120), nullable=True)
+    oab_number = Column(String(40), nullable=True)
+    # active | paused
+    status = Column(String(20), default='active', nullable=False, index=True)
+    last_checked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'organization_id': self.organization_id,
+            'process_number': self.process_number,
+            'court': self.court,
+            'oab_number': self.oab_number,
+            'status': self.status,
+            'last_checked_at': self.last_checked_at.isoformat() if self.last_checked_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class IntimacaoEvent(Base):
+    """Evento de intimacao associado a um processo monitorado (fonte stub por padrao)."""
+    __tablename__ = 'intimacao_events'
+
+    id = Column(Integer, primary_key=True, index=True)
+    monitored_process_id = Column(Integer, ForeignKey('monitored_processes.id'), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    summary = Column(Text, nullable=True)
+    published_at = Column(DateTime, nullable=True)
+    source = Column(String(50), default='stub', nullable=False)
+    raw_ref = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    acknowledged = Column(Boolean, default=False, nullable=False)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'monitored_process_id': self.monitored_process_id,
+            'title': self.title,
+            'summary': self.summary,
+            'published_at': self.published_at.isoformat() if self.published_at else None,
+            'source': self.source,
+            'raw_ref': self.raw_ref,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'acknowledged': bool(self.acknowledged),
+        }
+
+
+
+
+class NfseDraft(Base):
+    """Rascunho NFS-e (STUB — nao integra prefeitura / API real)."""
+    __tablename__ = 'nfse_drafts'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    invoice_id = Column(Integer, ForeignKey('invoices.id'), nullable=True, index=True)
+    client_name = Column(String(255), nullable=False)
+    service_description = Column(Text, nullable=False)
+    amount = Column(Float, nullable=False)
+    # draft | issued_stub | cancelled
+    status = Column(String(30), default='draft', nullable=False, index=True)
+    number_stub = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'invoice_id': self.invoice_id,
+            'client_name': self.client_name,
+            'service_description': self.service_description,
+            'amount': float(self.amount) if self.amount is not None else 0.0,
+            'status': self.status,
+            'number_stub': self.number_stub,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class CostAdvance(Base):
+    """Adiantamento de custas / despesas processuais (reembolso pelo cliente)."""
+    __tablename__ = 'cost_advances'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    description = Column(String(500), nullable=False)
+    amount = Column(Float, nullable=False)
+    # advanced | reimbursed | written_off
+    status = Column(String(30), default='advanced', nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'description': self.description,
+            'amount': float(self.amount) if self.amount is not None else 0.0,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================
@@ -815,6 +1399,95 @@ def _apply_sqlite_development_migrations():
         return
 
     with engine.begin() as connection:
+        doc_columns = {
+            row[1]
+            for row in connection.exec_driver_sql("PRAGMA table_info(documents)").fetchall()
+        }
+        for column_name, column_type in (
+            ("document_type", "VARCHAR(100)"),
+            ("process_number", "VARCHAR(100)"),
+            ("court", "VARCHAR(255)"),
+            ("text_content", "TEXT"),
+        ):
+            if doc_columns and column_name not in doc_columns:
+                logger.info(
+                    "Aplicando migracao local SQLite: adicionando documents.%s",
+                    column_name,
+                )
+                connection.exec_driver_sql(
+                    f"ALTER TABLE documents ADD COLUMN {column_name} {column_type}"
+                )
+
+        chat_columns = {
+            row[1]
+            for row in connection.exec_driver_sql(
+                "PRAGMA table_info(chat_messages)"
+            ).fetchall()
+        }
+        if chat_columns and "conversation_id" not in chat_columns:
+            logger.info(
+                "Aplicando migracao local SQLite: adicionando chat_messages.conversation_id"
+            )
+            connection.exec_driver_sql(
+                "ALTER TABLE chat_messages ADD COLUMN conversation_id VARCHAR(128)"
+            )
+
+        time_columns = {
+            row[1]
+            for row in connection.exec_driver_sql(
+                "PRAGMA table_info(time_entries)"
+            ).fetchall()
+        }
+        if time_columns and "invoiced_at" not in time_columns:
+            logger.info(
+                "Aplicando migracao local SQLite: adicionando time_entries.invoiced_at"
+            )
+            connection.exec_driver_sql(
+                "ALTER TABLE time_entries ADD COLUMN invoiced_at DATETIME"
+            )
+
+        invoice_columns = {
+            row[1]
+            for row in connection.exec_driver_sql(
+                "PRAGMA table_info(invoices)"
+            ).fetchall()
+        }
+        if invoice_columns and "payment_url" not in invoice_columns:
+            logger.info(
+                "Aplicando migracao local SQLite: adicionando invoices.payment_url"
+            )
+            connection.exec_driver_sql(
+                "ALTER TABLE invoices ADD COLUMN payment_url VARCHAR(1024)"
+            )
+
+        user_columns = {
+            row[1]
+            for row in connection.exec_driver_sql(
+                "PRAGMA table_info(users)"
+            ).fetchall()
+        }
+        if user_columns and "organization_id" not in user_columns:
+            logger.info(
+                "Aplicando migracao local SQLite: adicionando users.organization_id"
+            )
+            connection.exec_driver_sql(
+                "ALTER TABLE users ADD COLUMN organization_id INTEGER"
+            )
+
+        matter_columns = {
+            row[1]
+            for row in connection.exec_driver_sql(
+                "PRAGMA table_info(matters)"
+            ).fetchall()
+        }
+        if matter_columns and "organization_id" not in matter_columns:
+            logger.info(
+                "Aplicando migracao local SQLite: adicionando matters.organization_id"
+            )
+            connection.exec_driver_sql(
+                "ALTER TABLE matters ADD COLUMN organization_id INTEGER"
+            )
+
         columns = connection.exec_driver_sql("PRAGMA table_info(deadlines)").fetchall()
         if not columns:
             return

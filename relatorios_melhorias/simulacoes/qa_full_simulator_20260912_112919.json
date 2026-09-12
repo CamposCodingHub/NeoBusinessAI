@@ -1,0 +1,209 @@
+{
+  "started_at": "2026-09-12T14:29:07.425108+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "passed": 0,
+  "failed": 25,
+  "score": 0.0,
+  "checks": [
+    {
+      "suite": "health",
+      "name": "health",
+      "passed": false,
+      "detail": "[WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "health",
+      "name": "ready",
+      "passed": false,
+      "detail": "[WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "health",
+      "name": "ai_status",
+      "passed": false,
+      "detail": "[WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "auth",
+      "name": "login",
+      "passed": false,
+      "detail": "<urlopen error [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente>",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "clients",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "deadlines",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "documents",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "matters",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "intake",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "approvals",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "time",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "usage",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ai_audit",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ops_shortcuts",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ops_activity",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "orgs",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "trust",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "esign",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "monitor",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "aging",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "nfse",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "compute_business",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "security",
+      "name": "docs_unauth",
+      "passed": false,
+      "detail": "[WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "security",
+      "name": "chat_stream_auth",
+      "passed": false,
+      "detail": "[WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente",
+      "latency_ms": 0,
+      "score": null
+    },
+    {
+      "suite": "ai",
+      "name": "tone",
+      "passed": false,
+      "detail": "sem token",
+      "latency_ms": 0,
+      "score": null
+    }
+  ]
+}

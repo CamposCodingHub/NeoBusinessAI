@@ -90,6 +90,7 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [sharingId, setSharingId] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<DocumentDetail | null>(
     null
@@ -326,6 +327,57 @@ export default function DocumentsPage() {
       );
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleSharePortal = async (docId: number) => {
+    const raw = window.prompt(
+      'ID do cliente (portal) para compartilhar este documento:'
+    );
+    if (raw == null) return;
+    const clientId = Number.parseInt(raw.trim(), 10);
+    if (!Number.isFinite(clientId) || clientId <= 0) {
+      setErrorMessage('Informe um client_id numerico valido.');
+      return;
+    }
+
+    clearMessages();
+    setSharingId(docId);
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) return;
+
+      const response = await fetch(
+        `${API_URL}/documents/${docId}/share-portal`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'omit',
+          body: JSON.stringify({ client_id: clientId }),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.detail ||
+            errorData?.error ||
+            'Nao foi possivel compartilhar no portal'
+        );
+      }
+      setStatusMessage(
+        `Documento compartilhado com o cliente #${clientId} no portal.`
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao compartilhar no portal.'
+      );
+    } finally {
+      setSharingId(null);
     }
   };
 
@@ -590,6 +642,16 @@ export default function DocumentsPage() {
                         : 'Analisar'}
                     </motion.button>
                   )}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => void handleSharePortal(doc.id)}
+                    disabled={sharingId === doc.id}
+                    className="px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 text-sm disabled:opacity-50"
+                    data-testid={`share-portal-${doc.id}`}
+                  >
+                    {sharingId === doc.id ? 'Compartilhando...' : 'Portal'}
+                  </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

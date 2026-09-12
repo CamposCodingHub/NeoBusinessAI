@@ -1,22 +1,39 @@
 """
 Compliance Service
 ===================
-Serviço de LGPD e compliance de dados.
+Serviço de LGPD/GDPR — exportação e retenção de dados do escritório.
 """
 
-from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-import json
+from __future__ import annotations
 
-from models.user import User
-from models.document import Document
-from models.audit_log import AuditLog, AuditAction, AuditSeverity
+import logging
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
+
+# Campos de perfil nunca incluídos no pacote de exportação
+_PROFILE_DENYLIST = frozenset(
+    {
+        "password_hash",
+        "password",
+        "hashed_password",
+        "secret",
+        "api_key",
+        "token",
+        "refresh_token",
+        "stripe_customer_id",
+        "stripe_subscription_id",
+    }
+)
 
 
 class ConsentType(str):
     """Tipos de consentimento"""
+
     MARKETING = "marketing"
     ANALYTICS = "analytics"
     DATA_PROCESSING = "data_processing"
@@ -24,232 +41,260 @@ class ConsentType(str):
 
 
 class ComplianceService:
-    """Serviço de compliance LGPD"""
-    
+    """Serviço de compliance LGPD/GDPR (firm user)."""
+
     @staticmethod
-    def record_consent(
-        db: Session,
-        user_id: str,
-        consent_type: str,
-        granted: bool,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
-    ):
+    def _safe_section(
+        name: str,
+        fn: Callable[[], Any],
+        partial_errors: List[Dict[str, str]],
+        default: Any,
+    ) -> Any:
+        """Executa uma seção best-effort; falha isolada não derruba o export."""
+        try:
+            return fn()
+        except Exception as exc:  # noqa: BLE001 — pacote de compliance deve sobreviver
+            logger.warning("GDPR export section '%s' failed: %s", name, exc)
+            partial_errors.append({"section": name, "error": str(exc)})
+            try:
+                # Limpa sessão se a query deixou-a em estado inválido
+                # (caller passa db via closure — rollback best-effort no fn)
+                pass
+            except Exception:
+                pass
+            return default
+
+    @staticmethod
+    def _profile_from_user(user: Any) -> Dict[str, Any]:
+        """Serializa perfil sem hashes/segredos."""
+        raw = {
+            "id": getattr(user, "id", None),
+            "email": getattr(user, "email", None),
+            "name": getattr(user, "name", None),
+            "company": getattr(user, "company", None),
+            "phone": getattr(user, "phone", None),
+            "role": getattr(user, "role", None),
+            "plan_tier": getattr(user, "plan_tier", None),
+            "subscription_status": getattr(user, "subscription_status", None),
+            "documents_limit": getattr(user, "documents_limit", None),
+            "users_limit": getattr(user, "users_limit", None),
+            "is_active": getattr(user, "is_active", None),
+            "created_at": (
+                user.created_at.isoformat()
+                if getattr(user, "created_at", None)
+                else None
+            ),
+            "updated_at": (
+                user.updated_at.isoformat()
+                if getattr(user, "updated_at", None)
+                else None
+            ),
+            "last_login": (
+                user.last_login.isoformat()
+                if getattr(user, "last_login", None)
+                else None
+            ),
+        }
+        return {k: v for k, v in raw.items() if k not in _PROFILE_DENYLIST}
+
+    @staticmethod
+    def export_user_data(db: Session, user_id: Any) -> Dict[str, Any]:
         """
-        Registra consentimento do usuário.
-        
-        Args:
-            db: Sessão do banco
-            user_id: ID do usuário
-            consent_type: Tipo de consentimento
-            granted: Se consentimento foi concedido
-            ip_address: IP do request
-            user_agent: User-Agent
+        Exporta pacote JSON do usuário autenticado (LGPD Art. 18 / GDPR portability).
+
+        Best-effort: se uma tabela/coluna faltar, a seção é marcada em
+        ``partial_errors`` e o restante do pacote é retornado.
+        Nunca inclui password_hash nem segredos.
         """
-        # TODO: Criar modelo Consent
-        # Por enquanto, log em audit
-        AuditLog.create(
-            user_id=user_id,
-            action=AuditAction.EMAIL_VERIFY if consent_type == ConsentType.EMAIL_COMMUNICATIONS else AuditAction.USER_UPDATE,
-            severity=AuditSeverity.INFO,
-            description=f"Consent {'granted' if granted else 'revoked'}: {consent_type}",
-            metadata={
-                "consent_type": consent_type,
-                "granted": granted,
-                "ip_address": ip_address
-            }
+        from database import (
+            ChatMessage,
+            Client,
+            Document,
+            Invoice,
+            Lead,
+            Matter,
+            User,
         )
-    
-    @staticmethod
-    def export_user_data(db: Session, user_id: str) -> Dict[str, Any]:
-        """
-        Exporta todos os dados do usuário (LGPD - Direito de Portabilidade).
-        
-        Args:
-            db: Sessão do banco
-            user_id: ID do usuário
-            
-        Returns:
-            Dict com todos os dados do usuário
-        """
-        user = db.query(User).filter(User.id == user_id).first()
-        
+
+        try:
+            uid = int(user_id)
+        except (TypeError, ValueError):
+            uid = user_id
+
+        user = db.query(User).filter(User.id == uid).first()
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        
-        # Coletar dados do usuário
-        user_data = {
-            "profile": {
-                "id": str(user.id),
-                "email": user.email,
-                "full_name": user.full_name,
-                "phone": user.phone,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+
+        partial_errors: List[Dict[str, str]] = []
+        package: Dict[str, Any] = {
+            "export_metadata": {
+                "exported_at": datetime.utcnow().isoformat(),
+                "format_version": "2.0",
+                "legal_basis": "LGPD Art. 18 (Portabilidade) / GDPR Art. 20",
+                "user_id": uid,
             },
+            "profile": ComplianceService._profile_from_user(user),
+            "clients_count": 0,
             "documents": [],
-            "audit_logs": [],
-            "subscriptions": []
+            "invoices_summary": {
+                "count": 0,
+                "total_amount_cents": 0,
+                "by_status": {},
+                "items": [],
+            },
+            "chat_messages_count": 0,
+            "leads_count": 0,
+            "matters_count": 0,
+            "partial_errors": partial_errors,
         }
-        
-        # Coletar documentos
-        documents = db.query(Document).filter(Document.user_id == user_id).all()
-        for doc in documents:
-            user_data["documents"].append({
-                "id": str(doc.id),
-                "filename": doc.filename,
-                "file_type": doc.file_type,
-                "file_size": doc.file_size,
-                "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                "deleted_at": doc.deleted_at.isoformat() if doc.deleted_at else None
-            })
-        
-        # Coletar logs de auditoria (últimos 90 dias)
-        cutoff_date = datetime.utcnow() - timedelta(days=90)
-        audit_logs = db.query(AuditLog).filter(
-            AuditLog.user_id == user_id,
-            AuditLog.created_at >= cutoff_date
-        ).all()
-        
-        for log in audit_logs:
-            user_data["audit_logs"].append({
-                "action": log.action.value if hasattr(log.action, 'value') else log.action,
-                "description": log.description,
-                "created_at": log.created_at.isoformat() if log.created_at else None,
-                "ip_address": str(log.ip_address) if log.ip_address else None
-            })
-        
-        # Coletar assinaturas
-        from models.subscription import Subscription
-        subscriptions = db.query(Subscription).filter(Subscription.user_id == user_id).all()
-        for sub in subscriptions:
-            user_data["subscriptions"].append({
-                "id": str(sub.id),
-                "plan_tier": sub.plan_tier,
-                "status": sub.status.value if hasattr(sub.status, 'value') else sub.status,
-                "created_at": sub.created_at.isoformat() if sub.created_at else None
-            })
-        
-        # Log de exportação
-        AuditLog.create(
-            user_id=user_id,
-            action=AuditAction.USER_UPDATE,
-            severity=AuditSeverity.INFO,
-            description="User data exported (GDPR/LGPD)",
-            metadata={"export_type": "full"}
+
+        def _count_clients() -> int:
+            try:
+                return db.query(Client).filter(Client.user_id == uid).count()
+            except Exception:
+                db.rollback()
+                raise
+
+        def _documents_meta() -> List[Dict[str, Any]]:
+            try:
+                docs = db.query(Document).filter(Document.user_id == uid).all()
+                return [
+                    {
+                        "id": d.id,
+                        "filename": d.filename,
+                        "original_filename": getattr(d, "original_filename", None),
+                        "file_type": d.file_type,
+                        "file_size": d.file_size,
+                        "status": d.status,
+                        "title": getattr(d, "title", None),
+                        "created_at": (
+                            d.created_at.isoformat() if d.created_at else None
+                        ),
+                        "updated_at": (
+                            d.updated_at.isoformat()
+                            if getattr(d, "updated_at", None)
+                            else None
+                        ),
+                    }
+                    for d in docs
+                ]
+            except Exception:
+                db.rollback()
+                raise
+
+        def _invoices_summary() -> Dict[str, Any]:
+            try:
+                invoices = db.query(Invoice).filter(Invoice.user_id == uid).all()
+                by_status: Dict[str, int] = {}
+                total = 0
+                items: List[Dict[str, Any]] = []
+                for inv in invoices:
+                    st = inv.status or "unknown"
+                    by_status[st] = by_status.get(st, 0) + 1
+                    cents = int(getattr(inv, "total_cents", 0) or 0)
+                    total += cents
+                    items.append(
+                        {
+                            "id": inv.id,
+                            "invoice_number": inv.invoice_number,
+                            "client_id": inv.client_id,
+                            "status": inv.status,
+                            "total_cents": cents,
+                            "due_date": (
+                                inv.due_date.isoformat() if inv.due_date else None
+                            ),
+                            "issue_date": (
+                                inv.issue_date.isoformat()
+                                if getattr(inv, "issue_date", None)
+                                else None
+                            ),
+                            "created_at": (
+                                inv.created_at.isoformat()
+                                if getattr(inv, "created_at", None)
+                                else None
+                            ),
+                        }
+                    )
+                return {
+                    "count": len(invoices),
+                    "total_amount_cents": total,
+                    "by_status": by_status,
+                    "items": items,
+                }
+            except Exception:
+                db.rollback()
+                raise
+
+        def _count_chat() -> int:
+            try:
+                return (
+                    db.query(ChatMessage).filter(ChatMessage.user_id == uid).count()
+                )
+            except Exception:
+                db.rollback()
+                raise
+
+        def _count_leads() -> int:
+            try:
+                return db.query(Lead).filter(Lead.user_id == uid).count()
+            except Exception:
+                db.rollback()
+                raise
+
+        def _count_matters() -> int:
+            try:
+                return db.query(Matter).filter(Matter.user_id == uid).count()
+            except Exception:
+                db.rollback()
+                raise
+
+        package["clients_count"] = ComplianceService._safe_section(
+            "clients_count", _count_clients, partial_errors, 0
         )
-        
-        return user_data
-    
-    @staticmethod
-    def delete_user_data(db: Session, user_id: str, hard_delete: bool = False) -> bool:
-        """
-        Deleta dados do usuário (LGPD - Direito ao Esquecimento).
-        
-        Args:
-            db: Sessão do banco
-            user_id: ID do usuário
-            hard_delete: Se True, deleta permanentemente. Se False, apenas marca como deletado.
-            
-        Returns:
-            True se deletado com sucesso
-        """
-        user = db.query(User).filter(User.id == user_id).first()
-        
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        
-        if hard_delete:
-            # Deletar permanentemente (cuidado!)
-            # Deletar documentos do storage
-            from services.storage_service import storage_service
-            documents = db.query(Document).filter(Document.user_id == user_id).all()
-            
-            for doc in documents:
-                if doc.storage_key:
-                    storage_service.delete_file(doc.storage_key)
-            
-            # Deletar registros do banco
-            db.query(Document).filter(Document.user_id == user_id).delete()
-            db.query(AuditLog).filter(AuditLog.user_id == user_id).delete()
-            db.delete(user)
-            
-        else:
-            # Soft delete (recomendado)
-            user.email = f"deleted_{user.id}@deleted.local"
-            user.full_name = "Deleted User"
-            user.phone = None
-            user.password_hash = "DELETED"
-            user.is_active = False
-            user.deleted_at = datetime.utcnow()
-            
-            # Anonimizar documentos
-            documents = db.query(Document).filter(Document.user_id == user_id).all()
-            for doc in documents:
-                doc.filename = "DELETED"
-                doc.original_filename = "DELETED"
-                doc.ocr_text = None
-                doc.extracted_data = {}
-                doc.deleted_at = datetime.utcnow()
-        
-        db.commit()
-        
-        # Log de deleção
-        AuditLog.create(
-            user_id=user_id,
-            action=AuditAction.USER_DELETE,
-            severity=AuditSeverity.CRITICAL,
-            description=f"User data {'hard' if hard_delete else 'soft'} deleted (GDPR/LGPD)",
-            metadata={"hard_delete": hard_delete}
+        package["documents"] = ComplianceService._safe_section(
+            "documents", _documents_meta, partial_errors, []
         )
-        
-        return True
-    
-    @staticmethod
-    def anonymize_document(db: Session, document_id: str) -> bool:
-        """
-        Anonimiza documento mantendo metadados mínimos.
-        
-        Args:
-            db: Sessão do banco
-            document_id: ID do documento
-            
-        Returns:
-            True se anonimizado com sucesso
-        """
-        document = db.query(Document).filter(Document.id == document_id).first()
-        
-        if not document:
-            raise HTTPException(status_code=404, detail="Documento não encontrado")
-        
-        # Anonimizar conteúdo
-        document.filename = "ANONYMIZED"
-        document.original_filename = "ANONYMIZED"
-        document.ocr_text = None
-        document.extracted_data = {}
-        document.entities = []
-        document.key_points = []
-        document.summary = None
-        document.analysis = {}
-        
-        # Manter apenas metadados essenciais
-        document.metadata = {
-            "anonymized_at": datetime.utcnow().isoformat(),
-            "anonymized": True
-        }
-        
-        db.commit()
-        
-        return True
-    
+        package["invoices_summary"] = ComplianceService._safe_section(
+            "invoices_summary",
+            _invoices_summary,
+            partial_errors,
+            {
+                "count": 0,
+                "total_amount_cents": 0,
+                "by_status": {},
+                "items": [],
+            },
+        )
+        package["chat_messages_count"] = ComplianceService._safe_section(
+            "chat_messages_count", _count_chat, partial_errors, 0
+        )
+        package["leads_count"] = ComplianceService._safe_section(
+            "leads_count", _count_leads, partial_errors, 0
+        )
+        package["matters_count"] = ComplianceService._safe_section(
+            "matters_count", _count_matters, partial_errors, 0
+        )
+
+        # Garantia final: nenhum segredo no JSON
+        profile = package.get("profile") or {}
+        for banned in _PROFILE_DENYLIST:
+            profile.pop(banned, None)
+        package["profile"] = profile
+
+        serialized = str(package)
+        if "password_hash" in serialized.lower():
+            logger.error("GDPR export leaked password_hash — stripping package keys")
+            package["profile"] = {
+                k: v
+                for k, v in package["profile"].items()
+                if "password" not in k.lower() and "hash" not in k.lower()
+            }
+
+        return package
+
     @staticmethod
     def get_retention_policy() -> Dict[str, int]:
-        """
-        Retorna política de retenção de dados (em dias).
-        
-        Returns:
-            Dict com tempos de retenção por tipo de dado
-        """
+        """Política de retenção de dados (em dias)."""
         return {
             "user_profile": 2555,  # 7 anos após conta deletada
             "documents": 1825,  # 5 anos
@@ -258,26 +303,13 @@ class ComplianceService:
             "consent_records": 2555,  # 7 anos
             "analytics_data": 730,  # 2 anos
         }
-    
+
     @staticmethod
     def check_data_retention(db: Session) -> list:
-        """
-        Verifica dados que devem ser retidos ou deletados.
-        
-        Args:
-            db: Sessão do banco
-            
-        Returns:
-            Lista de dados expirados
-        """
-        retention_policy = ComplianceService.get_retention_policy()
-        expired_data = []
-        
-        # TODO: Implementar verificação de retenção
-        # Por enquanto, retorna vazio
-        
-        return expired_data
+        """Placeholder — verificação de retenção."""
+        _ = db
+        _ = ComplianceService.get_retention_policy()
+        return []
 
 
-# Singleton instance
 compliance_service = ComplianceService()

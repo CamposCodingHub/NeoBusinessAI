@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-12T03:16:05.347823+00:00",
+  "base": "http://127.0.0.1:8000",
+  "passed": 3,
+  "total": 3,
+  "rows": [
+    {
+      "path": "/health",
+      "status": 404,
+      "passed": true,
+      "preview": "{\"success\":false,\"error\":\"Not Found\"}"
+    },
+    {
+      "path": "/api/ai/status",
+      "status": 200,
+      "passed": true,
+      "preview": "{\"premium_ai\":{\"available\":true,\"features\":[\"personalidade_avancada\",\"anti_repeticao\",\"memoria_contextual\",\"memoria_dura"
+    },
+    {
+      "path": "/docs",
+      "status": 200,
+      "passed": true,
+      "preview": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  "
+    }
+  ]
+}

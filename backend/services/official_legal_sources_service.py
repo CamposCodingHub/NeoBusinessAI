@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import io
 import re
+import threading
 import time
 import unicodedata
 from dataclasses import dataclass
@@ -567,9 +570,18 @@ VERIFIED_TOPIC_GUARDRAILS = {
 
 
 class OfficialLegalSourcesService:
-    def __init__(self, cache_ttl_seconds: int = 21600):
+    def __init__(
+        self,
+        cache_ttl_seconds: int = 21600,
+        retrieve_cache_ttl_seconds: int = 1200,
+    ):
+        # URL text fetch cache (HTML/PDF body) — TTL default 6h
         self.cache_ttl_seconds = cache_ttl_seconds
         self._cache: Dict[str, tuple[float, str]] = {}
+        # retrieve() result cache keyed by normalized query hash — TTL ~20 min
+        self.retrieve_cache_ttl_seconds = retrieve_cache_ttl_seconds
+        self._retrieve_cache: Dict[str, tuple[float, Dict[str, object]]] = {}
+        self._retrieve_cache_lock = threading.Lock()
 
     def analyze_query(self, query: str) -> Dict[str, object]:
         normalized = normalize_text(query)
@@ -714,7 +726,26 @@ class OfficialLegalSourcesService:
             "sources": selected,
         }
 
+    def _retrieve_cache_key(self, query: str, max_sources: int) -> str:
+        normalized = normalize_text(query or "")
+        raw = f"{normalized}|{int(max_sources)}"
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
     def retrieve(self, query: str, max_sources: int = 4) -> Dict[str, object]:
+        """Retrieve official legal sources for a query.
+
+        Caching layers (do not confuse):
+        - ``_cache``: per-URL fetched text body (TTL ``cache_ttl_seconds``, default 6h)
+        - ``_retrieve_cache``: full ``retrieve()`` result keyed by normalized query hash
+          (TTL ``retrieve_cache_ttl_seconds``, default 20 min; thread-safe)
+        """
+        cache_key = self._retrieve_cache_key(query, max_sources)
+        now = time.time()
+        with self._retrieve_cache_lock:
+            cached = self._retrieve_cache.get(cache_key)
+            if cached and now - cached[0] < self.retrieve_cache_ttl_seconds:
+                return copy.deepcopy(cached[1])
+
         analysis = self.analyze_query(query)
         selected_sources: List[OfficialLegalSource] = list(
             analysis["sources"]
@@ -765,7 +796,7 @@ class OfficialLegalSourcesService:
         grounded_sources = [
             source for source in results if source["status"] == "official_text"
         ]
-        return {
+        payload: Dict[str, object] = {
             "is_legal_query": analysis["is_legal_query"],
             "legal_area": analysis["legal_area"],
             "article": analysis["article"],
@@ -779,6 +810,9 @@ class OfficialLegalSourcesService:
             ),
             "guardrails": self._collect_guardrails(query, selected_sources),
         }
+        with self._retrieve_cache_lock:
+            self._retrieve_cache[cache_key] = (time.time(), copy.deepcopy(payload))
+        return payload
 
     def build_context(self, retrieval: Dict[str, object]) -> str:
         source_blocks = []

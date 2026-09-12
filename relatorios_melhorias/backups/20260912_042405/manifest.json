@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-12T07:24:05.916806+00:00",
+  "copied": [
+    {
+      "src": "C:\\Projetos\\NeoBusinessAI\\backend\\lexscan_dev.db",
+      "bytes": 606208
+    }
+  ],
+  "note": "Backup local overnight — nao substitui Postgres em producao"
+}

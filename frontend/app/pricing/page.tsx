@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 const plans = [
   {
     id: 'starter',
-    name: 'Explorar',
+    name: 'Starter',
     description: 'Para conhecer o fluxo com segurança',
     price: 0,
     period: 'sempre',
@@ -23,12 +23,12 @@ const plans = [
       { text: 'Geração completa de peças', included: false },
       { text: 'Automações do escritório', included: false },
     ],
-    cta: 'Começar Grátis',
+    cta: 'Começar no Starter',
     popular: false,
   },
   {
     id: 'professional',
-    name: 'Profissional',
+    name: 'Professional',
     description: 'Copiloto jurídico para o advogado',
     price: 149,
     period: 'mês',
@@ -43,17 +43,17 @@ const plans = [
       { text: 'Prazos, clientes e financeiro', included: true },
       { text: '1 usuário', included: true },
     ],
-    cta: 'Escolher Profissional',
+    cta: 'Escolher Professional',
     popular: true,
   },
   {
     id: 'business',
-    name: 'Escritório',
+    name: 'Business',
     description: 'Operação jurídica integrada para equipes',
     price: 699,
     period: 'mês',
     features: [
-      { text: 'Tudo do Profissional', included: true },
+      { text: 'Tudo do Professional', included: true },
       { text: '5 usuários incluídos', included: true, highlight: true },
       { text: '1.000 consultas e 300 pesquisas profundas', included: true },
       { text: 'Fila prioritária do motor jurídico', included: true },
@@ -63,12 +63,12 @@ const plans = [
       { text: 'Fluxos de aprovação e auditoria', included: true },
       { text: 'Dashboard de produtividade e risco', included: true },
     ],
-    cta: 'Escolher Escritório',
+    cta: 'Escolher Business',
     popular: false,
   },
   {
     id: 'enterprise',
-    name: 'Scale',
+    name: 'Enterprise',
     description: 'Para operações jurídicas de alto volume',
     price: 1990,
     period: 'mês',
@@ -126,24 +126,24 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="min-h-screen bg-slate-950 text-white">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-700 to-teal-700 flex items-center justify-center font-bold text-sm">
                 N
               </div>
               <span className="font-semibold">NeoBusiness AI</span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/login" className="text-white/70 hover:text-white transition-colors text-sm">
+              <Link href="/login" className="text-slate-300 hover:text-white transition-colors text-sm">
                 Login
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium hover:opacity-90 transition-opacity"
+                className="px-4 py-2 rounded-lg bg-teal-700 hover:bg-teal-600 text-sm font-medium transition-colors"
               >
                 Começar
               </Link>
@@ -158,7 +158,7 @@ export default function PricingPage() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-slate-200 to-teal-200/90 bg-clip-text text-transparent"
           >
             Inteligência jurídica que vale o investimento
           </motion.h1>
@@ -166,25 +166,39 @@ export default function PricingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-xl text-white/60 mb-8 max-w-2xl mx-auto"
+            className="text-xl text-slate-400 mb-4 max-w-2xl mx-auto"
           >
             A mesma base de segurança em todos os planos. Você paga por profundidade,
             volume, automação e capacidade de transformar pesquisa em trabalho concluído.
           </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-sm text-slate-500 mb-8 max-w-xl mx-auto"
+          >
+            LGPD · auditoria de IA · aprovação humana no WhatsApp
+          </motion.p>
+          <p className="text-sm text-slate-500 mb-8">
+            Quer ver o fluxo antes?{' '}
+            <Link href="/sim-real" className="text-teal-400/90 hover:text-teal-300 underline underline-offset-2">
+              Abrir demo /sim-real
+            </Link>
+          </p>
 
           {/* Billing Toggle */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-3 p-1 bg-white/5 rounded-full border border-white/10"
+            className="inline-flex items-center gap-3 p-1 bg-slate-900/80 rounded-full border border-slate-700/80"
           >
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 billingCycle === 'monthly'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                  : 'text-white/60 hover:text-white'
+                  ? 'bg-slate-700 text-white'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               Mensal
@@ -193,12 +207,12 @@ export default function PricingPage() {
               onClick={() => setBillingCycle('yearly')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                 billingCycle === 'yearly'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                  : 'text-white/60 hover:text-white'
+                  ? 'bg-slate-700 text-white'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               Anual
-              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+              <span className="px-2 py-0.5 bg-teal-900/40 text-teal-300 text-xs rounded-full">
                 -20%
               </span>
             </button>
@@ -219,19 +233,19 @@ export default function PricingPage() {
                 whileHover={{ y: -5 }}
                 className={`relative rounded-2xl p-6 ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500/50'
-                    : 'bg-white/5 border border-white/10'
+                    ? 'bg-slate-900/90 border-2 border-teal-600/50'
+                    : 'bg-slate-900/50 border border-slate-700/70'
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full text-xs font-semibold">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-teal-700 rounded-full text-xs font-semibold">
                     MAIS POPULAR
                   </div>
                 )}
 
                 <div className="mb-6">
                   <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                  <p className="text-sm text-white/50">{plan.description}</p>
+                  <p className="text-sm text-slate-400">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
@@ -241,10 +255,10 @@ export default function PricingPage() {
                         <span className="text-4xl font-bold">
                           R${billingCycle === 'yearly' && plan.price ? Math.round(plan.price * 0.8) : plan.price}
                         </span>
-                        <span className="text-white/50">/{plan.period}</span>
+                        <span className="text-slate-400">/{plan.period}</span>
                       </div>
                       {billingCycle === 'yearly' && plan.price && plan.price > 0 && (
-                        <p className="text-xs text-green-400 mt-1">
+                        <p className="text-xs text-teal-400/90 mt-1">
                           Economize R${Math.round(plan.price * 0.2 * 12)}/ano
                         </p>
                       )}
@@ -258,11 +272,11 @@ export default function PricingPage() {
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center gap-3">
                       {feature.included ? (
-                        <span className="text-green-400">✓</span>
+                        <span className="text-teal-400">✓</span>
                       ) : (
-                        <span className="text-white/20">×</span>
+                        <span className="text-slate-600">×</span>
                       )}
-                      <span className={feature.included ? (feature.highlight ? 'text-white font-medium' : 'text-white/70') : 'text-white/30'}>
+                      <span className={feature.included ? (feature.highlight ? 'text-slate-100 font-medium' : 'text-slate-300') : 'text-slate-600'}>
                         {feature.text}
                       </span>
                     </li>
@@ -275,8 +289,8 @@ export default function PricingPage() {
                   onClick={() => handlePlanSelect(plan.id)}
                   className={`w-full py-3 rounded-xl font-medium transition-all ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)]'
-                      : 'bg-white/10 text-white hover:bg-white/20'
+                      ? 'bg-teal-700 hover:bg-teal-600 text-white'
+                      : 'bg-slate-800 text-white hover:bg-slate-700'
                   }`}
                 >
                   {plan.cta}
@@ -288,7 +302,7 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 border-t border-white/10">
+      <section className="py-20 px-4 border-t border-slate-800">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">Perguntas Frequentes</h2>
           <div className="space-y-4">
@@ -298,10 +312,10 @@ export default function PricingPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="p-6 rounded-xl bg-white/5 border border-white/10"
+                className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/70"
               >
                 <h3 className="font-semibold mb-2">{faq.q}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{faq.a}</p>
+                <p className="text-slate-400 text-sm leading-relaxed">{faq.a}</p>
               </motion.div>
             ))}
           </div>
@@ -309,39 +323,45 @@ export default function PricingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 border-t border-white/10">
+      <section className="py-20 px-4 border-t border-slate-800">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ainda tem dúvidas?</h2>
-          <p className="text-white/60 mb-8">
-            Nossa equipe está pronta para ajudar você a escolher o melhor plano.
+          <p className="text-slate-400 mb-8">
+            Nossa equipe está pronta para ajudar você a escolher entre Starter, Professional ou Business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/register"
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity"
+              className="px-8 py-4 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-semibold transition-colors"
             >
-              Começar Grátis
+              Começar no Starter
             </Link>
             <Link
               href="/contact"
-              className="px-8 py-4 rounded-xl bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors"
+              className="px-8 py-4 rounded-xl bg-slate-800 text-white font-semibold hover:bg-slate-700 transition-colors"
             >
               Falar com Especialista
+            </Link>
+            <Link
+              href="/sim-real"
+              className="px-8 py-4 rounded-xl border border-slate-600 text-slate-200 font-semibold hover:border-teal-600/60 hover:text-teal-300 transition-colors"
+            >
+              Ver demo
             </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-white/10">
+      <footer className="py-8 px-4 border-t border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-sm">
+          <p className="text-slate-500 text-sm">
             © 2026 NeoBusiness AI. Todos os direitos reservados.
           </p>
           <div className="flex gap-6 text-sm">
-            <Link href="/terms" className="text-white/40 hover:text-white transition-colors">Termos</Link>
-            <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">Privacidade</Link>
-            <Link href="/security" className="text-white/40 hover:text-white transition-colors">Segurança</Link>
+            <Link href="/terms" className="text-slate-500 hover:text-white transition-colors">Termos</Link>
+            <Link href="/privacy" className="text-slate-500 hover:text-white transition-colors">Privacidade</Link>
+            <Link href="/security" className="text-slate-500 hover:text-white transition-colors">Segurança</Link>
           </div>
         </div>
       </footer>

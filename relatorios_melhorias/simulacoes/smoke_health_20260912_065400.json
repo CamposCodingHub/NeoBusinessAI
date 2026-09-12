@@ -1,0 +1,32 @@
+{
+  "at": "2026-09-12T09:54:00.163932+00:00",
+  "base": "http://127.0.0.1:8000",
+  "passed": 4,
+  "total": 4,
+  "rows": [
+    {
+      "path": "/health/",
+      "status": 200,
+      "passed": true,
+      "preview": "{\"status\":\"healthy\",\"timestamp\":\"2026-09-12T06:54:00.155631\",\"service\":\"lexscan-api\",\"version\":\"1.0.0\"}"
+    },
+    {
+      "path": "/api/ai/status",
+      "status": 200,
+      "passed": true,
+      "preview": "{\"premium_ai\":{\"available\":true,\"features\":[\"personalidade_avancada\",\"anti_repeticao\",\"memoria_contextual\",\"memoria_dura"
+    },
+    {
+      "path": "/docs",
+      "status": 200,
+      "passed": true,
+      "preview": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  "
+    },
+    {
+      "path": "/health/ready",
+      "status": 200,
+      "passed": true,
+      "preview": "{\"status\":\"ready\",\"timestamp\":\"2026-09-12T09:54:00.163065\"}"
+    }
+  ]
+}

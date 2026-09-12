@@ -102,6 +102,14 @@ interface AiMetadata {
   suppressed_mismatched_curated_claim_lines?: number;
   suppressed_invalid_source_lines?: number;
   suppressed_invalid_realtime_lines?: number;
+  professional_domain?: string;
+  professional_domains?: string[];
+  domains?: string[];
+  local_knowledge_hits?: number;
+  official_sources_used?: string[];
+  internal_document_search_used?: boolean;
+  internal_document_hits?: Array<{ document_id?: number; title?: string }>;
+  total_ms?: number;
 }
 
 interface ChatDocument {
@@ -156,6 +164,124 @@ function getConversationStorageKey() {
   return `neobusiness_chat_${getStoredUserId()}`;
 }
 
+
+function formatLatencyChip(ms: number): string {
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
+}
+
+function LexMetaStrip({ metadata }: { metadata: AiMetadata }) {
+  const docHits = metadata.internal_document_hits?.length ?? 0;
+  const localHits = Number(metadata.local_knowledge_hits || 0);
+  const domainList = [
+    ...(metadata.domains || []),
+    ...(metadata.professional_domains || []),
+    ...(metadata.professional_domain ? [metadata.professional_domain] : []),
+  ].filter(Boolean);
+  const uniqueDomains = Array.from(new Set(domainList.map(String)));
+  const domainLabel =
+    uniqueDomains.join(', ') || metadata.legal_area || undefined;
+  const officialCodes = (metadata.official_sources_used || []).filter(Boolean);
+  const latencyMs =
+    typeof metadata.latency_ms === 'number' && metadata.latency_ms > 0
+      ? metadata.latency_ms
+      : typeof metadata.total_ms === 'number' && metadata.total_ms > 0
+        ? metadata.total_ms
+        : 0;
+  const items: {
+    key: string;
+    label: string;
+    value: string;
+    accent?: 'teal' | 'amber' | 'navy';
+  }[] = [];
+
+  if (uniqueDomains.length || metadata.legal_area) {
+    items.push({
+      key: 'domain',
+      label: uniqueDomains.length ? 'Dominio' : 'Area',
+      value: domainLabel || 'geral',
+      accent: 'navy',
+    });
+  }
+  if (localHits > 0) {
+    items.push({
+      key: 'local',
+      label: 'Base local',
+      value: String(localHits),
+      accent: 'teal',
+    });
+  }
+  if (officialCodes.length) {
+    items.push({
+      key: 'official',
+      label: 'Fontes',
+      value: officialCodes.slice(0, 4).join(', '),
+      accent: 'teal',
+    });
+  }
+  if (metadata.response_mode) {
+    items.push({
+      key: 'mode',
+      label: 'Modo',
+      value: metadata.response_mode,
+    });
+  }
+  if (metadata.internal_document_search_used) {
+    items.push({
+      key: 'docs',
+      label: 'Docs internos',
+      value: String(docHits),
+    });
+  }
+  if (metadata.grounding_status) {
+    items.push({
+      key: 'grounding',
+      label: 'Grounding',
+      value: metadata.grounding_status,
+    });
+  }
+  if (latencyMs > 0) {
+    items.push({
+      key: 'latency',
+      label: 'Latencia',
+      value: formatLatencyChip(latencyMs),
+      accent: 'navy',
+    });
+  }
+  if (metadata.requires_human_review) {
+    items.push({
+      key: 'review',
+      label: 'Revisao',
+      value: 'humana',
+      accent: 'amber',
+    });
+  }
+
+  if (!items.length) return null;
+
+  return (
+    <div
+      data-testid="lex-meta-strip"
+      className="mt-3 flex flex-wrap gap-1.5 border-t border-slate-700/40 pt-2.5"
+    >
+      {items.map((item) => (
+        <span
+          key={item.key}
+          className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] leading-4 tracking-wide ${
+            item.accent === 'amber'
+              ? 'border-amber-500/30 bg-amber-500/10 text-amber-100/90'
+              : item.accent === 'navy'
+                ? 'border-slate-500/40 bg-[#0f172a]/80 text-slate-200'
+                : 'border-teal-500/25 bg-teal-500/10 text-teal-200/90'
+          }`}
+        >
+          <span className="text-slate-400">{item.label}</span>
+          <span className="font-medium text-inherit">{item.value}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === 'user';
 
@@ -200,6 +326,9 @@ function MessageBubble({ message }: { message: Message }) {
                 {message.content}
               </ReactMarkdown>
             </div>
+            {message.metadata ? (
+              <LexMetaStrip metadata={message.metadata} />
+            ) : null}
           </>
         )}
         {!isUser && message.metadata?.sources?.length ? (

@@ -1,0 +1,201 @@
+{
+  "started_at": "2026-09-12T13:37:22.488313+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "passed": 24,
+  "failed": 0,
+  "score": 100.0,
+  "checks": [
+    {
+      "suite": "health",
+      "name": "health",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 7,
+      "score": null
+    },
+    {
+      "suite": "health",
+      "name": "ready",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 4,
+      "score": null
+    },
+    {
+      "suite": "health",
+      "name": "ai_status",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 117,
+      "score": null
+    },
+    {
+      "suite": "auth",
+      "name": "login",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 397,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "clients",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 17,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "deadlines",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 13,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "documents",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 14,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "matters",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 13,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "intake",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 12,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "approvals",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 12,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "time",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 16,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "usage",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 20,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ai_audit",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 8,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ops_shortcuts",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 4,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "ops_activity",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 6,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "orgs",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 8,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "trust",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 7,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "esign",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 8,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "monitor",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 10,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "aging",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 11,
+      "score": null
+    },
+    {
+      "suite": "modules",
+      "name": "nfse",
+      "passed": true,
+      "detail": "status=200",
+      "latency_ms": 6,
+      "score": null
+    },
+    {
+      "suite": "security",
+      "name": "docs_unauth",
+      "passed": true,
+      "detail": "status=401",
+      "latency_ms": 4,
+      "score": 100
+    },
+    {
+      "suite": "security",
+      "name": "chat_stream_auth",
+      "passed": true,
+      "detail": "status=401",
+      "latency_ms": 4,
+      "score": 100
+    },
+    {
+      "suite": "ai",
+      "name": "tone",
+      "passed": true,
+      "detail": "status=200 score=100 hits=[]",
+      "latency_ms": 7490,
+      "score": 100.0
+    }
+  ]
+}

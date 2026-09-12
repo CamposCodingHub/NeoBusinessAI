@@ -8,16 +8,33 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, timedelta
+import hashlib
+import hmac
 import logging
+import os
 import random
+import secrets
 import string
 
-from database import get_db, Invoice, Client, User
+from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance
 from security import get_current_user
+from services.activity_feed_service import log_activity
+from services.pix_payment_service import create_pix_charge
+from services.collection_plan_service import (
+    EOAB_DISCLAIMER,
+    build_collection_plan_for_invoice,
+    build_collection_plans,
+)
+from services.tax_calendar_service import build_tax_calendar
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/finance", tags=["Financeiro"])
 compat_router = APIRouter(prefix="/invoices", tags=["Financeiro"])
+
+try:
+    from tools.stripe_manager import stripe_manager
+except Exception:  # pragma: no cover - ambiente sem stripe
+    stripe_manager = None
 
 
 def generate_invoice_number():
@@ -25,6 +42,53 @@ def generate_invoice_number():
     year = datetime.utcnow().year
     random_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     return f"FAT-{year}-{random_code}"
+
+
+def _payment_stub_secret() -> str:
+    return (
+        os.getenv("JWT_SECRET_KEY")
+        or os.getenv("SECRET_KEY")
+        or "lexscan-dev-payment-stub-secret-key"
+    )
+
+
+def _build_stub_payment_url(invoice_id: int) -> tuple:
+    """URL stub assinada + token armazenável (caminho PIX local)."""
+    token = secrets.token_urlsafe(24)
+    sig = hmac.new(
+        _payment_stub_secret().encode("utf-8"),
+        f"{invoice_id}:{token}".encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()[:16]
+    signed = f"{token}.{sig}"
+    url = f"https://pay.lexscan.local/i/{invoice_id}?token={signed}"
+    return url, signed
+
+
+def _try_stripe_invoice_checkout(invoice: Invoice, client_email: Optional[str]) -> Optional[str]:
+    """Retorna checkout_url Stripe se configurado; caso contrário None."""
+    if stripe_manager is None:
+        return None
+    try:
+        if not stripe_manager.is_configured():
+            return None
+        result = stripe_manager.create_invoice_checkout_session(
+            amount_cents=invoice.total_cents or 0,
+            invoice_id=invoice.id,
+            invoice_number=invoice.invoice_number or "",
+            description=invoice.description or "",
+            customer_email=client_email,
+        )
+        if result.get("success") and result.get("checkout_url"):
+            return result["checkout_url"]
+        logger.info(
+            "Stripe checkout indisponível para fatura %s: %s",
+            invoice.id,
+            result.get("error"),
+        )
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Falha Stripe invoice checkout: %s", exc)
+    return None
 
 
 @compat_router.get("/")
@@ -146,6 +210,84 @@ async def create_invoice(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao criar fatura: {str(e)}"
         )
+
+
+@compat_router.post("/{invoice_id}/payment-link")
+@router.post("/invoices/{invoice_id}/payment-link")
+async def create_invoice_payment_link(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Gera link de pagamento para a fatura (Stripe se configurado; senão stub PIX/local).
+    Ownership: somente o dono da fatura (JWT).
+    """
+    invoice = (
+        db.query(Invoice)
+        .filter(Invoice.id == invoice_id, Invoice.user_id == current_user.id)
+        .first()
+    )
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura não encontrada")
+
+    if invoice.status == "cancelled":
+        raise HTTPException(
+            status_code=400, detail="Não é possível gerar link para fatura cancelada"
+        )
+
+    client_email = None
+    if invoice.client_id:
+        client = (
+            db.query(Client)
+            .filter(Client.id == invoice.client_id, Client.user_id == current_user.id)
+            .first()
+        )
+        if client:
+            client_email = client.email
+
+    stripe_url = _try_stripe_invoice_checkout(invoice, client_email)
+    if stripe_url:
+        invoice.payment_url = stripe_url
+        invoice.payment_method = invoice.payment_method or "stripe"
+        provider = "stripe"
+    else:
+        pix = create_pix_charge(
+            amount_cents=int(invoice.total_cents or 0),
+            description=invoice.description
+            or f"Fatura {invoice.invoice_number}",
+            client_ref=f"invoice:{invoice.id}",
+        )
+        stub_url, token = _build_stub_payment_url(invoice.id)
+        invoice.payment_url = stub_url
+        invoice.payment_reference = pix.get("txid") or token
+        invoice.payment_method = invoice.payment_method or "pix"
+        provider = pix.get("provider") or "stub"
+        pix_payload = pix
+
+    db.commit()
+    db.refresh(invoice)
+
+    try:
+        log_activity(
+            db,
+            current_user.id,
+            "finance.payment_link",
+            f"Link de pagamento gerado ({provider}) para fatura {invoice.invoice_number}",
+            entity_type="invoice",
+            entity_id=invoice.id,
+        )
+    except Exception:
+        pass
+
+    result = {
+        "payment_url": invoice.payment_url,
+        "provider": provider,
+        "invoice_id": invoice.id,
+    }
+    if provider != "stripe":
+        result["pix"] = pix_payload
+    return result
 
 
 @compat_router.patch("/{invoice_id}/mark-paid")
@@ -348,6 +490,63 @@ async def get_finance_dashboard(
     }
 
 
+
+
+@router.get("/aging")
+async def get_receivables_aging(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Aging de contas a receber (BI light).
+    Agrupa faturas abertas (pending/overdue) em buckets por dias desde due_date
+    (fallback: created_at). Valores em BRL.
+    """
+    now = datetime.utcnow()
+    open_statuses = ("pending", "overdue")
+    invoices = (
+        db.query(Invoice)
+        .filter(
+            Invoice.user_id == current_user.id,
+            Invoice.status.in_(open_statuses),
+        )
+        .all()
+    )
+
+    buckets = {
+        "current": 0.0,
+        "d31_60": 0.0,
+        "d61_90": 0.0,
+        "d90_plus": 0.0,
+    }
+    total_open = 0.0
+
+    for inv in invoices:
+        amount = (inv.total_cents or 0) / 100.0
+        total_open += amount
+        ref = inv.due_date or inv.created_at or now
+        # naive vs aware: normalize to naive utc for subtraction
+        if getattr(ref, "tzinfo", None) is not None:
+            ref = ref.replace(tzinfo=None)
+        days = max(0, (now - ref).days)
+        if days <= 30:
+            buckets["current"] += amount
+        elif days <= 60:
+            buckets["d31_60"] += amount
+        elif days <= 90:
+            buckets["d61_90"] += amount
+        else:
+            buckets["d90_plus"] += amount
+
+    # round for stable JSON
+    buckets = {k: round(v, 2) for k, v in buckets.items()}
+    return {
+        "buckets": buckets,
+        "total_open": round(total_open, 2),
+        "currency": "BRL",
+    }
+
+
 @router.get("/overdue/list")
 async def get_overdue_invoices(
     db: Session = Depends(get_db),
@@ -432,3 +631,352 @@ async def send_invoice_reminder(
         "amount": invoice.total_cents / 100,
         "reminder_date": invoice.reminder_sent_at.isoformat()
     }
+
+
+billing_router = APIRouter(prefix="/billing", tags=["Billing"])
+
+
+@billing_router.post("/pix-charge")
+async def create_billing_pix_charge(
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Cria cobrança PIX via provider configurável (stub|asaas).
+    JWT obrigatório. Sem chaves live necessárias no modo stub.
+    """
+    try:
+        amount_cents = int(payload.get("amount_cents", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount_cents inválido")
+    if amount_cents <= 0:
+        raise HTTPException(status_code=400, detail="amount_cents deve ser > 0")
+
+    description = str(payload.get("description") or "Cobrança PIX")
+    client_ref = str(
+        payload.get("client_ref") or f"user:{current_user.id}"
+    )
+
+    result = create_pix_charge(amount_cents, description, client_ref)
+    if result.get("status") == "not_configured":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=result.get("error") or "PIX provider not configured",
+        )
+    return result
+
+
+
+# ---------------------------------------------------------------------------
+# NFS-e stub (NAO e integracao com prefeitura)
+# ---------------------------------------------------------------------------
+
+@billing_router.post("/nfse", status_code=status.HTTP_201_CREATED)
+async def create_nfse_draft(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Cria rascunho NFS-e (stub)."""
+    client_name = str(payload.get("client_name") or "").strip()
+    service_description = str(payload.get("service_description") or "").strip()
+    if not client_name or not service_description:
+        raise HTTPException(
+            status_code=400,
+            detail="client_name e service_description sao obrigatorios",
+        )
+    try:
+        amount = float(payload.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount invalido")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount deve ser > 0")
+
+    invoice_id = payload.get("invoice_id")
+    if invoice_id is not None:
+        try:
+            invoice_id = int(invoice_id)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="invoice_id invalido")
+        inv = (
+            db.query(Invoice)
+            .filter(Invoice.id == invoice_id, Invoice.user_id == current_user.id)
+            .first()
+        )
+        if not inv:
+            raise HTTPException(status_code=404, detail="Fatura nao encontrada")
+
+    draft = NfseDraft(
+        user_id=current_user.id,
+        invoice_id=invoice_id,
+        client_name=client_name,
+        service_description=service_description,
+        amount=amount,
+        status="draft",
+    )
+    db.add(draft)
+    db.commit()
+    db.refresh(draft)
+    return draft.to_dict()
+
+
+@billing_router.get("/nfse")
+async def list_nfse_drafts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista rascunhos NFS-e do usuario (stub)."""
+    rows = (
+        db.query(NfseDraft)
+        .filter(NfseDraft.user_id == current_user.id)
+        .order_by(NfseDraft.created_at.desc())
+        .all()
+    )
+    return {"items": [r.to_dict() for r in rows], "count": len(rows)}
+
+
+@billing_router.post("/nfse/{nfse_id}/issue-stub")
+async def issue_nfse_stub(
+    nfse_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Emite NFS-e ficticia: status=issued_stub + number_stub NFS-e-STUB-XXXX.
+    NAO chama API de prefeitura.
+    """
+    draft = (
+        db.query(NfseDraft)
+        .filter(NfseDraft.id == nfse_id, NfseDraft.user_id == current_user.id)
+        .first()
+    )
+    if not draft:
+        raise HTTPException(status_code=404, detail="NFS-e draft nao encontrado")
+    if draft.status == "cancelled":
+        raise HTTPException(status_code=400, detail="NFS-e cancelada")
+    if draft.status == "issued_stub" and draft.number_stub:
+        return draft.to_dict()
+
+    code = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    draft.status = "issued_stub"
+    draft.number_stub = f"NFS-e-STUB-{code}"
+    db.commit()
+    db.refresh(draft)
+    return draft.to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Ethical collection plan (régua ética — stub EOAB) + Cost advances (custas)
+# ---------------------------------------------------------------------------
+
+@router.get("/collection-plan")
+async def get_collection_plan(
+    invoice_id: Optional[int] = Query(None, description="Optional invoice id"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Suggested ethical dunning steps for open invoices.
+    Stages: D-3 reminder, D0 due, D+3 gentle, D+7 formal notice.
+    Does NOT send messages — planning stub with EOAB disclaimer.
+    """
+    open_statuses = ("pending", "overdue")
+    query = db.query(Invoice).filter(
+        Invoice.user_id == current_user.id,
+        Invoice.status.in_(open_statuses),
+    )
+    if invoice_id is not None:
+        query = query.filter(Invoice.id == invoice_id)
+        invoice = query.first()
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Fatura não encontrada ou já liquidada")
+        plan = build_collection_plan_for_invoice(invoice)
+        if invoice.client_id:
+            client = db.query(Client).filter(Client.id == invoice.client_id).first()
+            if client:
+                plan["client_name"] = client.name
+        return {
+            "plans": [plan],
+            "count": 1,
+            "disclaimer": EOAB_DISCLAIMER,
+            "currency": "BRL",
+        }
+
+    invoices = query.order_by(Invoice.due_date.asc()).all()
+    plans = build_collection_plans(invoices)
+    # enrich names
+    client_ids = {p.get("client_id") for p in plans if p.get("client_id")}
+    names = {}
+    if client_ids:
+        for c in db.query(Client).filter(Client.id.in_(client_ids)).all():
+            names[c.id] = c.name
+    for p in plans:
+        cid = p.get("client_id")
+        p["client_name"] = names.get(cid) if cid else None
+
+    return {
+        "plans": plans,
+        "count": len(plans),
+        "disclaimer": EOAB_DISCLAIMER,
+        "currency": "BRL",
+    }
+
+
+VALID_COST_STATUSES = frozenset({"advanced", "reimbursed", "written_off"})
+
+
+@router.get("/cost-advances")
+async def list_cost_advances(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    client_id: Optional[int] = Query(None),
+    matter_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista adiantamentos de custas do usuário."""
+    q = db.query(CostAdvance).filter(CostAdvance.user_id == current_user.id)
+    if status_filter:
+        q = q.filter(CostAdvance.status == status_filter)
+    if client_id is not None:
+        q = q.filter(CostAdvance.client_id == client_id)
+    if matter_id is not None:
+        q = q.filter(CostAdvance.matter_id == matter_id)
+    rows = q.order_by(CostAdvance.created_at.desc()).all()
+    return {"items": [r.to_dict() for r in rows], "count": len(rows)}
+
+
+@router.post("/cost-advances", status_code=status.HTTP_201_CREATED)
+async def create_cost_advance(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Registra adiantamento de custas."""
+    description = (payload.get("description") or "").strip()
+    if not description:
+        raise HTTPException(status_code=400, detail="description é obrigatório")
+    try:
+        amount = float(payload.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount inválido")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount deve ser > 0")
+
+    st = (payload.get("status") or "advanced").strip().lower()
+    if st not in VALID_COST_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"status inválido; use: {', '.join(sorted(VALID_COST_STATUSES))}",
+        )
+
+    row = CostAdvance(
+        user_id=current_user.id,
+        client_id=payload.get("client_id"),
+        matter_id=payload.get("matter_id"),
+        description=description[:500],
+        amount=amount,
+        status=st,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
+
+
+@router.get("/cost-advances/{advance_id}")
+async def get_cost_advance(
+    advance_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    row = (
+        db.query(CostAdvance)
+        .filter(CostAdvance.id == advance_id, CostAdvance.user_id == current_user.id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Adiantamento não encontrado")
+    return row.to_dict()
+
+
+@router.patch("/cost-advances/{advance_id}")
+async def update_cost_advance(
+    advance_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    row = (
+        db.query(CostAdvance)
+        .filter(CostAdvance.id == advance_id, CostAdvance.user_id == current_user.id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Adiantamento não encontrado")
+
+    if "description" in payload:
+        desc = (payload.get("description") or "").strip()
+        if not desc:
+            raise HTTPException(status_code=400, detail="description não pode ser vazio")
+        row.description = desc[:500]
+    if "amount" in payload:
+        try:
+            amount = float(payload["amount"])
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="amount inválido")
+        if amount <= 0:
+            raise HTTPException(status_code=400, detail="amount deve ser > 0")
+        row.amount = amount
+    if "status" in payload:
+        st = (payload.get("status") or "").strip().lower()
+        if st not in VALID_COST_STATUSES:
+            raise HTTPException(status_code=400, detail="status inválido")
+        row.status = st
+    if "client_id" in payload:
+        row.client_id = payload.get("client_id")
+    if "matter_id" in payload:
+        row.matter_id = payload.get("matter_id")
+
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
+
+
+@router.delete("/cost-advances/{advance_id}", status_code=status.HTTP_200_OK)
+async def delete_cost_advance(
+    advance_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    row = (
+        db.query(CostAdvance)
+        .filter(CostAdvance.id == advance_id, CostAdvance.user_id == current_user.id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Adiantamento não encontrado")
+    db.delete(row)
+    db.commit()
+    return {"ok": True, "id": advance_id}
+
+
+
+@router.get("/tax-calendar")
+async def get_tax_calendar(
+    month: Optional[str] = Query(
+        None,
+        description="Competencia YYYY-MM (lembretes metodologicos; nao e API RFB)",
+    ),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Monthly tax obligations reminder stub for accountants.
+
+    Methodological checklist only — NOT a real RFB/municipal calendar API.
+    No invented tax rates or exact statutory due days.
+    """
+    _ = current_user  # JWT required; calendar is methodological (not per-user data)
+    try:
+        return build_tax_calendar(month)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

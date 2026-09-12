@@ -1,6 +1,14 @@
 // Configuração da API
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+/**
+ * Auth dual-mode (MVP):
+ * - Bearer JWT via localStorage `token` still works for all pages (default today).
+ * - Backend also sets HttpOnly cookie `access_token` on login/register/refresh.
+ * - `credentials: 'include'` lets the browser send that cookie when ready;
+ *   pages do NOT need to migrate yet — keep storing access_token in localStorage.
+ */
+
 // Flag para evitar loop infinito de refresh
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
@@ -32,8 +40,9 @@ async function refreshAccessToken(): Promise<string | null> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${refreshToken}`,
       },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -42,7 +51,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
     const data = await response.json();
 
-    // Salvar novo token
+    // Salvar novo token (Bearer path); cookie HttpOnly is set by the server
     localStorage.setItem('token', data.access_token);
     if (data.refresh_token) {
       localStorage.setItem('refresh_token', data.refresh_token);
@@ -81,6 +90,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, retr
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: options.credentials ?? 'include',
   });
 
   // Token expirado (401)
@@ -133,6 +143,7 @@ export async function login(email: string, password: string) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
 
@@ -143,7 +154,7 @@ export async function login(email: string, password: string) {
 
   const data = await response.json();
 
-  // Salvar tokens
+  // Salvar tokens (Bearer still primary for current pages)
   localStorage.setItem('token', data.access_token);
   localStorage.setItem('refresh_token', data.refresh_token);
   localStorage.setItem('user', JSON.stringify(data.user));
@@ -155,18 +166,15 @@ export async function login(email: string, password: string) {
 export async function logout() {
   const token = localStorage.getItem('token');
 
-  // Notificar backend sobre logout (opcional)
-  if (token) {
-    try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-    } catch (e) {
-      // Ignorar erros no logout
-    }
+  // Notificar backend sobre logout (limpa cookie HttpOnly + blacklist)
+  try {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      credentials: 'include',
+    });
+  } catch (e) {
+    // Ignorar erros no logout
   }
 
   // Limpar storage

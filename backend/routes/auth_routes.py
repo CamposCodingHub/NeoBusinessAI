@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -27,6 +28,11 @@ from security import (
     UserLoginSchema,
     rate_limit,
     LOGIN_RATE_LIMIT,
+)
+from security.auth import (
+    set_access_token_cookie,
+    clear_access_token_cookie,
+    extract_access_token,
 )
 from security.token_blacklist import (
     add_refresh_token,
@@ -90,16 +96,22 @@ async def register(
     )
     add_refresh_token(refresh_token, new_user.id)
 
-    return {
-        "message": "Usuário registrado com sucesso",
-        "id": new_user.id,
-        "user_id": new_user.id,
-        "email": new_user.email,
-        "name": new_user.name,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    # JSON access_token permanece para Bearer/localStorage; cookie HttpOnly em paralelo.
+    response = JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={
+            "message": "Usuário registrado com sucesso",
+            "id": new_user.id,
+            "user_id": new_user.id,
+            "email": new_user.email,
+            "name": new_user.name,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+        },
+    )
+    set_access_token_cookie(response, access_token)
+    return response
 
 
 @router.post("/login", response_model=dict)
@@ -152,18 +164,23 @@ async def login(
 
     logger.info(f"Login bem-sucedido: {user.email} (Role: {user_role.value})")
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "name": user.name,
-            "role": user_role.value,
-            "plan_tier": user.plan_tier,
+    # JSON access_token permanece para Bearer/localStorage; cookie HttpOnly em paralelo.
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "role": user_role.value,
+                "plan_tier": user.plan_tier,
+            },
         },
-    }
+    )
+    set_access_token_cookie(response, access_token)
+    return response
 
 
 # ==================== PASSWORD RECOVERY ====================
@@ -293,11 +310,15 @@ async def refresh_token(
         revoke_refresh_token(credentials.credentials, int(user_id))
         add_refresh_token(new_refresh_token, int(user_id))
 
-        return {
-            "access_token": new_access_token,
-            "refresh_token": new_refresh_token,
-            "token_type": "bearer",
-        }
+        response = JSONResponse(
+            content={
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
+                "token_type": "bearer",
+            },
+        )
+        set_access_token_cookie(response, new_access_token)
+        return response
 
     except HTTPException:
         raise
@@ -348,34 +369,39 @@ async def logout(
     current_user=Depends(get_current_user),
 ):
     """
-    Logout - invalida token no servidor usando blacklist.
+    Logout - invalida token (Bearer ou cookie) e limpa cookie HttpOnly.
     """
 
     from security.token_blacklist import blacklist_token
+    from fastapi.security import HTTPAuthorizationCredentials
 
     auth_header = request.headers.get("Authorization", "")
-
-    token_invalidated = False
-
+    bearer_creds = None
     if auth_header.startswith("Bearer "):
-        token = auth_header[7:]
-
-        blacklist_token(
-            token,
-            expires_in=3600,
+        bearer_creds = HTTPAuthorizationCredentials(
+            scheme="Bearer",
+            credentials=auth_header[7:],
         )
 
-        token_invalidated = True
+    token = extract_access_token(request, bearer_creds)
+    token_invalidated = False
 
+    if token:
+        blacklist_token(token, expires_in=3600)
+        token_invalidated = True
         logger.info(f"Token adicionado à blacklist: {current_user.user_id}")
 
     revoke_all_user_tokens(int(current_user.user_id))
     logger.info(f"Logout realizado: {current_user.user_id}")
 
-    return {
-        "message": "Logout realizado com sucesso",
-        "token_invalidated": token_invalidated,
-    }
+    response = JSONResponse(
+        content={
+            "message": "Logout realizado com sucesso",
+            "token_invalidated": token_invalidated,
+        },
+    )
+    clear_access_token_cookie(response)
+    return response
 
 
 # ==================== ADMIN ROUTES ====================

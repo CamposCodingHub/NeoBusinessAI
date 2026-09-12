@@ -94,19 +94,21 @@ def test_idor_protection():
     from tools.security import verify_document_access
     
     test_cases = [
-        # (document, user_email, expected_result)
-        ({'uploaded_by': 'user1@example.com'}, 'user1@example.com', True),
-        ({'uploaded_by': 'user1@example.com'}, 'user2@example.com', False),
-        ({'uploaded_by': 'user1@example.com'}, None, True),  # No auth = allow
-        ({}, None, True),  # No owner = allow (legacy)
-        ({'uploaded_by': None}, 'user@example.com', True),  # None owner = allow
+        # (document, user_id, user_email, expected_result)
+        ({'user_id': 1}, 1, None, True),
+        ({'user_id': 1}, 2, None, False),
+        ({'user_id': 1}, None, None, False),  # No auth = deny (fail-closed)
+        ({}, 1, None, False),  # No owner fields = deny
+        ({'uploaded_by': 'user1@example.com'}, None, 'user1@example.com', True),
+        ({'uploaded_by': 'user1@example.com'}, None, 'user2@example.com', False),
+        ({'uploaded_by': None}, None, 'user@example.com', False),
     ]
     
     all_passed = True
-    for doc, user_email, expected in test_cases:
-        result = verify_document_access(doc, user_email)
+    for doc, user_id, user_email, expected in test_cases:
+        result = verify_document_access(doc, user_id=user_id, user_email=user_email)
         status = "✅ PASS" if result == expected else f"❌ FAIL (got: {result})"
-        print(f"  {status}: doc_owner={doc.get('uploaded_by')}, user={user_email}")
+        print(f"  {status}: doc={doc}, user_id={user_id}, user_email={user_email}")
         if result != expected:
             all_passed = False
     

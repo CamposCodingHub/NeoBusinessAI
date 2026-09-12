@@ -13,7 +13,11 @@ from .auth import (
     require_role,
     Role,
     get_password_hash,
-    verify_password
+    verify_password,
+    ACCESS_TOKEN_COOKIE,
+    set_access_token_cookie,
+    clear_access_token_cookie,
+    extract_access_token,
 )
 
 from .sanitizers import (
@@ -55,6 +59,10 @@ __all__ = [
     'Role',
     'get_password_hash',
     'verify_password',
+    'ACCESS_TOKEN_COOKIE',
+    'set_access_token_cookie',
+    'clear_access_token_cookie',
+    'extract_access_token',
     # Sanitizers
     'sanitize_input',
     'sanitize_sql',

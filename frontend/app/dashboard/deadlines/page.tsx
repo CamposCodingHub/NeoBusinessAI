@@ -43,6 +43,16 @@ export default function DeadlinesPage() {
     context: ''
   });
 
+  // Business-day compute preview
+  const [previewStart, setPreviewStart] = useState('');
+  const [previewDays, setPreviewDays] = useState(15);
+  const [previewResult, setPreviewResult] = useState<{
+    due_date?: string;
+    calendar_days_span?: number;
+    note?: string;
+  } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   const getToken = () => {
     const tokensStr = localStorage.getItem('neobusiness_tokens');
     if (!tokensStr) return '';
@@ -179,6 +189,37 @@ export default function DeadlinesPage() {
     }
   };
 
+
+  const handleComputePreview = async () => {
+    if (!previewStart || !previewDays) return;
+    const token = getToken();
+    setPreviewLoading(true);
+    setPreviewResult(null);
+    try {
+      const response = await fetch(`${API_URL}/deadlines/compute-business`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'omit',
+        body: JSON.stringify({
+          start_date: previewStart,
+          business_days: previewDays
+        })
+      });
+      if (response.ok) {
+        setPreviewResult(await response.json());
+      } else {
+        setPreviewResult({ note: 'Falha ao calcular. Verifique a sessao e os campos.' });
+      }
+    } catch {
+      setPreviewResult({ note: 'Erro de rede ao calcular dias uteis.' });
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const getAlertColor = (level: string) => {
     switch (level) {
       case 'overdue': return 'bg-red-500 text-white';
@@ -296,6 +337,64 @@ export default function DeadlinesPage() {
             </div>
           </div>
         )}
+
+
+        {/* Business-day compute preview */}
+        <div className="bg-white/5 rounded-xl p-6 mb-6 border border-cyan-500/20">
+          <h2 className="text-lg font-semibold mb-2 text-cyan-300">Preview dias uteis</h2>
+          <p className="text-white/50 text-sm mb-4">
+            Auxilio incompleto (feriados nacionais fixos apenas). Confirme no tribunal.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Data inicial</label>
+              <input
+                type="date"
+                value={previewStart}
+                onChange={(e) => setPreviewStart(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Dias uteis</label>
+              <input
+                type="number"
+                min={0}
+                value={previewDays}
+                onChange={(e) => setPreviewDays(parseInt(e.target.value) || 0)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleComputePreview}
+              disabled={previewLoading || !previewStart}
+              className="px-6 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg transition disabled:opacity-40"
+            >
+              {previewLoading ? 'Calculando...' : 'Calcular'}
+            </button>
+          </div>
+          {previewResult && (
+            <div className="mt-4 text-sm text-white/70 space-y-1">
+              {previewResult.due_date && (
+                <p>
+                  Vencimento:{" "}
+                  <span className="text-cyan-300 font-semibold">
+                    {new Date(previewResult.due_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                  </span>
+                  {typeof previewResult.calendar_days_span === 'number' && (
+                    <span className="text-white/40">
+                      {" "}({previewResult.calendar_days_span} dias corridos de span)
+                    </span>
+                  )}
+                </p>
+              )}
+              {previewResult.note && (
+                <p className="text-white/40">{previewResult.note}</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">

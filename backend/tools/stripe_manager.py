@@ -5,7 +5,7 @@ Gerencia assinaturas, planos e limites
 
 import stripe
 import os
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
 
@@ -405,6 +405,67 @@ class StripeManager:
                     "error": "Nenhuma assinatura ativa encontrada"
                 }
                 
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def create_invoice_checkout_session(
+        self,
+        amount_cents: int,
+        invoice_id: int,
+        invoice_number: str,
+        description: str,
+        customer_email: Optional[str] = None,
+        success_url: Optional[str] = None,
+        cancel_url: Optional[str] = None,
+    ) -> Dict:
+        """Cria checkout Stripe one-time para valor de fatura (PIX/card path futuro)."""
+        if not self.enabled:
+            return {"success": False, "error": "Stripe nao configurado"}
+
+        if amount_cents <= 0:
+            return {"success": False, "error": "Valor inválido"}
+
+        try:
+            success_url = success_url or (
+                "http://localhost:3000/portal?payment=success"
+            )
+            cancel_url = cancel_url or (
+                "http://localhost:3000/portal?payment=cancelled"
+            )
+            line_name = f"Fatura {invoice_number}" if invoice_number else f"Fatura #{invoice_id}"
+
+            params: Dict[str, Any] = {
+                "payment_method_types": ["card"],
+                "line_items": [
+                    {
+                        "price_data": {
+                            "currency": "brl",
+                            "product_data": {
+                                "name": line_name,
+                                "description": (description or "Honorários advocatícios")[:500],
+                            },
+                            "unit_amount": int(amount_cents),
+                        },
+                        "quantity": 1,
+                    }
+                ],
+                "mode": "payment",
+                "success_url": success_url,
+                "cancel_url": cancel_url,
+                "metadata": {
+                    "invoice_id": str(invoice_id),
+                    "invoice_number": invoice_number or "",
+                },
+            }
+            if customer_email:
+                params["customer_email"] = customer_email
+
+            session = stripe.checkout.Session.create(**params)
+            return {
+                "success": True,
+                "session_id": session.id,
+                "checkout_url": session.url,
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}
 

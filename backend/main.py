@@ -59,7 +59,11 @@ from routes.document_routes import router as document_router
 from routes.legal_routes import router as legal_router
 from routes.deadline_routes import router as deadline_router
 from routes.client_routes import router as client_router
-from routes.finance_routes import router as finance_router, compat_router as finance_compat_router
+from routes.finance_routes import (
+    router as finance_router,
+    compat_router as finance_compat_router,
+    billing_router,
+)
 from routes.whatsapp_routes import router as whatsapp_router
 from routes.twilio_quick_setup import router as twilio_quick_router
 from routes.gdpr_routes import router as gdpr_router
@@ -74,6 +78,18 @@ from routes.marketing_routes import router as marketing_router
 from routes.operations_routes import router as operations_router
 from routes.sovereign_ai_routes import router as sovereign_ai_router
 from routes.whatsapp_integrado_routes import router as whatsapp_integrado_router
+from routes.matter_routes import router as matter_router
+from routes.intake_routes import router as intake_router
+from routes.approvals_routes import router as approvals_router
+from routes.time_routes import router as time_router
+from routes.usage_routes import router as usage_router
+from routes.ai_audit_routes import router as ai_audit_router
+from routes.org_routes import router as org_router
+from routes.trust_routes import router as trust_router
+from routes.esign_routes import router as esign_router
+from routes.monitor_routes import router as monitor_router
+from routes.compliance_routes import router as compliance_router
+from routes.notification_routes import router as notification_router
 
 # AI Imports
 from ai.lexscan_engine import lexscan_engine
@@ -170,9 +186,8 @@ app.add_middleware(
 logger.info("[CORS] Middleware configurado com segurança")
 
 # ==================== SECURITY SETUP ====================
-# Comentado - CORS já configurado acima
-# setup_security_middleware(app)
-# logger.info("[OK] Security middleware configurado")
+setup_security_middleware(app)
+logger.info("[OK] Security headers middleware configurado")
 
 # ==================== ROUTES ====================
 app.include_router(auth_router)
@@ -182,12 +197,13 @@ app.include_router(deadline_router)
 app.include_router(client_router)
 app.include_router(finance_router)
 app.include_router(finance_compat_router)
+app.include_router(billing_router)
 app.include_router(whatsapp_router)
 app.include_router(twilio_quick_router)
 app.include_router(gdpr_router)
 app.include_router(health_router)
 
-# Módulos Etapa 6
+# Módulos Etapa 6 + overnight/day
 app.include_router(portal_client_router)
 app.include_router(team_router)
 app.include_router(jurisprudencia_router)
@@ -198,6 +214,18 @@ app.include_router(marketing_router)
 app.include_router(operations_router)
 app.include_router(sovereign_ai_router)
 app.include_router(whatsapp_integrado_router)
+app.include_router(matter_router)
+app.include_router(intake_router)
+app.include_router(approvals_router)
+app.include_router(time_router)
+app.include_router(usage_router)
+app.include_router(ai_audit_router)
+app.include_router(org_router)
+app.include_router(trust_router)
+app.include_router(esign_router)
+app.include_router(monitor_router)
+app.include_router(compliance_router)
+app.include_router(notification_router)
 # CRITICAL-003 FIX: Global error handler to prevent stack trace leaks
 import uuid
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -266,29 +294,30 @@ def get_primary_ai() -> NeoBusinessAI:
 
 
 @app.post("/chat-stream")
-
-async def chat_stream(data: dict):
-
-
-
-    user_input = data["message"]
-
-
+async def chat_stream(
+    data: dict,
+    current_user=Depends(get_current_user),
+):
+    user_input = sanitize_input(str(data.get("message") or ""))[:12000]
+    if not user_input:
+        raise HTTPException(status_code=400, detail="Mensagem nao fornecida")
 
     async def generator():
-        response = get_primary_ai().ask(user_input)
-        
-        # ⚡ streaming que PRESERVA quebras de linha e markdown
-        # Envia caractere por caractere mantendo a formatação
-        chunk_size = 15  # caracteres por vez (equilíbrio velocidade/formatação)
-        
+        # Prefer premium orchestrator when available (avoid heavy local Phi-3 load)
+        if PREMIUM_AI_AVAILABLE and legal_ai_orchestrator:
+            result = await legal_ai_orchestrator.answer(
+                user_message=user_input,
+                user_id=str(current_user.user_id),
+                response_mode="quick",
+            )
+            response = str(result.get("response") or "")
+        else:
+            response = get_primary_ai().ask(user_input)
+
+        chunk_size = 15
         for i in range(0, len(response), chunk_size):
-            chunk = response[i:i+chunk_size]
-            yield chunk
-            # delay mínimo
+            yield response[i : i + chunk_size]
             await asyncio.sleep(0.005)
-
-
 
     return StreamingResponse(generator(), media_type="text/plain")
 
@@ -491,27 +520,15 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         db.close()
 
 @app.get("/api/documents")
-async def list_documents(user_email: str = None):
+async def list_documents(current_user=Depends(get_current_user)):
     """
-    Lista documentos processados
-    SECURITY: Filtra por usuário para prevenir data leak
+    Lista documentos processados do usuario autenticado.
     """
     db = SessionLocal()
     try:
-        if user_email:
-            # Busca usuário pelo email
-            user = get_user_by_email(db, user_email)
-            if user:
-                user_docs_objs = get_user_documents(db, user.id)
-                user_docs = [document_to_dict(d) for d in user_docs_objs]
-            else:
-                user_docs = []
-        else:
-            # Retorna todos (para compatibilidade)
-            from sqlalchemy import desc
-            all_docs = db.query(Document).order_by(desc(Document.created_at)).all()
-            user_docs = [document_to_dict(d) for d in all_docs]
-        
+        user_id = int(current_user.user_id)
+        user_docs_objs = get_user_documents(db, user_id)
+        user_docs = [document_to_dict(d) for d in user_docs_objs]
         return JSONResponse({
             'success': True,
             'documents': user_docs,
@@ -1715,7 +1732,17 @@ async def premium_chat_endpoint(
                 ),
                 'latency_ms': legal_metadata.get(
                     'latency_ms',
-                    result.get('metadata', {}).get('latency_ms', 0),
+                    legal_metadata.get(
+                        'total_ms',
+                        result.get('metadata', {}).get('latency_ms', 0),
+                    ),
+                ),
+                'total_ms': legal_metadata.get(
+                    'total_ms',
+                    legal_metadata.get(
+                        'latency_ms',
+                        result.get('metadata', {}).get('latency_ms', 0),
+                    ),
                 ),
                 'provider_fallback_used': legal_metadata.get(
                     'provider_fallback_used',

@@ -1,70 +1,55 @@
-# NeoBusiness AI - Backend Dependencies
+# NeoBusiness AI - Backend Dependencies (Minimal for Testing - Python 3.14 compatible)
 
 # ======================================
 
 # Framework
 
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+fastapi
+uvicorn[standard]
+python-multipart
 
 # Segurança
 
-pyjwt==2.8.0
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
-bcrypt==4.1.2
-bleach==6.1.0
-tinycss2==1.2.1
-cryptography==42.0.0
-python-magic==0.4.27
+pyjwt
+passlib[bcrypt]
+python-jose[cryptography]
+bcrypt
+bleach
+tinycss2
+cryptography
 
 # Validação e Serialização
 
-pydantic==2.5.3
-pydantic-settings==2.1.0
-email-validator==2.1.0
-python-dotenv==1.0.0
+pydantic
+pydantic-settings
+email-validator
+python-dotenv
 
 # Banco de Dados
 
-sqlalchemy==2.0.25
-alembic==1.13.1
-psycopg2-binary==2.9.9
+sqlalchemy
+
+# Cache
+
+redis
 
 # AI e LLM
 
-groq==0.4.0
-openai==1.10.0
-anthropic==0.18.0
+groq
+openai
+anthropic
+transformers
+torch
 
 # Processamento de Documentos
 
-pypdf==4.0.1
-pdf2image==1.17.0
-python-docx==1.1.0
-pytesseract==0.3.10
-pillow==11.0.0
-
-# Cache e Fila
-
-redis==5.0.1
-celery==5.3.6
+pypdf
+pytesseract
+pillow
 
 # Requisições e Arquivos
 
-requests==2.31.0
-aiofiles==23.2.1
-httpx==0.27.0
-tenacity==8.2.3
-
-# Monitoramento
-
-sentry-sdk==1.40.0
-prometheus-client==0.19.0
-
-# Testes
-
-pytest==8.2.0
-pytest-cov==4.1.0
-pytest-asyncio==0.23.7
+requests
+aiofiles
+httpx
+tenacity

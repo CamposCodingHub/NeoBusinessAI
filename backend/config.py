@@ -82,6 +82,14 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: Optional[str] = Field(None, description="Stripe publishable key")
     STRIPE_WEBHOOK_SECRET: Optional[str] = Field(None, description="Stripe webhook secret")
 
+    PIX_PROVIDER: str = Field(
+        "stub",
+        description="PIX provider: stub | asaas",
+    )
+    ASAAS_API_KEY: Optional[str] = Field(
+        None, description="Asaas API key (optional; stub when unset)",
+    )
+
     SMTP_SERVER: Optional[str] = Field(None, description="SMTP server")
     SMTP_PORT: Optional[int] = Field(587, description="SMTP port")
     SMTP_USERNAME: Optional[str] = Field(None, description="SMTP username")
@@ -188,9 +196,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def database_must_match_environment(self):
-        if self.DATABASE_URL.startswith("sqlite") and self.ENVIRONMENT != "test":
+        # SQLite OK for local/dev/test only — staging/production require Postgres
+        if self.DATABASE_URL.startswith("sqlite") and self.ENVIRONMENT in {
+            "staging",
+            "production",
+        }:
             raise ValueError(
-                "SQLite não é permitido em produção. "
+                "SQLite não é permitido em staging/produção. "
                 "Use PostgreSQL: postgresql://user:pass@host:port/dbname"
             )
         return self

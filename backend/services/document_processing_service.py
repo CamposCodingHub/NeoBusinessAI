@@ -88,6 +88,10 @@ def process_document_record(
         document.deadlines = analysis.get("deadlines") or []
         document.values = analysis.get("values") or []
         document.analysis = analysis.get("analysis") or ""
+        document.text_content = extracted_text[:100000]
+        document.document_type = analysis.get("document_type") or "unknown"
+        document.process_number = analysis.get("process_number") or None
+        document.court = analysis.get("court") or None
         document.content = {
             "extracted_text": extracted_text[:100000],
             "summary": analysis.get("summary") or "",

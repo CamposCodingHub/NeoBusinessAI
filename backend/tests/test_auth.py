@@ -86,7 +86,9 @@ class TestAuthentication:
         assert "access_token" in data
         assert "refresh_token" in data
         assert data["token_type"] == "bearer"
-    
+        # Cookie HttpOnly em paralelo (Bearer JSON permanece)
+        assert "access_token" in response.cookies
+
     def test_login_invalid_credentials(self):
         """Teste: Login com credenciais inválidas"""
         response = client.post("/auth/login", json={

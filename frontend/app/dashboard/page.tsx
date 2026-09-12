@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -121,17 +121,17 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-semibold text-slate-100 tracking-tight">
             Dashboard
           </h1>
-          <p className="text-white/60 mt-1">
+          <p className="text-slate-400 mt-1">
             Bem-vindo, {user?.name || 'Usuário'}! • {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-white/40 text-sm">{new Date().toLocaleTimeString('pt-BR')}</p>
-            <p className="text-cyan-400 text-sm">{user?.role || 'user'}</p>
+            <p className="text-slate-500 text-sm">{new Date().toLocaleTimeString('pt-BR')}</p>
+            <p className="text-teal-400/90 text-sm">{user?.role || 'user'}</p>
           </div>
           <button
             onClick={() => {
@@ -145,6 +145,43 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* Operações — seções calm (navy / slate / teal) */}
+      <nav className="mb-8 rounded-xl border border-slate-700/60 bg-slate-900/40 p-4" aria-label="Operações">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Operações
+        </p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <OpsGroup title="Casos">
+            <OpsLink href="/dashboard/intake">Intake</OpsLink>
+            <OpsLink href="/dashboard/matters">Matters</OpsLink>
+            <OpsLink href="/dashboard/approvals">Aprovações</OpsLink>
+            <OpsLink href="/dashboard/monitor">Monitor</OpsLink>
+            <OpsLink href="/dashboard/activity">Activity</OpsLink>
+          </OpsGroup>
+          <OpsGroup title="Financeiro">
+            <OpsLink href="/dashboard/finance">Finance</OpsLink>
+            <OpsLink href="/dashboard/trust">Trust</OpsLink>
+            <OpsLink href="/dashboard/time">Time</OpsLink>
+            <OpsLink href="/dashboard/esign">E-Sign</OpsLink>
+          </OpsGroup>
+          <OpsGroup title="Equipe">
+            <OpsLink href="/dashboard/team">Equipe</OpsLink>
+            <OpsLink href="/dashboard/orgs">Orgs</OpsLink>
+          </OpsGroup>
+          <OpsGroup title="Lex">
+            <OpsLink href="/chat">Chat Lex</OpsLink>
+            <OpsLink href="/dashboard/legal">Peças</OpsLink>
+            <OpsLink href="/dashboard/documents">Documentos</OpsLink>
+            <OpsLink href="/ajuda">Ajuda</OpsLink>
+          </OpsGroup>
+          <OpsGroup title="Demo">
+            <OpsLink href="/sim-real">Sim Real</OpsLink>
+            <OpsLink href="/qa-lab">QA Lab</OpsLink>
+            <OpsLink href="/simulador">Simulador</OpsLink>
+          </OpsGroup>
+        </div>
+      </nav>
 
       {/* ALERTAS CRÍTICOS */}
       {(criticalAlerts.length > 0 || (deadlineStats?.alerts?.overdue ?? 0) > 0) && (
@@ -307,6 +344,28 @@ export default function DashboardPage() {
     </div>
   );
 }
+function OpsGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-500/90">
+        {title}
+      </p>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+}
+
+function OpsLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="px-2.5 py-1 text-xs rounded-md bg-slate-800/80 hover:bg-teal-950/50 text-slate-300 hover:text-teal-200 border border-slate-600/50 hover:border-teal-700/50 transition"
+    >
+      {children}
+    </Link>
+  );
+}
+
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string | number }) {
   return (
     <div className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition">
@@ -319,12 +378,12 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
 
 function ActionButton({ icon, label, onClick, color }: { icon: string; label: string; onClick: () => void; color: string }) {
   const colors: Record<string, string> = {
-    cyan: 'hover:bg-cyan-500/20 text-cyan-400',
-    purple: 'hover:bg-purple-500/20 text-purple-400',
-    pink: 'hover:bg-pink-500/20 text-pink-400',
+    cyan: 'hover:bg-teal-500/15 text-teal-300',
+    purple: 'hover:bg-slate-500/20 text-slate-300',
+    pink: 'hover:bg-slate-500/20 text-slate-300',
     emerald: 'hover:bg-emerald-500/20 text-emerald-400',
     red: 'hover:bg-red-500/20 text-red-400',
-    blue: 'hover:bg-blue-500/20 text-blue-400',
+    blue: 'hover:bg-slate-500/20 text-slate-200',
     amber: 'hover:bg-amber-500/20 text-amber-400',
     green: 'hover:bg-green-500/20 text-green-400',
   };

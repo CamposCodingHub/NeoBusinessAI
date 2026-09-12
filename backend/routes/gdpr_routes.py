@@ -1,222 +1,169 @@
 """
 Rotas LGPD (Lei Geral de Proteção de Dados)
-Exportação e deleção de dados pessoais
+Exportação e deleção de dados pessoais do escritório autenticado.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, status
-from sqlalchemy.orm import Session
-from typing import Dict, Any, List
 from datetime import datetime
-import json
+from typing import Any, Dict, List
 
-from database import get_db, User, Client, Document, Invoice, Deadline, ActivityLog
-from security import get_current_user, require_role, Role
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from database import (
+    ActivityLog,
+    Client,
+    Deadline,
+    Document,
+    Invoice,
+    User,
+    get_db,
+)
+from security import get_current_user
 from security.audit_logger import audit_logger
+from services.compliance_service import ComplianceService
 
 router = APIRouter(prefix="/gdpr", tags=["LGPD Compliance"])
 
 
-@router.get("/export/my-data", response_model=Dict[str, Any])
-async def export_my_data(
+def _resolve_user(db: Session, current_user) -> User:
+    """Carrega User ORM a partir do TokenData JWT."""
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
+
+def _build_export(db: Session, current_user) -> Dict[str, Any]:
+    user = _resolve_user(db, current_user)
+    package = ComplianceService.export_user_data(db, user.id)
+    try:
+        audit_logger.log_data_export(
+            user_id=int(user.id),
+            data_types=[
+                "profile",
+                "clients_count",
+                "documents",
+                "invoices_summary",
+                "chat_messages_count",
+                "leads_count",
+                "matters_count",
+            ],
+        )
+    except Exception:
+        pass
+    return package
+
+
+@router.get("/export", response_model=Dict[str, Any])
+async def export_my_data_get(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
-    Exporta todos os dados pessoais do usuário (Portabilidade LGPD)
-    Retorna JSON completo com todos os dados
+    Exporta pacote JSON LGPD/GDPR do usuário autenticado (GET).
+    Metadados de documentos (sem texto completo); contagens e resumos best-effort.
     """
-    user_id = current_user.id
-    
-    # Coletar dados do usuário
-    user_data = {
-        "user_info": {
-            "id": user_id,
-            "email": current_user.email,
-            "name": current_user.name,
-            "role": current_user.role,
-            "plan_tier": current_user.plan_tier,
-            "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
-            "updated_at": current_user.updated_at.isoformat() if current_user.updated_at else None,
-        },
-        "export_metadata": {
-            "exported_at": datetime.utcnow().isoformat(),
-            "format_version": "1.0",
-            "legal_basis": "LGPD Art. 18 (Portabilidade)"
-        }
-    }
-    
-    # Clientes
-    clients = db.query(Client).filter(Client.user_id == user_id).all()
-    user_data["clients"] = [{
-        "id": c.id,
-        "name": c.name,
-        "email": c.email,
-        "phone": c.phone,  # Descriptografado pelo to_dict()
-        "cpf_cnpj": c.cpf_cnpj,  # Descriptografado
-        "address": c.address,  # Descriptografado
-        "city": c.city,
-        "state": c.state,
-        "zip_code": c.zip_code,  # Descriptografado
-        "status": c.status,
-        "payment_day": c.payment_day,
-        "notes": c.notes,
-        "created_at": c.created_at.isoformat() if c.created_at else None
-    } for c in clients]
-    
-    # Documentos
-    documents = db.query(Document).filter(Document.user_id == user_id).all()
-    user_data["documents"] = [{
-        "id": d.id,
-        "filename": d.filename,
-        "title": d.title,
-        "file_type": d.file_type,
-        "file_size": d.file_size,
-        "status": d.status,
-        "content_preview": d.content[:500] if d.content else None,  # Limitar conteúdo
-        "metadata": d.metadata,
-        "created_at": d.created_at.isoformat() if d.created_at else None
-    } for d in documents]
-    
-    # Faturas
-    invoices = db.query(Invoice).filter(Invoice.user_id == user_id).all()
-    user_data["invoices"] = [{
-        "id": inv.id,
-        "invoice_number": inv.invoice_number,
-        "client_id": inv.client_id,
-        "description": inv.description,
-        "total_amount": inv.total_cents / 100,
-        "status": inv.status,
-        "due_date": inv.due_date.isoformat() if inv.due_date else None,
-        "created_at": inv.created_at.isoformat() if inv.created_at else None
-    } for inv in invoices]
-    
-    # Prazos
-    deadlines = db.query(Deadline).filter(Deadline.user_id == user_id).all()
-    user_data["deadlines"] = [{
-        "id": dl.id,
-        "description": dl.description,
-        "due_date": dl.due_date.isoformat() if dl.due_date else None,
-        "urgency": dl.urgency,
-        "is_completed": dl.is_completed,
-        "notes": dl.notes,
-        "created_at": dl.created_at.isoformat() if dl.created_at else None
-    } for dl in deadlines]
-    
-    # Logs de atividade (últimos 90 dias)
-    recent_logs = db.query(ActivityLog).filter(
-        ActivityLog.user_id == user_id,
-        ActivityLog.created_at >= datetime.utcnow().replace(day=1)  # Último mês
-    ).order_by(ActivityLog.created_at.desc()).limit(100).all()
-    
-    user_data["activity_logs"] = [{
-        "id": log.id,
-        "action": log.action,
-        "resource_type": log.resource_type,
-        "resource_id": log.resource_id,
-        "details": log.details,
-        "created_at": log.created_at.isoformat() if log.created_at else None
-    } for log in recent_logs]
-    
-    # Log da exportação (auditoria LGPD)
-    audit_logger.log(
-        user_id=user_id,
-        action="data_export",
-        resource_type="user_data",
-        resource_id=user_id,
-        details={"format": "JSON", "records_count": len(clients) + len(documents) + len(invoices)}
-    )
-    
-    return user_data
+    return _build_export(db, current_user)
 
 
-@router.delete("/delete/my-data", response_model=Dict[str, str])
+@router.post("/export", response_model=Dict[str, Any])
+async def export_my_data_post(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Exporta pacote JSON LGPD/GDPR do usuário autenticado (POST).
+    Mesmo payload de GET /gdpr/export.
+    """
+    return _build_export(db, current_user)
+
+
+@router.get("/export/my-data", response_model=Dict[str, Any])
+async def export_my_data_legacy(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Alias legado — mesmo pacote de GET /gdpr/export."""
+    return _build_export(db, current_user)
+
+
+@router.delete("/delete/my-data", response_model=Dict[str, Any])
 async def delete_my_data(
     confirm_delete: bool = False,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
-    Deleta todos os dados pessoais do usuário (Direito ao Esquecimento LGPD)
-    REQUER CONFIRMAÇÃO explícita
+    Deleta/anonimiza dados pessoais do usuário (Direito ao Esquecimento LGPD).
+    REQUER confirmação explícita.
     """
     if not confirm_delete:
         raise HTTPException(
             status_code=400,
-            detail="Deleção requer confirm_delete=true. Esta ação é IRREVERSÍVEL."
+            detail="Deleção requer confirm_delete=true. Esta ação é IRREVERSÍVEL.",
         )
-    
-    user_id = current_user.id
-    user_email = current_user.email
-    
+
+    user = _resolve_user(db, current_user)
+    user_id = user.id
+    user_email = user.email
+
     try:
-        # Log da solicitação de deleção
-        audit_logger.log(
-            user_id=user_id,
-            action="data_deletion_request",
+        audit_logger.log_data_deletion(
+            user_id=int(user_id),
             resource_type="user_data",
-            resource_id=user_id,
-            details={"requested_by": user_email}
+            resource_id=int(user_id),
+            reason=f"requested_by={user_email}",
         )
-        
-        # Contar registros antes de deletar (para auditoria)
+
         clients_count = db.query(Client).filter(Client.user_id == user_id).count()
-        documents_count = db.query(Document).filter(Document.user_id == user_id).count()
-        invoices_count = db.query(Invoice).filter(Invoice.user_id == user_id).count()
-        deadlines_count = db.query(Deadline).filter(Deadline.user_id == user_id).count()
-        
-        # Deletar em ordem (respeitando FKs)
-        # 1. Activity Logs
-        db.query(ActivityLog).filter(ActivityLog.user_id == user_id).delete(synchronize_session=False)
-        
-        # 2. Invoices
-        db.query(Invoice).filter(Invoice.user_id == user_id).delete(synchronize_session=False)
-        
-        # 3. Deadlines
-        db.query(Deadline).filter(Deadline.user_id == user_id).delete(synchronize_session=False)
-        
-        # 4. Documents (manter arquivos físicos por segurança, apenas marcar como deletados)
+        documents_count = (
+            db.query(Document).filter(Document.user_id == user_id).count()
+        )
+        invoices_count = (
+            db.query(Invoice).filter(Invoice.user_id == user_id).count()
+        )
+        deadlines_count = (
+            db.query(Deadline).filter(Deadline.user_id == user_id).count()
+        )
+
+        db.query(ActivityLog).filter(ActivityLog.user_id == user_id).delete(
+            synchronize_session=False
+        )
+        db.query(Invoice).filter(Invoice.user_id == user_id).delete(
+            synchronize_session=False
+        )
+        db.query(Deadline).filter(Deadline.user_id == user_id).delete(
+            synchronize_session=False
+        )
+
         documents = db.query(Document).filter(Document.user_id == user_id).all()
         for doc in documents:
             doc.status = "deleted"
-            doc.content = None  # Remover conteúdo indexado
-            doc.metadata = {"deleted": True, "deleted_at": datetime.utcnow().isoformat()}
-        
-        # 5. Clients - Anonimizar em vez de deletar (preservar integridade referencial)
-        clients = db.query(Client).filter(Client.user_id == user_id).all()
-        for client in clients:
-            client.name = f"[ANONIMIZADO-{client.id}]"
-            client.email = None
-            client.phone = None
-            client.cpf_cnpj = None
-            client.address = None
-            client.notes = None
-            client.status = "anonymized"
-        
-        # 6. Anonimizar usuário (não deletar para preservar logs de auditoria)
-        user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            user.email = f"[DELETED-{user_id}]@deleted.jurisflow"
-            user.name = f"[USUÁRIO DELETADO - {user_id}]"
-            user.password_hash = "[DELETED]"
-            user.is_active = False
-            user.phone = None
-        
-        db.commit()
-        
-        # Log da deleção concluída
-        audit_logger.log(
-            user_id=user_id,
-            action="data_deletion_completed",
-            resource_type="user_data",
-            resource_id=user_id,
-            details={
-                "clients_anonymized": clients_count,
-                "documents_marked_deleted": documents_count,
-                "invoices_deleted": invoices_count,
-                "deadlines_deleted": deadlines_count
+            doc.content = None
+            doc.text_content = None
+            doc.custom_data = {
+                "deleted": True,
+                "deleted_at": datetime.utcnow().isoformat(),
             }
-        )
-        
+
+        clients = db.query(Client).filter(Client.user_id == user_id).all()
+        for client_row in clients:
+            client_row.name = f"[ANONIMIZADO-{client_row.id}]"
+            client_row.email = None
+            client_row.phone = None
+            client_row.cpf_cnpj = None
+            client_row.address = None
+            client_row.notes = None
+            client_row.status = "anonymized"
+
+        user.email = f"[DELETED-{user_id}]@deleted.jurisflow"
+        user.name = f"[USUÁRIO DELETADO - {user_id}]"
+        user.password_hash = "[DELETED]"
+        user.is_active = False
+        user.phone = None
+
+        db.commit()
+
         return {
             "message": "Dados pessoais deletados com sucesso",
             "status": "anonymized",
@@ -224,23 +171,27 @@ async def delete_my_data(
                 "clients": clients_count,
                 "documents": documents_count,
                 "invoices": invoices_count,
-                "deadlines": deadlines_count
+                "deadlines": deadlines_count,
             },
-            "note": "Cliente e faturas foram removidos. Documentos marcados como deletados. Dados do usuário anonimizados."
+            "note": (
+                "Clientes anonimizados. Documentos marcados como deletados. "
+                "Dados do usuário anonimizados."
+            ),
         }
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        audit_logger.log(
-            user_id=user_id,
-            action="data_deletion_failed",
-            resource_type="user_data",
-            resource_id=user_id,
-            details={"error": str(e)}
+        audit_logger.log_security_event(
+            event_type="data_deletion_failed",
+            user_id=int(user_id),
+            details={"error": str(e)},
+            severity="error",
         )
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao deletar dados: {str(e)}"
+            detail=f"Erro ao deletar dados: {str(e)}",
         )
 
 
@@ -248,25 +199,39 @@ async def delete_my_data(
 async def get_data_access_log(
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
-    """
-    Retorna log de acesso aos dados pessoais (Transparência LGPD)
-    """
-    logs = db.query(ActivityLog).filter(
-        ActivityLog.user_id == current_user.id,
-        ActivityLog.action.in_([
-            "client_viewed", "document_viewed", "invoice_viewed",
-            "data_export", "data_deletion_request", "login", "logout"
-        ])
-    ).order_by(ActivityLog.created_at.desc()).limit(limit).all()
-    
-    return [{
-        "id": log.id,
-        "action": log.action,
-        "resource_type": log.resource_type,
-        "resource_id": log.resource_id,
-        "ip_address": log.ip_address,
-        "user_agent": log.user_agent,
-        "created_at": log.created_at.isoformat() if log.created_at else None
-    } for log in logs]
+    """Retorna log de acesso aos dados pessoais (Transparência LGPD)."""
+    logs = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.user_id == current_user.id,
+            ActivityLog.action.in_(
+                [
+                    "client_viewed",
+                    "document_viewed",
+                    "invoice_viewed",
+                    "data_export",
+                    "data_deletion_request",
+                    "login",
+                    "logout",
+                ]
+            ),
+        )
+        .order_by(ActivityLog.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": log.id,
+            "action": log.action,
+            "resource_type": log.resource_type,
+            "resource_id": log.resource_id,
+            "ip_address": log.ip_address,
+            "user_agent": log.user_agent,
+            "created_at": log.created_at.isoformat() if log.created_at else None,
+        }
+        for log in logs
+    ]

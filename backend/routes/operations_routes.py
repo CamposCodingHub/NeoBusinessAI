@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from database import get_db_async
+from database import ActivityEvent, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -84,6 +84,106 @@ def _resolve_artifact(relative_path: str) -> Path:
         raise HTTPException(status_code=404, detail="Artefato nao encontrado")
 
     return requested
+
+
+# Atalhos estaticos dos modulos operacionais do dashboard (Lex / UI).
+# Limites de uso tambem existem em GET /usage/me; o atalho aponta para planos.
+OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
+    {
+        "label": "Prazos",
+        "path": "/dashboard/deadlines",
+        "description": "Controle de prazos e alertas do escritorio",
+    },
+    {
+        "label": "Matters",
+        "path": "/dashboard/matters",
+        "description": "Casos e pastas do cliente",
+    },
+    {
+        "label": "Intake / COI",
+        "path": "/dashboard/intake",
+        "description": "Leads, intake e checagem de conflito de interesses",
+    },
+    {
+        "label": "Time entries",
+        "path": "/dashboard/time",
+        "description": "Lancamentos de tempo e honorarios",
+    },
+    {
+        "label": "Aprovacoes WhatsApp",
+        "path": "/dashboard/approvals",
+        "description": "Fila de aprovacao antes de envio ao cliente",
+    },
+    {
+        "label": "Documentos",
+        "path": "/dashboard/documents",
+        "description": "Upload e busca no acervo do usuario",
+    },
+    {
+        "label": "Engagement / Activity",
+        "path": "/dashboard/activity",
+        "description": "Feed operacional e engagement do escritorio",
+    },
+    {
+        "label": "Organizacoes",
+        "path": "/dashboard/orgs",
+        "description": "Orgs multi-tenant e membros",
+    },
+    {
+        "label": "Trust",
+        "path": "/dashboard/trust",
+        "description": "Contas de custodia e reconciliacao",
+    },
+    {
+        "label": "E-Sign",
+        "path": "/dashboard/esign",
+        "description": "Envelopes e assinatura eletronica",
+    },
+    {
+        "label": "Monitor",
+        "path": "/dashboard/monitor",
+        "description": "Monitoramento de processos e intimacoes",
+    },
+    {
+        "label": "Financeiro",
+        "path": "/dashboard/finance",
+        "description": "Caixa, aging de recebiveis e NFS-e",
+    },
+    {
+        "label": "Limites de uso",
+        "path": "/pricing",
+        "description": "Planos e limites; detalhe atual em GET /usage/me",
+    },
+]
+
+
+@router.get("/shortcuts")
+async def get_operations_shortcuts(
+    current_user=Depends(get_current_user),
+):
+    """Lista atalhos dos modulos operacionais do dashboard (JWT)."""
+    _ = current_user
+    return {"shortcuts": OPERATIONS_SHORTCUTS}
+
+
+@router.get("/activity")
+async def get_operations_activity(
+    db: Session = Depends(get_db_async),
+    current_user=Depends(get_current_user),
+):
+    """Últimos 50 eventos do feed operacional do usuário (JWT)."""
+    user_id = int(current_user.user_id)
+    events = (
+        db.query(ActivityEvent)
+        .filter(ActivityEvent.user_id == user_id)
+        .order_by(ActivityEvent.created_at.desc(), ActivityEvent.id.desc())
+        .limit(50)
+        .all()
+    )
+    return {
+        "events": [e.to_dict() for e in events],
+        "count": len(events),
+    }
 
 
 @router.get("/overview")

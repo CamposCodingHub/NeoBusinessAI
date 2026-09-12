@@ -8,21 +8,26 @@ import time
 import unicodedata
 from typing import Any, Dict, Optional
 
+from ai.knowledge_packs import load_professional_playbook
 from config import settings
 from services.official_legal_sources_service import official_legal_sources
 from services.official_realtime_research_service import (
     official_realtime_research,
 )
 
+PROFESSIONAL_PLAYBOOK_SNIPPET = load_professional_playbook(2000)
+
 
 RESPONSE_MODES = {
     "quick": {
         "label": "Consulta profissional rapida",
-        "model": "llama-3.3-70b-versatile",
-        "max_tokens": 700,
+        "model": "llama-3.1-8b-instant",
+        "max_tokens": 550,
         "instruction": (
-            "Responda em no maximo 450 palavras, mas inclua regra juridica, "
-            "aplicacao, limite da resposta e fontes."
+            "Resposta CURTA e afiada (max 280 palavras). Estruture: "
+            "(1) resposta direta em 1-2 frases, (2) fundamento com artigo/fonte "
+            "so se estiver no contexto oficial, (3) risco/limite, (4) 1 proximo passo. "
+            "Sem emoji, sem fillers, sem inventar artigo ou aliquota."
         ),
     },
     "balanced": {
@@ -182,11 +187,13 @@ class LegalAIOrchestrator:
             )
         sovereign_results = []
         sovereign_context = ""
+        local_search_ran = False
         if (
             self.local_search
             and response_mode != "quick"
             and not quick_document_evidence
         ):
+            local_search_ran = True
             try:
                 from database import SessionLocal
 
@@ -299,6 +306,9 @@ REGRAS DE CONFIABILIDADE:
 - Indique fatos faltantes que podem mudar a conclusao.
 - Em materia contabil ou fiscal, nao invente aliquota, prazo, leiaute ou obrigacao.
 - Informe que a resposta auxilia o trabalho profissional e requer revisao do advogado ou contador responsavel.
+
+PLAYBOOK PROFISSIONAL (interno):
+{PROFESSIONAL_PLAYBOOK_SNIPPET or 'Playbook indisponivel nesta execucao.'}
 
 FONTES OFICIAIS DISPONIVEIS:
 {official_context or 'Nenhuma fonte oficial foi recuperada. Assuma postura conservadora e solicite pesquisa complementar.'}
@@ -570,6 +580,11 @@ PESQUISA OFICIAL CONSULTADA AGORA:
             if legal_query
             else "geral"
         )
+        total_latency_ms = int((time.perf_counter() - started_at) * 1000)
+        # Prefer end-to-end orchestrator time; fall back to engine-only if clock failed.
+        latency_ms = total_latency_ms or int(
+            engine_metadata.get("latency_ms", 0) or 0
+        )
         result["legal_metadata"] = {
             "is_legal_query": legal_query,
             "is_professional_query": legal_query,
@@ -582,7 +597,8 @@ PESQUISA OFICIAL CONSULTADA AGORA:
             "provider": actual_provider,
             "route": engine_metadata.get("route", ""),
             "usage": engine_metadata.get("usage", {}),
-            "latency_ms": engine_metadata.get("latency_ms", 0),
+            "latency_ms": latency_ms,
+            "total_ms": latency_ms,
             "provider_fallback_used": engine_metadata.get(
                 "provider_fallback_used",
                 False,
@@ -660,6 +676,19 @@ PESQUISA OFICIAL CONSULTADA AGORA:
             ),
             "contingency_mode": contingency_mode,
         }
+        if local_search_ran:
+            result["legal_metadata"]["local_knowledge_hits"] = len(
+                sovereign_results
+            )
+        official_codes = [
+            str(source.get("code"))
+            for source in retrieval.get("sources", [])
+            if source.get("code")
+        ]
+        if official_codes:
+            result["legal_metadata"]["official_sources_used"] = list(
+                dict.fromkeys(official_codes)
+            )
         return result
 
     @staticmethod

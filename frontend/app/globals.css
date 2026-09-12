@@ -43,7 +43,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  font-family: var(--trust-ui, 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   min-height: 100vh;
@@ -295,6 +295,123 @@ body {
 
 /* Focus Visible */
 :focus-visible {
-  outline: 2px solid var(--color-accent-cyan);
+  outline: 2px solid var(--trust-accent-soft, var(--color-accent-cyan));
   outline-offset: 2px;
+}
+
+/* ==========================================================================
+   TRUST DESIGN SYSTEM — LexScan profissional (confiança / credibilidade)
+   Navy + slate + teal. Usado em /sim-real, /qa-lab e superfícies operacionais.
+   Evita neon/purple genérico de “AI SaaS”.
+   ========================================================================== */
+
+:root {
+  --trust-ink: #0c1b2a;
+  --trust-body: #334155;
+  --trust-muted: #64748b;
+  --trust-canvas: #f7f8fa;
+  --trust-surface: #ffffff;
+  --trust-surface-2: #eef2f6;
+  --trust-border: #d8e0ea;
+  --trust-accent: #0f766e;
+  --trust-accent-soft: #0d9488;
+  --trust-accent-deep: #115e59;
+  --trust-navy: #0f172a;
+  --trust-slate: #334155;
+  --trust-success: #047857;
+  --trust-warning: #b45309;
+  --trust-danger: #b91c1c;
+  --trust-radius: 12px;
+  --trust-font: "Source Serif 4", "Libre Baskerville", Georgia, serif;
+  --trust-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  /* Companions for dark dashboard / ops surfaces (não substituem tokens neon legados) */
+  --trust-on-dark-bg: #0a0a0f;
+  --trust-on-dark-panel: rgba(15, 23, 42, 0.55);
+  --trust-on-dark-border: rgba(71, 85, 105, 0.55);
+  --trust-on-dark-text: #e2e8f0;
+  --trust-on-dark-muted: #94a3b8;
+}
+
+.trust-shell {
+  background:
+    radial-gradient(ellipse at top left, rgba(15, 118, 110, 0.06), transparent 42%),
+    linear-gradient(180deg, #f4f6f8 0%, #eef2f6 100%);
+  color: var(--trust-ink);
+  font-family: var(--trust-ui);
+  min-height: 100vh;
+}
+
+.trust-kicker {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--trust-accent-deep);
+  font-weight: 600;
+}
+
+.trust-title {
+  font-family: var(--trust-font);
+  font-size: clamp(1.75rem, 2.4vw, 2.35rem);
+  font-weight: 600;
+  color: var(--trust-ink);
+  letter-spacing: -0.02em;
+}
+
+.trust-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--trust-muted);
+}
+
+.trust-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--trust-navy);
+}
+
+.trust-card {
+  background: var(--trust-surface);
+  border: 1px solid var(--trust-border);
+  border-radius: var(--trust-radius);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.trust-btn-primary {
+  background: var(--trust-accent);
+  color: #f8fafc;
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.trust-btn-primary:hover {
+  background: var(--trust-accent-deep);
+}
+
+.trust-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.trust-btn-ghost {
+  background: transparent;
+  color: var(--trust-body);
+  border: 1px solid var(--trust-border);
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.trust-btn-ghost:hover {
+  border-color: var(--trust-accent);
+  color: var(--trust-accent-deep);
 }

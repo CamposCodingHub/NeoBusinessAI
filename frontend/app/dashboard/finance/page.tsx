@@ -37,13 +37,79 @@ interface FinanceStats {
   top_debtors: { client_id: number; client_name: string; debt: number }[];
 }
 
+interface AgingReport {
+  buckets: {
+    current: number;
+    d31_60: number;
+    d61_90: number;
+    d90_plus: number;
+  };
+  total_open: number;
+  currency: string;
+}
+
+interface CollectionStep {
+  code: string;
+  label: string;
+  tone: string;
+  is_current?: boolean;
+  suggested_copy?: string;
+}
+
+interface CollectionPlan {
+  invoice_id: number;
+  invoice_number?: string;
+  client_name?: string | null;
+  amount: number;
+  days_from_due: number;
+  recommended_step: string;
+  steps: CollectionStep[];
+}
+
+interface CollectionPlanResponse {
+  plans: CollectionPlan[];
+  count: number;
+  disclaimer: string;
+  currency: string;
+}
+
+interface CostAdvance {
+  id: number;
+  description: string;
+  amount: number;
+  status: 'advanced' | 'reimbursed' | 'written_off';
+  client_id?: number | null;
+  matter_id?: number | null;
+  created_at?: string | null;
+}
+
+interface TaxCalendarItem {
+  code: string;
+  title: string;
+  due_hint: string;
+  disclaimer: string;
+}
+
+interface TaxCalendarResponse {
+  month: string;
+  items: TaxCalendarItem[];
+  count: number;
+  disclaimer: string;
+  stub: boolean;
+}
+
 export default function FinancePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<FinanceStats | null>(null);
   const [overdueList, setOverdueList] = useState<Invoice[]>([]);
+  const [aging, setAging] = useState<AgingReport | null>(null);
+  const [collectionPlan, setCollectionPlan] = useState<CollectionPlanResponse | null>(null);
+  const [costAdvances, setCostAdvances] = useState<CostAdvance[]>([]);
+  const [taxCalendar, setTaxCalendar] = useState<TaxCalendarResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
+  const [costForm, setCostForm] = useState({ description: '', amount: '', client_id: '', matter_id: '' });
 
   const [formData, setFormData] = useState({
     description: '',
@@ -101,10 +167,97 @@ export default function FinancePage() {
         const data = await overdueResponse.json();
         setOverdueList(data.overdue_invoices || []);
       }
+
+      // Receivables aging (BI light)
+      const agingResponse = await fetch(`${API_URL}/finance/aging`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'omit'
+      });
+      if (agingResponse.ok) {
+        const data = await agingResponse.json();
+        setAging(data);
+      }
+
+      // Ethical collection plan (régua EOAB stub)
+      const planResponse = await fetch(`${API_URL}/finance/collection-plan`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'omit'
+      });
+      if (planResponse.ok) {
+        setCollectionPlan(await planResponse.json());
+      }
+
+      // Custas / cost advances
+      const costResponse = await fetch(`${API_URL}/finance/cost-advances`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'omit'
+      });
+      if (costResponse.ok) {
+        const data = await costResponse.json();
+        setCostAdvances(data.items || []);
+      }
+
+      // Tax calendar methodological stub (not RFB API)
+      const now = new Date();
+      const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+      const taxResponse = await fetch(`${API_URL}/finance/tax-calendar?month=${month}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'omit',
+      });
+      if (taxResponse.ok) {
+        setTaxCalendar(await taxResponse.json());
+      }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateCostAdvance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token || !costForm.description || !costForm.amount) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/cost-advances`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({
+          description: costForm.description,
+          amount: parseFloat(costForm.amount),
+          client_id: costForm.client_id ? parseInt(costForm.client_id, 10) : null,
+          matter_id: costForm.matter_id ? parseInt(costForm.matter_id, 10) : null,
+        }),
+      });
+      if (response.ok) {
+        setCostForm({ description: '', amount: '', client_id: '', matter_id: '' });
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Erro ao registrar custas:', error);
+    }
+  };
+
+  const handleCostStatus = async (id: number, status: CostAdvance['status']) => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/cost-advances/${id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({ status }),
+      });
+      if (response.ok) fetchData();
+    } catch (error) {
+      console.error('Erro ao atualizar custas:', error);
     }
   };
 
@@ -196,14 +349,14 @@ export default function FinancePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0C1B2A] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white p-8">
+    <div className="min-h-screen bg-[#0C1B2A] text-white p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -262,6 +415,228 @@ export default function FinancePage() {
             </div>
           </div>
         )}
+
+
+        {/* Receivables aging — navy/teal, no card clutter */}
+        {aging && (
+          <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                  Contas a receber
+                </p>
+                <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">Aging de honorários</h2>
+                <p className="mt-1 text-sm text-[#94A3B8]">
+                  Buckets por dias desde o vencimento · {aging.currency}
+                </p>
+              </div>
+              <p className="text-lg font-semibold text-[#0F766E]">
+                Aberto: {formatCurrency(aging.total_open)}
+              </p>
+            </div>
+            <div className="flex items-end gap-3 h-36 sm:gap-5">
+              {([
+                { key: 'current', label: '0–30', value: aging.buckets.current },
+                { key: 'd31_60', label: '31–60', value: aging.buckets.d31_60 },
+                { key: 'd61_90', label: '61–90', value: aging.buckets.d61_90 },
+                { key: 'd90_plus', label: '90+', value: aging.buckets.d90_plus },
+              ] as const).map((bucket) => {
+                const max = Math.max(
+                  aging.buckets.current,
+                  aging.buckets.d31_60,
+                  aging.buckets.d61_90,
+                  aging.buckets.d90_plus,
+                  1
+                );
+                const height = Math.max(4, (bucket.value / max) * 100);
+                return (
+                  <div key={bucket.key} className="flex flex-1 flex-col items-center gap-2">
+                    <span className="text-xs text-[#94A3B8]">{formatCurrency(bucket.value)}</span>
+                    <div
+                      className="w-full max-w-[72px] rounded-t-md bg-gradient-to-t from-[#0C1B2A] to-[#0F766E]"
+                      style={{ height: `${height}%` }}
+                      title={formatCurrency(bucket.value)}
+                    />
+                    <span className="text-xs font-medium text-[#CBD5E1]">{bucket.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Ethical collection plan — EOAB stub */}
+        {collectionPlan && (
+          <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+            <div className="mb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                Régua ética
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">Plano de cobrança (stub)</h2>
+              <p className="mt-2 max-w-3xl text-sm text-[#94A3B8] leading-relaxed">
+                {collectionPlan.disclaimer}
+              </p>
+            </div>
+            {collectionPlan.plans.length === 0 ? (
+              <p className="text-sm text-[#64748B]">Nenhuma fatura aberta para planejar.</p>
+            ) : (
+              <div className="space-y-4">
+                {collectionPlan.plans.slice(0, 8).map((plan) => (
+                  <div key={plan.invoice_id} className="border-b border-[#1E293B] pb-4 last:border-0">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-[#E8EEF4]">
+                          {plan.client_name || 'Sem cliente'} · {plan.invoice_number || `#${plan.invoice_id}`}
+                        </p>
+                        <p className="text-xs text-[#94A3B8]">
+                          {plan.days_from_due < 0
+                            ? `Vence em ${Math.abs(plan.days_from_due)} dia(s)`
+                            : plan.days_from_due === 0
+                              ? 'Vence hoje'
+                              : `${plan.days_from_due} dia(s) em atraso`}
+                          {' · '}sugerido: {plan.recommended_step}
+                        </p>
+                      </div>
+                      <span className="text-[#0F766E] font-semibold">{formatCurrency(plan.amount)}</span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {plan.steps.map((step) => (
+                        <span
+                          key={step.code}
+                          title={step.suggested_copy}
+                          className={`px-2.5 py-1 text-xs border ${
+                            step.is_current
+                              ? 'border-[#0F766E] text-[#5EEAD4] bg-[#0F766E]/15'
+                              : 'border-[#334155] text-[#64748B]'
+                          }`}
+                        >
+                          {step.code} {step.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Tax calendar — methodological stub (not RFB API) */}
+        {taxCalendar && (
+          <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                  Contador
+                </p>
+                <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">
+                  Obrigações do mês ({taxCalendar.month})
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm text-[#94A3B8] leading-relaxed">
+                  {taxCalendar.disclaimer}
+                </p>
+              </div>
+              <Link href="/ajuda" className="text-sm text-[#5EEAD4] hover:underline">
+                Ajuda contador →
+              </Link>
+            </div>
+            <ul className="space-y-4">
+              {taxCalendar.items.map((item) => (
+                <li key={item.code} className="border-b border-[#1E293B] pb-4 last:border-0">
+                  <p className="font-medium text-[#E8EEF4]">{item.title}</p>
+                  <p className="mt-1 text-sm text-[#CBD5E1]">{item.due_hint}</p>
+                  <p className="mt-1 text-xs text-[#64748B]">{item.disclaimer}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Custas / cost advances */}
+        <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                Custas
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">Adiantamentos de custas</h2>
+              <p className="mt-1 text-sm text-[#94A3B8]">
+                Guias e despesas processuais — advanced / reimbursed / written_off
+              </p>
+            </div>
+            <Link href="/ajuda" className="text-sm text-[#5EEAD4] hover:underline">
+              Ver checklist →
+            </Link>
+          </div>
+          <form onSubmit={handleCreateCostAdvance} className="mb-4 grid gap-3 sm:grid-cols-4">
+            <input
+              type="text"
+              value={costForm.description}
+              onChange={(e) => setCostForm({ ...costForm, description: e.target.value })}
+              placeholder="Descrição (ex.: guia inicial)"
+              className="sm:col-span-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={costForm.amount}
+              onChange={(e) => setCostForm({ ...costForm, amount: e.target.value })}
+              placeholder="Valor R$"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#0F766E]/30 hover:bg-[#0F766E]/45 text-[#5EEAD4] rounded-lg text-sm font-medium transition"
+            >
+              Registrar
+            </button>
+          </form>
+          {costAdvances.length === 0 ? (
+            <p className="text-sm text-[#64748B]">Nenhum adiantamento registrado.</p>
+          ) : (
+            <div className="space-y-2">
+              {costAdvances.slice(0, 10).map((row) => (
+                <div
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-[#1E293B]"
+                >
+                  <div>
+                    <p className="text-sm text-[#E8EEF4]">{row.description}</p>
+                    <p className="text-xs text-[#64748B]">
+                      {row.status}
+                      {row.created_at
+                        ? ` · ${new Date(row.created_at).toLocaleDateString('pt-BR')}`
+                        : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#CBD5E1]">{formatCurrency(row.amount)}</span>
+                    {row.status === 'advanced' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleCostStatus(row.id, 'reimbursed')}
+                          className="px-2 py-1 text-xs text-[#5EEAD4] hover:bg-[#0F766E]/20 rounded"
+                        >
+                          Reembolsado
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCostStatus(row.id, 'written_off')}
+                          className="px-2 py-1 text-xs text-[#94A3B8] hover:bg-white/5 rounded"
+                        >
+                          Baixar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Monthly Chart */}
         {stats && stats.monthly_revenue.length > 0 && (
