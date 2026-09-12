@@ -355,6 +355,112 @@ async def get_operations_today(
         "notes_recent_count": len(recent_notes),
     }
 
+
+
+def _format_today_brief(board: Dict[str, Any]) -> str:
+    """Markdown matinal a partir do painel Hoje (sem inventar fatos)."""
+    lines: List[str] = ["# Briefing operacional — LexScan", ""]
+    gen = board.get("generated_at") or ""
+    lines.append(f"_Gerado em {gen}_")
+    lines.append("")
+
+    dl = board.get("deadlines") or {}
+    counts = dl.get("counts") or {}
+    lines.append("## Prazos")
+    lines.append(
+        f"- Atrasados: **{counts.get('overdue', 0)}** · Hoje: **{counts.get('due_today', 0)}** · "
+        f"Próximos: **{counts.get('upcoming', 0)}**"
+    )
+    for label, key in (("Atrasados", "overdue"), ("Hoje", "due_today"), ("À frente", "upcoming")):
+        items = dl.get(key) or []
+        if not items:
+            continue
+        lines.append(f"### {label}")
+        for item in items[:8]:
+            desc = item.get("description") or f"Prazo #{item.get('id')}"
+            due = item.get("due_date") or "—"
+            lines.append(f"- {desc} — `{due}`")
+    lines.append("")
+
+    hearings = board.get("hearings") or []
+    lines.append(f"## Audiências ({board.get('hearings_count', len(hearings))})")
+    if not hearings:
+        lines.append("- Nenhuma na janela.")
+    else:
+        for h in hearings[:10]:
+            title = h.get("title") or "Audiência"
+            when = h.get("hearing_at") or "—"
+            loc = h.get("location") or ""
+            extra = f" · {loc}" if loc else ""
+            lines.append(f"- {title} — `{when}`{extra}")
+    lines.append("")
+
+    powers = board.get("powers_expiring") or []
+    lines.append(f"## Procurações a vencer ({board.get('powers_expiring_count', len(powers))})")
+    if not powers:
+        lines.append("- Nenhuma no horizonte.")
+    else:
+        for p in powers[:8]:
+            lines.append(f"- {p.get('title')} — `{p.get('expires_at') or '—'}`")
+    lines.append("")
+
+    tasks = (board.get("tasks") or {}).get("due_soon") or []
+    undated = (board.get("tasks") or {}).get("undated") or []
+    open_count = ((board.get("tasks") or {}).get("counts") or {}).get("open", 0)
+    lines.append(f"## Tarefas abertas ({open_count})")
+    combined = list(tasks) + list(undated)
+    if not combined:
+        lines.append("- Nenhuma.")
+    else:
+        for t in combined[:10]:
+            lines.append(f"- {t.get('title')} — `{t.get('due_at') or 'sem prazo'}`")
+    lines.append("")
+
+    docs = board.get("docs_pending") or []
+    lines.append(f"## Docs pendentes ({board.get('docs_pending_count', len(docs))})")
+    if not docs:
+        lines.append("- Nenhum.")
+    else:
+        for d in docs[:10]:
+            lines.append(f"- {d.get('title')}")
+    lines.append("")
+
+    notes = board.get("notes_recent") or []
+    lines.append(f"## Anotações recentes ({board.get('notes_recent_count', len(notes))})")
+    if not notes:
+        lines.append("- Nenhuma.")
+    else:
+        for n in notes[:5]:
+            body = (n.get("body") or "").strip().replace("\n", " ")
+            if len(body) > 120:
+                body = body[:117] + "..."
+            pin = " (fixada)" if n.get("pinned") else ""
+            lines.append(f"- {body}{pin}")
+    lines.append("")
+    lines.append("_Briefing operacional local — não é parecer jurídico._")
+    return "\n".join(lines)
+
+
+@router.get("/today/brief")
+async def get_operations_today_brief(
+    days_ahead: int = Query(7, ge=1, le=30),
+    poa_days: int = Query(30, ge=1, le=365),
+    db: Session = Depends(get_db_async),
+    current_user=Depends(get_current_user),
+):
+    """Briefing matinal em Markdown a partir do painel Hoje (JWT)."""
+    board = await get_operations_today(
+        days_ahead=days_ahead,
+        poa_days=poa_days,
+        db=db,
+        current_user=current_user,
+    )
+    return {
+        "success": True,
+        "markdown": _format_today_brief(board),
+        "generated_at": board.get("generated_at"),
+    }
+
 @router.get("/activity")
 async def get_operations_activity(
     db: Session = Depends(get_db_async),

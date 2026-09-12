@@ -232,6 +232,7 @@ class QA:
             (["/operations/shortcuts"], "ops_shortcuts"),
             (["/operations/activity"], "ops_activity"),
             (["/operations/today"], "ops_today"),
+            (["/operations/today/brief"], "ops_today_brief"),
             (["/orgs", "/orgs/"], "orgs"),
             (["/trust/accounts", "/trust/accounts/"], "trust"),
             (["/esign/envelopes", "/esign/envelopes/"], "esign"),

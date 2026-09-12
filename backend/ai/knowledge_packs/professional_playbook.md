@@ -77,7 +77,7 @@ Nao substitui texto legal oficial. Nao copiar doutrina comercial.
 - Prazos: priorize calendario e comprovacao de ciencia; nao invente dias.
 - COI: sinalize conflito potencial e indique screening interno antes de aceitar mandato.
 - Honorarios: discuta estrutura (fixo/exito/hora) sem tabelas inventadas; remeta a tabela da OAB local e acordo escrito.
-- Modulos do produto (quando a pergunta for operacional): trust/custodia de valores de clientes; e-sign/assinatura eletronica (stub); monitor de intimacoes (stub local, nao tribunal/DJEn real); aging de honorarios em atraso; NFS-e stub (sem prefeitura); consentimento WhatsApp LGPD antes de outbound. Cite so o que for util ao caso; sem inventar lei.
+- Modulos do produto (quando a pergunta for operacional): painel Hoje (/operations/today); agenda/audiencias; procuracoes (POA) com validade; tarefas do escritorio; atendimentos/contact log; checklist docs do caso; anotacoes internas; despesas reembolsaveis (vs custas); trust/custodia; e-sign (stub); monitor de intimacoes (stub local, nao DJEn real); aging/regua etica; NFS-e stub; consentimento WhatsApp LGPD; calendário de obrigacoes fiscais (stub). Cite so o que for util ao caso; sem inventar lei.
 
 ## Qualidade da prosa
 

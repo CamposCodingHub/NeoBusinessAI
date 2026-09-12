@@ -77,6 +77,8 @@ function fmt(iso?: string | null): string {
 export default function HojePage() {
   const router = useRouter();
   const [board, setBoard] = useState<TodayBoard | null>(null);
+  const [brief, setBrief] = useState('');
+  const [showBrief, setShowBrief] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -90,6 +92,19 @@ export default function HojePage() {
       setError(e instanceof Error ? e.message : 'Erro');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const loadBrief = useCallback(async () => {
+    setError('');
+    try {
+      const res = await apiFetch('/operations/today/brief');
+      if (!res.ok) throw new Error(`Briefing falhou (${res.status})`);
+      const json = await res.json();
+      setBrief(json.markdown || '');
+      setShowBrief(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro');
     }
   }, []);
 
@@ -119,10 +134,39 @@ export default function HojePage() {
               escapar nesta manhã.
             </p>
           </div>
-          <Link href="/dashboard" className="text-sm text-teal-400 hover:text-teal-300">
-            ← Dashboard
-          </Link>
+          <div className="flex flex-col items-end gap-2">
+            <Link href="/dashboard" className="text-sm text-teal-400 hover:text-teal-300">
+              ← Dashboard
+            </Link>
+            <button
+              type="button"
+              onClick={() => void loadBrief()}
+              className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:border-teal-500/50"
+            >
+              Briefing Markdown
+            </button>
+          </div>
         </div>
+
+        {showBrief && brief && (
+          <section className="mb-6 rounded-xl border border-slate-700/60 bg-slate-900/50 p-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-slate-100">Briefing</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(brief);
+                }}
+                className="text-xs text-teal-400 underline hover:text-teal-300"
+              >
+                Copiar
+              </button>
+            </div>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap text-xs text-slate-300">
+              {brief}
+            </pre>
+          </section>
+        )}
 
         {error && (
           <p className="mb-4 text-sm text-red-400" role="alert">
