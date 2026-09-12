@@ -1642,6 +1642,31 @@ class ClientContactLog(Base):
         }
 
 
+
+
+class HearingPrepItem(Base):
+    """Item de preparação para audiência (checklist operacional — não é pauta do tribunal)."""
+    __tablename__ = 'hearing_prep_items'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    hearing_id = Column(Integer, ForeignKey('hearings.id'), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    # pending | done | waived
+    status = Column(String(20), default='pending', nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'hearing_id': self.hearing_id,
+            'title': self.title,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================

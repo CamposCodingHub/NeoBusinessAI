@@ -18,6 +18,7 @@ os.environ.setdefault("DEBUG", "false")
 from database import (  # noqa: E402
     Base,
     Hearing,
+    HearingPrepItem,
     User,
     get_db,
 )
@@ -205,3 +206,39 @@ class TestAgendaHearings:
                 "hearing_at": datetime(2026, 9, 20, 10, 0, tzinfo=timezone.utc).isoformat(),
             },
         ).status_code in (401, 403)
+
+    def test_hearing_prep_seed_and_complete(self, auth_headers, stranger_headers):
+        created = client.post(
+            "/agenda/hearings",
+            json={
+                "title": "Audiência com prep",
+                "hearing_at": datetime(2026, 10, 1, 14, 0, tzinfo=timezone.utc).isoformat(),
+            },
+            headers=auth_headers,
+        )
+        assert created.status_code == 201
+        hid = created.json()["hearing"]["id"]
+
+        seed = client.post(f"/agenda/hearings/{hid}/prep/seed", headers=auth_headers)
+        assert seed.status_code == 201, seed.text
+        assert seed.json()["count"] == 5
+        item_id = seed.json()["items"][0]["id"]
+
+        listed = client.get(f"/agenda/hearings/{hid}/prep", headers=auth_headers)
+        assert listed.status_code == 200
+        assert listed.json()["pending_count"] == 5
+
+        done = client.patch(
+            f"/agenda/prep/{item_id}/status",
+            headers=auth_headers,
+            json={"status": "done"},
+        )
+        assert done.status_code == 200
+        assert done.json()["item"]["status"] == "done"
+
+        # stranger cannot see prep
+        assert (
+            client.get(f"/agenda/hearings/{hid}/prep", headers=stranger_headers).status_code
+            == 404
+        )
+        assert HearingPrepItem is not None

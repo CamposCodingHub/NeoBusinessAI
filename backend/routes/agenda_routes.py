@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from database import Hearing, get_db
+from database import Hearing, HearingPrepItem, get_db
 from security import get_current_user, rate_limit
 from security.xss_protection import sanitize_plain_text
 
@@ -23,6 +23,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/agenda", tags=["Agenda / Hearings"])
 
 VALID_STATUSES = frozenset({"scheduled", "done", "cancelled"})
+VALID_PREP_STATUSES = frozenset({"pending", "done", "waived"})
+DEFAULT_PREP_TITLES = (
+    "Procuração válida",
+    "RG / documento do cliente",
+    "Peças essenciais impressas/PDF",
+    "Testemunhas confirmadas",
+    "Chegar 30 min antes / sala",
+)
 
 
 class HearingCreate(BaseModel):
@@ -157,3 +165,103 @@ async def patch_hearing_status(
     db.flush()
     db.refresh(row)
     return {"success": True, "hearing": row.to_dict()}
+
+
+class PrepStatusPatch(BaseModel):
+    status: str = Field(..., min_length=1, max_length=20)
+
+
+@router.get("/hearings/{hearing_id}/prep")
+@rate_limit(requests_per_minute=60)
+async def list_hearing_prep(
+    hearing_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Lista checklist de preparação da audiência (ownership via hearing)."""
+    user_id = _uid(current_user)
+    _get_owned(db, hearing_id, user_id)
+    rows = (
+        db.query(HearingPrepItem)
+        .filter(
+            HearingPrepItem.hearing_id == hearing_id,
+            HearingPrepItem.user_id == user_id,
+        )
+        .order_by(HearingPrepItem.id.asc())
+        .all()
+    )
+    pending = sum(1 for r in rows if r.status == "pending")
+    return {
+        "success": True,
+        "items": [r.to_dict() for r in rows],
+        "count": len(rows),
+        "pending_count": pending,
+    }
+
+
+@router.post("/hearings/{hearing_id}/prep/seed", status_code=status.HTTP_201_CREATED)
+@rate_limit(requests_per_minute=20)
+async def seed_hearing_prep(
+    hearing_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Cria checklist padrão de preparação (títulos estáticos)."""
+    user_id = _uid(current_user)
+    _get_owned(db, hearing_id, user_id)
+    existing = (
+        db.query(HearingPrepItem)
+        .filter(
+            HearingPrepItem.hearing_id == hearing_id,
+            HearingPrepItem.user_id == user_id,
+        )
+        .count()
+    )
+    if existing > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Checklist já existe para esta audiência",
+        )
+    created = []
+    for title in DEFAULT_PREP_TITLES:
+        row = HearingPrepItem(
+            user_id=user_id,
+            hearing_id=hearing_id,
+            title=title,
+            status="pending",
+        )
+        db.add(row)
+        created.append(row)
+    db.commit()
+    for row in created:
+        db.refresh(row)
+    return {
+        "success": True,
+        "items": [r.to_dict() for r in created],
+        "count": len(created),
+    }
+
+
+@router.patch("/prep/{item_id}/status")
+@rate_limit(requests_per_minute=60)
+async def patch_prep_status(
+    item_id: int,
+    payload: PrepStatusPatch,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    user_id = _uid(current_user)
+    row = (
+        db.query(HearingPrepItem)
+        .filter(HearingPrepItem.id == item_id, HearingPrepItem.user_id == user_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Item de prep não encontrado")
+    status_val = payload.status.strip().lower()
+    if status_val not in VALID_PREP_STATUSES:
+        raise HTTPException(status_code=400, detail="status inválido")
+    row.status = status_val
+    db.commit()
+    db.refresh(row)
+    return {"success": True, "item": row.to_dict()}

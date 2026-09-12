@@ -17,6 +17,13 @@ interface Hearing {
   created_at?: string | null;
 }
 
+interface PrepItem {
+  id: number;
+  title: string;
+  status: string;
+  hearing_id: number;
+}
+
 const EMPTY_FORM = {
   title: '',
   location: '',
@@ -65,6 +72,8 @@ export default function AgendaPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [prepByHearing, setPrepByHearing] = useState<Record<number, PrepItem[]>>({});
+  const [openPrep, setOpenPrep] = useState<number | null>(null);
 
   const loadHearings = useCallback(async () => {
     if (!hasDashboardToken()) {
@@ -124,6 +133,46 @@ export default function AgendaPage() {
       await loadHearings();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao atualizar status');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadPrep = async (hearingId: number) => {
+    setError('');
+    try {
+      const data = await apiFetch(`/agenda/hearings/${hearingId}/prep`);
+      setPrepByHearing((prev) => ({ ...prev, [hearingId]: data.items || [] }));
+      setOpenPrep(hearingId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao carregar prep');
+    }
+  };
+
+  const seedPrep = async (hearingId: number) => {
+    setSaving(true);
+    setError('');
+    try {
+      await apiFetch(`/agenda/hearings/${hearingId}/prep/seed`, { method: 'POST' });
+      await loadPrep(hearingId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao criar checklist');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const markPrepDone = async (hearingId: number, itemId: number) => {
+    setSaving(true);
+    setError('');
+    try {
+      await apiFetch(`/agenda/prep/${itemId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'done' }),
+      });
+      await loadPrep(hearingId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao atualizar prep');
     } finally {
       setSaving(false);
     }
@@ -237,6 +286,14 @@ export default function AgendaPage() {
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void loadPrep(h.id)}
+                  className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs text-sky-200 hover:bg-sky-500/20"
+                >
+                  Prep
+                </button>
                 {h.status !== 'done' ? (
                   <button
                     type="button"
@@ -268,6 +325,52 @@ export default function AgendaPage() {
                   </button>
                 ) : null}
               </div>
+              {openPrep === h.id ? (
+                <div className="mt-3 w-full border-t border-white/10 pt-3">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-wide text-white/50">
+                      Checklist de preparação
+                    </p>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void seedPrep(h.id)}
+                      className="text-xs text-[#5EEAD4] underline hover:text-teal-200"
+                    >
+                      Seed padrão
+                    </button>
+                  </div>
+                  {(prepByHearing[h.id] || []).length === 0 ? (
+                    <p className="text-xs text-white/40">
+                      Nenhum item — use “Seed padrão”.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {(prepByHearing[h.id] || []).map((item) => (
+                        <li
+                          key={item.id}
+                          className="flex items-center justify-between gap-2 text-sm text-white/80"
+                        >
+                          <span>
+                            {item.title}{' '}
+                            <span className="text-xs text-white/40">({item.status})</span>
+                          </span>
+                          {item.status === 'pending' ? (
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => void markPrepDone(h.id, item.id)}
+                              className="text-xs text-emerald-300 underline"
+                            >
+                              Feito
+                            </button>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
             </div>
           ))
         )}
