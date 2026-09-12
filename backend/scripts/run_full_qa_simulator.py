@@ -240,6 +240,7 @@ class QA:
             (["/poa", "/poa/"], "poa"),
             (["/tasks", "/tasks/"], "tasks"),
             (["/contacts/logs"], "contacts"),
+            (["/matter-docs", "/matter-docs/"], "matter_docs"),
             (["/finance/aging"], "aging"),
             (["/finance/expenses"], "expenses"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),

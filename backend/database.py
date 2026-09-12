@@ -1486,6 +1486,37 @@ class Hearing(Base):
 
 
 
+
+
+class MatterDocItem(Base):
+    """Item de checklist documental do caso (o que falta do cliente — não é DMS)."""
+    __tablename__ = 'matter_doc_items'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    # pending | received | waived
+    status = Column(String(20), default='pending', nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'title': self.title,
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class OfficeTask(Base):
     """Tarefa operacional do escritório (checklist diário — não é prazo judicial)."""
     __tablename__ = 'office_tasks'

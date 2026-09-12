@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta, timezone
-from database import ActivityEvent, Deadline, Hearing, OfficeTask, PowerOfAttorney, get_db_async
+from database import ActivityEvent, Deadline, Hearing, MatterDocItem, OfficeTask, PowerOfAttorney, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -104,6 +104,11 @@ OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
         "label": "Atendimentos",
         "path": "/dashboard/atendimentos",
         "description": "Historico de contatos com clientes",
+    },
+    {
+        "label": "Docs do caso",
+        "path": "/dashboard/docs-caso",
+        "description": "Checklist do que falta do cliente",
     },
     {
         "label": "Agenda",
@@ -286,6 +291,18 @@ async def get_operations_today(
         if due < end:
             due_soon_tasks.append(t.to_dict())
 
+
+    pending_docs = (
+        db.query(MatterDocItem)
+        .filter(
+            MatterDocItem.user_id == user_id,
+            MatterDocItem.status == "pending",
+        )
+        .order_by(MatterDocItem.id.desc())
+        .limit(30)
+        .all()
+    )
+
     return {
         "success": True,
         "generated_at": now.isoformat(),
@@ -318,6 +335,8 @@ async def get_operations_today(
                 "open": len(open_tasks),
             },
         },
+        "docs_pending": [d.to_dict() for d in pending_docs],
+        "docs_pending_count": len(pending_docs),
     }
 
 @router.get("/activity")

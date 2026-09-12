@@ -156,6 +156,7 @@ export default function DashboardPage() {
             <OpsLink href="/dashboard/hoje">Hoje</OpsLink>
             <OpsLink href="/dashboard/tarefas">Tarefas</OpsLink>
             <OpsLink href="/dashboard/atendimentos">Atendimentos</OpsLink>
+            <OpsLink href="/dashboard/docs-caso">Docs do caso</OpsLink>
             <OpsLink href="/dashboard/intake">Intake</OpsLink>
             <OpsLink href="/dashboard/matters">Matters</OpsLink>
             <OpsLink href="/dashboard/approvals">Aprovações</OpsLink>
