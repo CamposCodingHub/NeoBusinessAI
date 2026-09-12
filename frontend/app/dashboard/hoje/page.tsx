@@ -25,6 +25,13 @@ interface PoaItem {
   expires_at?: string | null;
 }
 
+interface TaskItem {
+  id: number;
+  title: string;
+  due_at?: string | null;
+  priority?: string | null;
+}
+
 interface TodayBoard {
   deadlines: {
     overdue: DeadlineItem[];
@@ -36,6 +43,11 @@ interface TodayBoard {
   hearings_count: number;
   powers_expiring: PoaItem[];
   powers_expiring_count: number;
+  tasks?: {
+    due_soon: TaskItem[];
+    undated: TaskItem[];
+    counts: { due_soon: number; undated: number; open: number };
+  };
 }
 
 function hasDashboardToken(): boolean {
@@ -122,11 +134,16 @@ export default function HojePage() {
           <p className="text-sm text-slate-400">Carregando…</p>
         ) : (
           <>
-            <div className="mb-8 grid gap-3 sm:grid-cols-4">
+            <div className="mb-8 grid gap-3 sm:grid-cols-5">
               <Stat label="Atrasados" value={counts?.overdue ?? 0} tone="red" />
               <Stat label="Prazos hoje" value={counts?.due_today ?? 0} tone="amber" />
               <Stat label="Audiências" value={board.hearings_count} tone="sky" />
               <Stat label="POA 30d" value={board.powers_expiring_count} tone="teal" />
+              <Stat
+                label="Tarefas"
+                value={board.tasks?.counts.open ?? 0}
+                tone="teal"
+              />
             </div>
 
             <Section title="Prazos atrasados" href="/dashboard/deadlines">
@@ -170,6 +187,27 @@ export default function HojePage() {
                       <span className="text-slate-400"> — {fmt(p.expires_at)}</span>
                     </li>
                   ))}
+                </ul>
+              )}
+            </Section>
+
+            <Section title="Tarefas abertas" href="/dashboard/tarefas">
+              {(board.tasks?.due_soon.length ?? 0) + (board.tasks?.undated.length ?? 0) ===
+              0 ? (
+                <p className="text-sm text-slate-400">Nenhuma tarefa aberta.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {[...(board.tasks?.due_soon || []), ...(board.tasks?.undated || [])]
+                    .slice(0, 15)
+                    .map((t) => (
+                      <li key={t.id} className="text-sm text-slate-200">
+                        <span className="font-medium text-white">{t.title}</span>
+                        <span className="text-slate-400">
+                          {' '}
+                          — {t.due_at ? fmt(t.due_at) : 'sem prazo'}
+                        </span>
+                      </li>
+                    ))}
                 </ul>
               )}
             </Section>

@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta, timezone
-from database import ActivityEvent, Deadline, Hearing, PowerOfAttorney, get_db_async
+from database import ActivityEvent, Deadline, Hearing, OfficeTask, PowerOfAttorney, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -94,6 +94,11 @@ OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
         "label": "Hoje",
         "path": "/dashboard/hoje",
         "description": "Prazos, audiencias e procuracoes do dia",
+    },
+    {
+        "label": "Tarefas",
+        "path": "/dashboard/tarefas",
+        "description": "Checklist operacional do escritorio",
     },
     {
         "label": "Agenda",
@@ -255,6 +260,27 @@ async def get_operations_today(
         .all()
     )
 
+
+    open_tasks = (
+        db.query(OfficeTask)
+        .filter(
+            OfficeTask.user_id == user_id,
+            OfficeTask.status == "open",
+        )
+        .order_by(OfficeTask.due_at.asc(), OfficeTask.id.desc())
+        .limit(50)
+        .all()
+    )
+    due_soon_tasks = []
+    undated_tasks = []
+    for t in open_tasks:
+        if t.due_at is None:
+            undated_tasks.append(t.to_dict())
+            continue
+        due = t.due_at if t.due_at.tzinfo else t.due_at.replace(tzinfo=timezone.utc)
+        if due < end:
+            due_soon_tasks.append(t.to_dict())
+
     return {
         "success": True,
         "generated_at": now.isoformat(),
@@ -278,6 +304,15 @@ async def get_operations_today(
         "hearings_count": len(hearings),
         "powers_expiring": [p.to_dict() for p in powers],
         "powers_expiring_count": len(powers),
+        "tasks": {
+            "due_soon": due_soon_tasks,
+            "undated": undated_tasks[:20],
+            "counts": {
+                "due_soon": len(due_soon_tasks),
+                "undated": len(undated_tasks),
+                "open": len(open_tasks),
+            },
+        },
     }
 
 @router.get("/activity")

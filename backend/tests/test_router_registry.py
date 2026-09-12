@@ -27,6 +27,7 @@ REQUIRED_INCLUDE_ROUTERS = (
     "monitor_router",
     "agenda_router",
     "poa_router",
+    "tasks_router",
     "compliance_router",
     "billing_router",
 )

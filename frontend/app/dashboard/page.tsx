@@ -154,6 +154,7 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                     <OpsGroup title="Casos">
             <OpsLink href="/dashboard/hoje">Hoje</OpsLink>
+            <OpsLink href="/dashboard/tarefas">Tarefas</OpsLink>
             <OpsLink href="/dashboard/intake">Intake</OpsLink>
             <OpsLink href="/dashboard/matters">Matters</OpsLink>
             <OpsLink href="/dashboard/approvals">Aprovações</OpsLink>

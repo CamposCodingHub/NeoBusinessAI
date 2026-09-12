@@ -238,6 +238,7 @@ class QA:
             (["/monitor/processes", "/monitor/processes/"], "monitor"),
             (["/agenda/hearings", "/agenda/hearings/"], "agenda"),
             (["/poa", "/poa/"], "poa"),
+            (["/tasks", "/tasks/"], "tasks"),
             (["/finance/aging"], "aging"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),
         ]
