@@ -16,7 +16,7 @@ import random
 import secrets
 import string
 
-from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance, TimeEntry
+from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance, FeeRetainer, TimeEntry
 from security import get_current_user
 from services.activity_feed_service import log_activity
 from services.pix_payment_service import create_pix_charge
@@ -1076,6 +1076,123 @@ async def delete_cost_advance(
     db.commit()
     return {"ok": True, "id": advance_id}
 
+
+
+
+
+VALID_RETAINER_STATUSES = frozenset(
+    {"open", "partially_applied", "exhausted", "refunded"}
+)
+
+
+@router.get("/retainers")
+async def list_retainers(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    client_id: Optional[int] = Query(None),
+    matter_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista honorários antecipados / retainers do usuário."""
+    q = db.query(FeeRetainer).filter(FeeRetainer.user_id == current_user.id)
+    if status_filter:
+        q = q.filter(FeeRetainer.status == status_filter)
+    if client_id is not None:
+        q = q.filter(FeeRetainer.client_id == client_id)
+    if matter_id is not None:
+        q = q.filter(FeeRetainer.matter_id == matter_id)
+    rows = q.order_by(FeeRetainer.created_at.desc()).all()
+    return {"items": [r.to_dict() for r in rows], "count": len(rows)}
+
+
+@router.post("/retainers", status_code=status.HTTP_201_CREATED)
+async def create_retainer(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Registra honorários antecipados (controle de saldo operacional)."""
+    client_id = payload.get("client_id")
+    if client_id is None:
+        raise HTTPException(status_code=400, detail="client_id é obrigatório")
+    try:
+        client_id = int(client_id)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="client_id inválido")
+
+    try:
+        amount = float(payload.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount inválido")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount deve ser > 0")
+
+    matter_id = payload.get("matter_id")
+    if matter_id is not None:
+        try:
+            matter_id = int(matter_id)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="matter_id inválido")
+
+    notes = payload.get("notes")
+    if notes is not None:
+        notes = str(notes).strip()[:1000] or None
+
+    row = FeeRetainer(
+        user_id=current_user.id,
+        client_id=client_id,
+        matter_id=matter_id,
+        amount=amount,
+        amount_applied=0.0,
+        status="open",
+        notes=notes,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
+
+
+@router.post("/retainers/{retainer_id}/apply")
+async def apply_retainer(
+    retainer_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Aplica valor ao retainer, reduzindo o saldo restante."""
+    row = (
+        db.query(FeeRetainer)
+        .filter(FeeRetainer.id == retainer_id, FeeRetainer.user_id == current_user.id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Retainer não encontrado")
+
+    if row.status == "refunded":
+        raise HTTPException(status_code=400, detail="retainer reembolsado; não pode aplicar")
+    if row.status == "exhausted":
+        raise HTTPException(status_code=400, detail="retainer esgotado")
+
+    try:
+        apply_amt = float(payload.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount inválido")
+    if apply_amt <= 0:
+        raise HTTPException(status_code=400, detail="amount deve ser > 0")
+
+    remaining = row.remaining()
+    if apply_amt > remaining + 1e-9:
+        raise HTTPException(
+            status_code=400,
+            detail=f"amount excede saldo restante ({remaining:.2f})",
+        )
+
+    row.amount_applied = float(row.amount_applied or 0) + apply_amt
+    row.sync_status_from_balance()
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
 
 
 @router.get("/tax-calendar")

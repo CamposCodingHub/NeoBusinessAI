@@ -83,6 +83,18 @@ interface CostAdvance {
   created_at?: string | null;
 }
 
+interface FeeRetainer {
+  id: number;
+  client_id: number;
+  matter_id?: number | null;
+  amount: number;
+  amount_applied: number;
+  remaining: number;
+  status: 'open' | 'partially_applied' | 'exhausted' | 'refunded';
+  notes?: string | null;
+  created_at?: string | null;
+}
+
 interface TaxCalendarItem {
   code: string;
   title: string;
@@ -120,12 +132,15 @@ export default function FinancePage() {
   const [aging, setAging] = useState<AgingReport | null>(null);
   const [collectionPlan, setCollectionPlan] = useState<CollectionPlanResponse | null>(null);
   const [costAdvances, setCostAdvances] = useState<CostAdvance[]>([]);
+  const [retainers, setRetainers] = useState<FeeRetainer[]>([]);
   const [taxCalendar, setTaxCalendar] = useState<TaxCalendarResponse | null>(null);
   const [profitability, setProfitability] = useState<ProfitabilityReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
   const [costForm, setCostForm] = useState({ description: '', amount: '', client_id: '', matter_id: '' });
+  const [retainerForm, setRetainerForm] = useState({ client_id: '', amount: '', matter_id: '', notes: '' });
+  const [applyAmounts, setApplyAmounts] = useState<Record<number, string>>({});
 
   const [formData, setFormData] = useState({
     description: '',
@@ -213,6 +228,16 @@ export default function FinancePage() {
         setCostAdvances(data.items || []);
       }
 
+      // Honorários antecipados / retainers
+      const retainerResponse = await fetch(`${API_URL}/finance/retainers`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'omit'
+      });
+      if (retainerResponse.ok) {
+        const data = await retainerResponse.json();
+        setRetainers(data.items || []);
+      }
+
 
       // Client profitability stub
       const profitResponse = await fetch(`${API_URL}/finance/profitability?limit=10`, {
@@ -284,6 +309,59 @@ export default function FinancePage() {
       if (response.ok) fetchData();
     } catch (error) {
       console.error('Erro ao atualizar custas:', error);
+    }
+  };
+
+  const handleCreateRetainer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token || !retainerForm.client_id || !retainerForm.amount) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/retainers`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({
+          client_id: parseInt(retainerForm.client_id, 10),
+          amount: parseFloat(retainerForm.amount),
+          matter_id: retainerForm.matter_id ? parseInt(retainerForm.matter_id, 10) : null,
+          notes: retainerForm.notes || null,
+        }),
+      });
+      if (response.ok) {
+        setRetainerForm({ client_id: '', amount: '', matter_id: '', notes: '' });
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Erro ao registrar retainer:', error);
+    }
+  };
+
+  const handleApplyRetainer = async (id: number) => {
+    const token = getToken();
+    const raw = applyAmounts[id];
+    if (!token || !raw) return;
+    const amount = parseFloat(raw);
+    if (!amount || amount <= 0) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/retainers/${id}/apply`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({ amount }),
+      });
+      if (response.ok) {
+        setApplyAmounts((prev) => ({ ...prev, [id]: '' }));
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar retainer:', error);
     }
   };
 
@@ -624,6 +702,107 @@ export default function FinancePage() {
             </ul>
           </section>
         )}
+
+        {/* Honorários antecipados / retainers */}
+        <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+              Honorários
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">
+              Antecipados / retainers
+            </h2>
+            <p className="mt-1 text-sm text-[#94A3B8]">
+              Controle de saldo operacional — open / parcial / esgotado (sem regra jurídica)
+            </p>
+          </div>
+          <form onSubmit={handleCreateRetainer} className="mb-4 grid gap-3 sm:grid-cols-5">
+            <input
+              type="number"
+              value={retainerForm.client_id}
+              onChange={(e) => setRetainerForm({ ...retainerForm, client_id: e.target.value })}
+              placeholder="Cliente ID"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={retainerForm.amount}
+              onChange={(e) => setRetainerForm({ ...retainerForm, amount: e.target.value })}
+              placeholder="Valor R$"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <input
+              type="number"
+              value={retainerForm.matter_id}
+              onChange={(e) => setRetainerForm({ ...retainerForm, matter_id: e.target.value })}
+              placeholder="Matter ID (opc.)"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+            />
+            <input
+              type="text"
+              value={retainerForm.notes}
+              onChange={(e) => setRetainerForm({ ...retainerForm, notes: e.target.value })}
+              placeholder="Notas"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#0F766E]/30 hover:bg-[#0F766E]/45 text-[#5EEAD4] rounded-lg text-sm font-medium transition"
+            >
+              Registrar
+            </button>
+          </form>
+          {retainers.length === 0 ? (
+            <p className="text-sm text-[#64748B]">Nenhum retainer registrado.</p>
+          ) : (
+            <div className="space-y-2">
+              {retainers.slice(0, 10).map((row) => (
+                <div
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-[#1E293B]"
+                >
+                  <div>
+                    <p className="text-sm text-[#E8EEF4]">
+                      Cliente #{row.client_id}
+                      {row.notes ? ` · ${row.notes}` : ''}
+                    </p>
+                    <p className="text-xs text-[#64748B]">
+                      {row.status} · aplicado {formatCurrency(row.amount_applied)} · resto{' '}
+                      {formatCurrency(row.remaining)}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-[#CBD5E1]">{formatCurrency(row.amount)}</span>
+                    {row.status !== 'exhausted' && row.status !== 'refunded' && (
+                      <>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={applyAmounts[row.id] || ''}
+                          onChange={(e) =>
+                            setApplyAmounts((prev) => ({ ...prev, [row.id]: e.target.value }))
+                          }
+                          placeholder="Aplicar"
+                          className="w-24 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleApplyRetainer(row.id)}
+                          className="px-2 py-1 text-xs text-[#5EEAD4] hover:bg-[#0F766E]/20 rounded"
+                        >
+                          Aplicar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Custas / cost advances */}
         <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
