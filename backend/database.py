@@ -1703,6 +1703,36 @@ class CourtProtocol(Base):
         }
 
 
+
+class HearingWitness(Base):
+    """Testemunha vinculada a audiencia (contato operacional — nao e intimacao)."""
+    __tablename__ = 'hearing_witnesses'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    hearing_id = Column(Integer, ForeignKey('hearings.id'), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    phone = Column(String(40), nullable=True)
+    role = Column(String(80), default='testemunha', nullable=False)
+    # pending | confirmed | waived
+    status = Column(String(20), default='pending', nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'hearing_id': self.hearing_id,
+            'name': self.name,
+            'phone': self.phone,
+            'role': self.role,
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================

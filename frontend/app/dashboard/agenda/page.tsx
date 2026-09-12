@@ -24,6 +24,15 @@ interface PrepItem {
   hearing_id: number;
 }
 
+interface WitnessItem {
+  id: number;
+  name: string;
+  phone?: string | null;
+  role: string;
+  status: string;
+  hearing_id: number;
+}
+
 const EMPTY_FORM = {
   title: '',
   location: '',
@@ -74,6 +83,10 @@ export default function AgendaPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [prepByHearing, setPrepByHearing] = useState<Record<number, PrepItem[]>>({});
   const [openPrep, setOpenPrep] = useState<number | null>(null);
+  const [witnessByHearing, setWitnessByHearing] = useState<Record<number, WitnessItem[]>>({});
+  const [openWitness, setOpenWitness] = useState<number | null>(null);
+  const [witnessName, setWitnessName] = useState('');
+  const [witnessPhone, setWitnessPhone] = useState('');
 
   const loadHearings = useCallback(async () => {
     if (!hasDashboardToken()) {
@@ -144,6 +157,7 @@ export default function AgendaPage() {
       const data = await apiFetch(`/agenda/hearings/${hearingId}/prep`);
       setPrepByHearing((prev) => ({ ...prev, [hearingId]: data.items || [] }));
       setOpenPrep(hearingId);
+      setOpenWitness(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao carregar prep');
     }
@@ -177,6 +191,58 @@ export default function AgendaPage() {
       setSaving(false);
     }
   };
+
+  const loadWitnesses = async (hearingId: number) => {
+    setError('');
+    try {
+      const data = await apiFetch(`/agenda/hearings/${hearingId}/witnesses`);
+      setWitnessByHearing((prev) => ({ ...prev, [hearingId]: data.witnesses || [] }));
+      setOpenWitness(hearingId);
+      setOpenPrep(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao carregar testemunhas');
+    }
+  };
+
+  const addWitness = async (hearingId: number) => {
+    if (!witnessName.trim()) return;
+    setSaving(true);
+    setError('');
+    try {
+      const payload: Record<string, string> = { name: witnessName.trim() };
+      if (witnessPhone.trim()) payload.phone = witnessPhone.trim();
+      await apiFetch(`/agenda/hearings/${hearingId}/witnesses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      setWitnessName('');
+      setWitnessPhone('');
+      await loadWitnesses(hearingId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao adicionar testemunha');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmWitness = async (hearingId: number, witnessId: number) => {
+    setSaving(true);
+    setError('');
+    try {
+      await apiFetch(`/agenda/witnesses/${witnessId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+      await loadWitnesses(hearingId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao confirmar testemunha');
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -294,6 +360,14 @@ export default function AgendaPage() {
                 >
                   Prep
                 </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void loadWitnesses(h.id)}
+                  className="rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs text-violet-200 hover:bg-violet-500/20"
+                >
+                  Testemunhas
+                </button>
                 {h.status !== 'done' ? (
                   <button
                     type="button"
@@ -365,6 +439,67 @@ export default function AgendaPage() {
                               Feito
                             </button>
                           ) : null}
+
+              {openWitness === h.id ? (
+                <div className="mt-3 w-full border-t border-white/10 pt-3">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
+                    Testemunhas
+                  </p>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <input
+                      value={witnessName}
+                      onChange={(e) => setWitnessName(e.target.value)}
+                      placeholder="Nome"
+                      className="min-w-[10rem] flex-1 rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm"
+                    />
+                    <input
+                      value={witnessPhone}
+                      onChange={(e) => setWitnessPhone(e.target.value)}
+                      placeholder="Telefone"
+                      className="w-36 rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm"
+                    />
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void addWitness(h.id)}
+                      className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs text-white hover:bg-teal-500"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                  {(witnessByHearing[h.id] || []).length === 0 ? (
+                    <p className="text-xs text-white/40">Nenhuma testemunha ainda.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {(witnessByHearing[h.id] || []).map((w) => (
+                        <li
+                          key={w.id}
+                          className="flex items-center justify-between gap-2 text-sm text-white/80"
+                        >
+                          <span>
+                            {w.name}
+                            {w.phone ? (
+                              <span className="text-white/45"> · {w.phone}</span>
+                            ) : null}{' '}
+                            <span className="text-xs text-white/40">({w.status})</span>
+                          </span>
+                          {w.status === 'pending' ? (
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => void confirmWitness(h.id, w.id)}
+                              className="text-xs text-emerald-300 underline"
+                            >
+                              Confirmar
+                            </button>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+
                         </li>
                       ))}
                     </ul>

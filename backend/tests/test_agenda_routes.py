@@ -19,6 +19,7 @@ from database import (  # noqa: E402
     Base,
     Hearing,
     HearingPrepItem,
+    HearingWitness,
     User,
     get_db,
 )
@@ -242,3 +243,44 @@ class TestAgendaHearings:
             == 404
         )
         assert HearingPrepItem is not None
+
+
+
+def test_hearing_witnesses_crud_and_idor(auth_headers, stranger_headers):
+    created = client.post(
+        "/agenda/hearings",
+        json={
+            "title": "Audiencia com testemunhas",
+            "hearing_at": datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc).isoformat(),
+        },
+        headers=auth_headers,
+    )
+    assert created.status_code == 201
+    hid = created.json()["hearing"]["id"]
+
+    add = client.post(
+        f"/agenda/hearings/{hid}/witnesses",
+        headers=auth_headers,
+        json={"name": "Maria Silva", "phone": "11999990000", "role": "testemunha"},
+    )
+    assert add.status_code == 201, add.text
+    wid = add.json()["witness"]["id"]
+
+    listed = client.get(f"/agenda/hearings/{hid}/witnesses", headers=auth_headers)
+    assert listed.status_code == 200
+    assert listed.json()["count"] == 1
+    assert listed.json()["pending_count"] == 1
+
+    assert (
+        client.get(f"/agenda/hearings/{hid}/witnesses", headers=stranger_headers).status_code
+        == 404
+    )
+
+    done = client.patch(
+        f"/agenda/witnesses/{wid}/status",
+        headers=auth_headers,
+        json={"status": "confirmed"},
+    )
+    assert done.status_code == 200
+    assert done.json()["witness"]["status"] == "confirmed"
+    assert HearingWitness is not None
