@@ -32,6 +32,12 @@ interface TaskItem {
   priority?: string | null;
 }
 
+interface FollowUpItem {
+  id: number;
+  subject: string;
+  due_at?: string | null;
+}
+
 interface TodayBoard {
   deadlines: {
     overdue: DeadlineItem[];
@@ -48,6 +54,12 @@ interface TodayBoard {
     undated: TaskItem[];
     counts: { due_soon: number; undated: number; open: number };
   };
+  followups_due?: FollowUpItem[];
+  followups_due_count?: number;
+  docs_pending?: { id: number; title: string }[];
+  docs_pending_count?: number;
+  notes_recent?: { id: number; body: string; pinned?: boolean }[];
+  notes_recent_count?: number;
 }
 
 function hasDashboardToken(): boolean {
@@ -178,7 +190,7 @@ export default function HojePage() {
           <p className="text-sm text-slate-400">Carregando…</p>
         ) : (
           <>
-            <div className="mb-8 grid gap-3 sm:grid-cols-5">
+            <div className="mb-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
               <Stat label="Atrasados" value={counts?.overdue ?? 0} tone="red" />
               <Stat label="Prazos hoje" value={counts?.due_today ?? 0} tone="amber" />
               <Stat label="Audiências" value={board.hearings_count} tone="sky" />
@@ -187,6 +199,11 @@ export default function HojePage() {
                 label="Tarefas"
                 value={board.tasks?.counts.open ?? 0}
                 tone="teal"
+              />
+              <Stat
+                label="Follow-ups"
+                value={board.followups_due_count ?? 0}
+                tone="amber"
               />
             </div>
 
@@ -252,6 +269,21 @@ export default function HojePage() {
                         </span>
                       </li>
                     ))}
+                </ul>
+              )}
+            </Section>
+
+            <Section title="Follow-ups" href="/dashboard/followups">
+              {(board.followups_due?.length ?? 0) === 0 ? (
+                <p className="text-sm text-slate-400">Nenhum retorno na janela.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {(board.followups_due || []).map((f) => (
+                    <li key={f.id} className="text-sm text-slate-200">
+                      <span className="font-medium text-white">{f.subject}</span>
+                      <span className="text-slate-400"> — {fmt(f.due_at)}</span>
+                    </li>
+                  ))}
                 </ul>
               )}
             </Section>

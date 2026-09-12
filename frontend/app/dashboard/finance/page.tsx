@@ -979,6 +979,32 @@ export default function FinancePage() {
                 Pendente: {formatCurrency(expensePendingTotal)} — distinto de custas judiciais
               </p>
             </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const token = getToken();
+                if (!token) return;
+                try {
+                  const res = await fetch(`${API_URL}/finance/expenses/csv`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    credentials: 'omit',
+                  });
+                  if (!res.ok) return;
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'lexscan_expenses.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('Erro ao exportar CSV:', err);
+                }
+              }}
+              className="text-sm text-[#5EEAD4] hover:underline"
+            >
+              Exportar CSV →
+            </button>
           </div>
           <form onSubmit={handleCreateExpense} className="mb-4 grid gap-3 sm:grid-cols-5">
             <input

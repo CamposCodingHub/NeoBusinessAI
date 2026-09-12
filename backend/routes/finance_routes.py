@@ -3,6 +3,7 @@ Módulo Financeiro - JurisFlow AI
 Gestão de faturas, receitas e controle de inadimplência
 """
 
+from fastapi.responses import PlainTextResponse
 from fastapi import APIRouter, HTTPException, Depends, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -1306,6 +1307,61 @@ async def create_expense_claim(
     db.refresh(row)
     return row.to_dict()
 
+
+
+
+@router.get("/expenses/csv")
+async def export_expense_claims_csv(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Exporta despesas reembolsáveis em CSV (UTF-8) para planilha do contador."""
+    import csv
+    import io
+
+    q = db.query(ExpenseClaim).filter(ExpenseClaim.user_id == current_user.id)
+    if status_filter:
+        q = q.filter(ExpenseClaim.status == status_filter)
+    rows = q.order_by(ExpenseClaim.created_at.desc()).all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(
+        [
+            "id",
+            "description",
+            "category",
+            "amount",
+            "status",
+            "client_id",
+            "matter_id",
+            "incurred_at",
+            "created_at",
+        ]
+    )
+    for r in rows:
+        writer.writerow(
+            [
+                r.id,
+                r.description or "",
+                r.category or "",
+                f"{float(r.amount or 0):.2f}",
+                r.status or "",
+                r.client_id if r.client_id is not None else "",
+                r.matter_id if r.matter_id is not None else "",
+                r.incurred_at.isoformat() if r.incurred_at else "",
+                r.created_at.isoformat() if r.created_at else "",
+            ]
+        )
+
+    return PlainTextResponse(
+        content=buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="lexscan_expenses.csv"'
+        },
+    )
 
 @router.patch("/expenses/{expense_id}/status")
 async def patch_expense_status(

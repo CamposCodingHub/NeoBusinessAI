@@ -140,3 +140,17 @@ class TestExpenseClaims:
         )
         assert patch.status_code == 404
         assert ExpenseClaim is not None
+
+    def test_export_csv(self, auth_headers):
+        client.post(
+            "/finance/expenses",
+            headers=auth_headers,
+            json={"description": "SEDEX", "amount": 22.5, "category": "courier"},
+        )
+        resp = client.get("/finance/expenses/csv", headers=auth_headers)
+        assert resp.status_code == 200, resp.text
+        assert "text/csv" in resp.headers.get("content-type", "")
+        body = resp.text
+        assert "description" in body
+        assert "SEDEX" in body
+        assert "22.50" in body

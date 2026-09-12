@@ -246,6 +246,7 @@ class QA:
             (["/followups", "/followups/"], "followups"),
             (["/finance/aging"], "aging"),
             (["/finance/expenses"], "expenses"),
+            (["/finance/expenses/csv"], "expenses_csv"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),
         ]
         for paths, name in endpoints:
