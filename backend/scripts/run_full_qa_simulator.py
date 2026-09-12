@@ -231,6 +231,7 @@ class QA:
             (["/ai/audit"], "ai_audit"),
             (["/operations/shortcuts"], "ops_shortcuts"),
             (["/operations/activity"], "ops_activity"),
+            (["/operations/today"], "ops_today"),
             (["/orgs", "/orgs/"], "orgs"),
             (["/trust/accounts", "/trust/accounts/"], "trust"),
             (["/esign/envelopes", "/esign/envelopes/"], "esign"),

@@ -11,7 +11,8 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from database import ActivityEvent, get_db_async
+from datetime import datetime, timedelta, timezone
+from database import ActivityEvent, Deadline, Hearing, PowerOfAttorney, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -90,6 +91,21 @@ def _resolve_artifact(relative_path: str) -> Path:
 # Limites de uso tambem existem em GET /usage/me; o atalho aponta para planos.
 OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
     {
+        "label": "Hoje",
+        "path": "/dashboard/hoje",
+        "description": "Prazos, audiencias e procuracoes do dia",
+    },
+    {
+        "label": "Agenda",
+        "path": "/dashboard/agenda",
+        "description": "Audiencias e compromissos",
+    },
+    {
+        "label": "Procuracoes",
+        "path": "/dashboard/poa",
+        "description": "Validade operacional de mandatos",
+    },
+    {
         "label": "Prazos",
         "path": "/dashboard/deadlines",
         "description": "Controle de prazos e alertas do escritorio",
@@ -165,6 +181,104 @@ async def get_operations_shortcuts(
     _ = current_user
     return {"shortcuts": OPERATIONS_SHORTCUTS}
 
+
+
+
+@router.get("/today")
+async def get_operations_today(
+    days_ahead: int = Query(7, ge=1, le=30),
+    poa_days: int = Query(30, ge=1, le=365),
+    db: Session = Depends(get_db_async),
+    current_user=Depends(get_current_user),
+):
+    """Painel do dia: prazos, audiencias e procuracoes a vencer (JWT)."""
+    user_id = int(current_user.user_id)
+    now = datetime.now(timezone.utc)
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = start + timedelta(days=days_ahead + 1)
+    today_end = start + timedelta(days=1)
+
+    deadlines = (
+        db.query(Deadline)
+        .filter(
+            Deadline.user_id == user_id,
+            Deadline.is_completed.is_(False),
+            Deadline.due_date.isnot(None),
+            Deadline.due_date < end,
+        )
+        .order_by(Deadline.due_date.asc())
+        .limit(50)
+        .all()
+    )
+    overdue = []
+    due_today = []
+    upcoming = []
+    for d in deadlines:
+        due = d.due_date
+        if due is None:
+            continue
+        if due.tzinfo is None:
+            due = due.replace(tzinfo=timezone.utc)
+        item = d.to_dict()
+        if due < start:
+            overdue.append(item)
+        elif due < today_end:
+            due_today.append(item)
+        else:
+            upcoming.append(item)
+
+    hearings = (
+        db.query(Hearing)
+        .filter(
+            Hearing.user_id == user_id,
+            Hearing.status == "scheduled",
+            Hearing.hearing_at >= start,
+            Hearing.hearing_at < end,
+        )
+        .order_by(Hearing.hearing_at.asc())
+        .limit(50)
+        .all()
+    )
+
+    poa_horizon = now + timedelta(days=poa_days)
+    powers = (
+        db.query(PowerOfAttorney)
+        .filter(
+            PowerOfAttorney.user_id == user_id,
+            PowerOfAttorney.status == "active",
+            PowerOfAttorney.expires_at.isnot(None),
+            PowerOfAttorney.expires_at >= now,
+            PowerOfAttorney.expires_at <= poa_horizon,
+        )
+        .order_by(PowerOfAttorney.expires_at.asc())
+        .limit(50)
+        .all()
+    )
+
+    return {
+        "success": True,
+        "generated_at": now.isoformat(),
+        "window": {
+            "days_ahead": days_ahead,
+            "poa_days": poa_days,
+            "from": start.isoformat(),
+            "to": end.isoformat(),
+        },
+        "deadlines": {
+            "overdue": overdue,
+            "due_today": due_today,
+            "upcoming": upcoming,
+            "counts": {
+                "overdue": len(overdue),
+                "due_today": len(due_today),
+                "upcoming": len(upcoming),
+            },
+        },
+        "hearings": [h.to_dict() for h in hearings],
+        "hearings_count": len(hearings),
+        "powers_expiring": [p.to_dict() for p in powers],
+        "powers_expiring_count": len(powers),
+    }
 
 @router.get("/activity")
 async def get_operations_activity(
