@@ -1,7 +1,7 @@
-"""
+﻿"""
 NeoBusiness AI - Backend API
 =============================
-Sistema de IA jurídica com segurança enterprise-grade.
+Sistema de IA jurÃ­dica com seguranÃ§a enterprise-grade.
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Security, Request
@@ -16,26 +16,26 @@ from typing import List, Dict, Optional
 from datetime import datetime
 import logging
 
-# Configuração de logging
+# ConfiguraÃ§Ã£o de logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Carrega variáveis de ambiente e configuração validada
+# Carrega variÃ¡veis de ambiente e configuraÃ§Ã£o validada
 try:
     from dotenv import load_dotenv
     load_dotenv(encoding='utf-8')
 except ImportError:
     pass
 
-# Importar configuração validada (falha rápido se inválida)
+# Importar configuraÃ§Ã£o validada (falha rÃ¡pido se invÃ¡lida)
 try:
     from config import settings
-    logger.info(f"✅ Configuração validada - Environment: {settings.ENVIRONMENT}")
+    logger.info(f"âœ… ConfiguraÃ§Ã£o validada - Environment: {settings.ENVIRONMENT}")
 except Exception as e:
-    logger.error(f"❌ Erro na configuração: {e}")
+    logger.error(f"âŒ Erro na configuraÃ§Ã£o: {e}")
     raise
 
 # ==================== SECURITY IMPORTS ====================
@@ -90,6 +90,7 @@ from routes.esign_routes import router as esign_router
 from routes.monitor_routes import router as monitor_router
 from routes.compliance_routes import router as compliance_router
 from routes.notification_routes import router as notification_router
+from routes.agenda_routes import router as agenda_router
 
 # AI Imports
 from ai.lexscan_engine import lexscan_engine
@@ -112,7 +113,7 @@ try:
     CELERY_AVAILABLE = True
 except ImportError:
     CELERY_AVAILABLE = False
-    logger.warning("Celery não disponível. Processamento será síncrono.")
+    logger.warning("Celery nÃ£o disponÃ­vel. Processamento serÃ¡ sÃ­ncrono.")
 
 # ==================== AI ENGINE INITIALIZATION ====================
 try:
@@ -127,7 +128,7 @@ except Exception as e:
     legal_ai_orchestrator = None
     PREMIUM_AI_AVAILABLE = False
     logger.error(f"[ERRO] Falha ao carregar motor Premium: {e}")
-    print(f"[WARNING] Motor Premium não disponível: {e}")
+    print(f"[WARNING] Motor Premium nÃ£o disponÃ­vel: {e}")
 
 # PostgreSQL Database imports
 from database import (
@@ -156,17 +157,17 @@ app.add_middleware(MultiTenantMiddleware)
 
 # ==================== CORS FIRST ====================
 # CORS deve ser o PRIMEIRO middleware para evitar erros de preflight
-# Configuração SEGURA baseada no ambiente
+# ConfiguraÃ§Ã£o SEGURA baseada no ambiente
 
-# Carregar domínios permitidos do ambiente
+# Carregar domÃ­nios permitidos do ambiente
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
-    # Produção: apenas domínios específicos
+    # ProduÃ§Ã£o: apenas domÃ­nios especÃ­ficos
     allow_origins = ALLOWED_ORIGINS
     allow_credentials = True
-    logger.info(f"[CORS] Modo PRODUÇÃO - Origens permitidas: {allow_origins}")
+    logger.info(f"[CORS] Modo PRODUÃ‡ÃƒO - Origens permitidas: {allow_origins}")
 else:
     # Desenvolvimento: permitir localhost
     allow_origins = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"]
@@ -183,7 +184,7 @@ app.add_middleware(
     max_age=3600,
 )
 
-logger.info("[CORS] Middleware configurado com segurança")
+logger.info("[CORS] Middleware configurado com seguranÃ§a")
 
 # ==================== SECURITY SETUP ====================
 setup_security_middleware(app)
@@ -203,7 +204,7 @@ app.include_router(twilio_quick_router)
 app.include_router(gdpr_router)
 app.include_router(health_router)
 
-# Módulos Etapa 6 + overnight/day
+# MÃ³dulos Etapa 6 + overnight/day
 app.include_router(portal_client_router)
 app.include_router(team_router)
 app.include_router(jurisprudencia_router)
@@ -226,6 +227,7 @@ app.include_router(esign_router)
 app.include_router(monitor_router)
 app.include_router(compliance_router)
 app.include_router(notification_router)
+app.include_router(agenda_router)
 # CRITICAL-003 FIX: Global error handler to prevent stack trace leaks
 import uuid
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -233,8 +235,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """
-    Handler global para exceções não tratadas
-    NÃO expõe stack traces ou detalhes internos em produção
+    Handler global para exceÃ§Ãµes nÃ£o tratadas
+    NÃƒO expÃµe stack traces ou detalhes internos em produÃ§Ã£o
     """
     error_id = str(uuid.uuid4())[:8]
     
@@ -243,21 +245,21 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger = logging.getLogger(__name__)
     logger.error(f"Error {error_id}: {str(exc)}", exc_info=True)
     
-    # Retornar mensagem genérica para cliente
+    # Retornar mensagem genÃ©rica para cliente
     return JSONResponse(
         status_code=500,
         content={
             'success': False,
             'error': 'Ocorreu um erro interno. Nossa equipe foi notificada.',
             'error_id': error_id,
-            'message': 'Se o problema persistir, contate o suporte com o código acima.'
+            'message': 'Se o problema persistir, contate o suporte com o cÃ³digo acima.'
         }
     )
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Handler para HTTP exceptions"""
-    # Não expor detalhes em erros 500
+    # NÃ£o expor detalhes em erros 500
     if exc.status_code == 500:
         error_id = str(uuid.uuid4())[:8]
         return JSONResponse(
@@ -332,9 +334,9 @@ async def chat_stream(
 @app.post("/api/documents/upload")
 async def upload_document(file: UploadFile = File(...), manual_text: str = None, user_email: str = None):
     """
-    Upload e processamento de documento jurídico com OCR real
+    Upload e processamento de documento jurÃ­dico com OCR real
     Verifica limites do plano antes de permitir upload
-    USA POSTGRESQL - MIGRADO de SQLite para produção
+    USA POSTGRESQL - MIGRADO de SQLite para produÃ§Ã£o
     """
     db = SessionLocal()
     try:
@@ -342,7 +344,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         if user_email and not validate_email(user_email):
             return JSONResponse({
                 'success': False,
-                'error': 'Email inválido',
+                'error': 'Email invÃ¡lido',
                 'code': 'INVALID_EMAIL'
             }, status_code=400)
         
@@ -373,7 +375,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         if not safe_filename or safe_filename == 'unnamed_file':
             return JSONResponse({
                 'success': False,
-                'error': 'Nome de arquivo inválido ou não seguro.',
+                'error': 'Nome de arquivo invÃ¡lido ou nÃ£o seguro.',
                 'code': 'INVALID_FILENAME'
             }, status_code=400)
         
@@ -382,7 +384,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         if len(content) > max_file_size:
             return JSONResponse({
                 'success': False,
-                'error': f'Arquivo muito grande. Tamanho máximo: 50MB.',
+                'error': f'Arquivo muito grande. Tamanho mÃ¡ximo: 50MB.',
                 'code': 'FILE_TOO_LARGE'
             }, status_code=413)
         
@@ -393,11 +395,11 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
                 print(f"[SECURITY] Prompt injection detected: {patterns}")
                 return JSONResponse({
                     'success': False,
-                    'error': 'Conteúdo suspeito detectado e bloqueado por segurança.',
+                    'error': 'ConteÃºdo suspeito detectado e bloqueado por seguranÃ§a.',
                     'code': 'SECURITY_VIOLATION'
                 }, status_code=400)
         
-        # Ler conteúdo
+        # Ler conteÃºdo
         content = validated_file["content"]
         
         print(f"[UPLOAD] Recebido: {safe_filename} ({len(content)} bytes)")
@@ -405,18 +407,18 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         # Extrair texto com OCR real (usando filename sanitizado)
         ocr_result = process_uploaded_file(content, safe_filename, manual_text)
         
-        # Se OCR falhou mas não tem texto manual, retornar instruções
+        # Se OCR falhou mas nÃ£o tem texto manual, retornar instruÃ§Ãµes
         if not ocr_result['success'] and not manual_text:
             return JSONResponse({
                 'success': False,
                 'error': ocr_result.get('error', 'Falha no OCR'),
                 'ocr_available': False,
                 'fallback_option': True,
-                'message': 'OCR não disponível. Você pode enviar o texto manualmente.'
+                'message': 'OCR nÃ£o disponÃ­vel. VocÃª pode enviar o texto manualmente.'
             }, status_code=400)
         
         text_content = ocr_result['text']
-        print(f"[UPLOAD] Texto extraído: {len(text_content)} caracteres")
+        print(f"[UPLOAD] Texto extraÃ­do: {len(text_content)} caracteres")
         
         # Processar com LexScan Engine
         result = lexscan_engine.process_document(text_content)
@@ -458,7 +460,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
         # Commit transaction
         db.commit()
         
-        # Converte para dicionário para resposta
+        # Converte para dicionÃ¡rio para resposta
         document = document_to_dict(db_document)
         print(f"[UPLOAD] Documento salvo no PostgreSQL: ID {doc_id}")
         
@@ -481,7 +483,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
             success=True
         )
         
-        # Notificar usuário (opcional)
+        # Notificar usuÃ¡rio (opcional)
         if user_email and notification_manager:
             try:
                 notification_manager.send_notification(
@@ -501,7 +503,7 @@ async def upload_document(file: UploadFile = File(...), manual_text: str = None,
                 'text_length': len(text_content),
                 'file_type': ocr_result['type']
             },
-            'message': f'Documento processado com sucesso! {ocr_result.get("pages", 1)} página(s) analisada(s).'
+            'message': f'Documento processado com sucesso! {ocr_result.get("pages", 1)} pÃ¡gina(s) analisada(s).'
         })
         
         # Add security headers
@@ -540,14 +542,14 @@ async def list_documents(current_user=Depends(get_current_user)):
 @app.get("/api/documents/{doc_id}")
 async def get_document(doc_id: int, user_email: str = None):
     """
-    Obtém detalhes de um documento específico
+    ObtÃ©m detalhes de um documento especÃ­fico
     SECURITY: Verifica propriedade para prevenir IDOR
     """
     db = SessionLocal()
     try:
         doc = get_db_document(db, doc_id)
         if not doc:
-            raise HTTPException(status_code=404, detail="Documento não encontrado")
+            raise HTTPException(status_code=404, detail="Documento nÃ£o encontrado")
         
         # Convert to dict for access verification
         doc_dict = document_to_dict(doc)
@@ -574,7 +576,7 @@ async def chat_with_document(doc_id: int, data: dict, user_email: str = None):
     try:
         doc = get_db_document(db, doc_id)
         if not doc:
-            raise HTTPException(status_code=404, detail="Documento não encontrado")
+            raise HTTPException(status_code=404, detail="Documento nÃ£o encontrado")
         
         # Convert to dict for access verification
         doc_dict = document_to_dict(doc)
@@ -590,11 +592,11 @@ async def chat_with_document(doc_id: int, data: dict, user_email: str = None):
         if is_malicious:
             return JSONResponse({
                 'success': False,
-                'error': 'Pergunta bloqueada por segurança.',
+                'error': 'Pergunta bloqueada por seguranÃ§a.',
                 'code': 'SECURITY_VIOLATION'
             }, status_code=400)
         
-        # PREMIUM AI: Usar motor premium se disponível
+        # PREMIUM AI: Usar motor premium se disponÃ­vel
         if PREMIUM_AI_AVAILABLE and premium_ai_engine:
             try:
                 # Gerar resposta premium com 25 etapas ativas
@@ -614,12 +616,12 @@ async def chat_with_document(doc_id: int, data: dict, user_email: str = None):
                     'ai_mode': 'premium'
                 }
             except Exception as e:
-                # Fallback para motor padrão
-                print(f"[WARNING] Premium AI falhou: {e}. Usando motor padrão.")
+                # Fallback para motor padrÃ£o
+                print(f"[WARNING] Premium AI falhou: {e}. Usando motor padrÃ£o.")
                 response = lexscan_engine.chat_with_document(doc_dict, question)
                 premium_metadata = {'ai_mode': 'standard', 'error': str(e)}
         else:
-            # Usar motor padrão (LexScan Engine)
+            # Usar motor padrÃ£o (LexScan Engine)
             response = lexscan_engine.chat_with_document(doc_dict, question)
             premium_metadata = {'ai_mode': 'standard'}
         
@@ -636,7 +638,7 @@ async def chat_with_document(doc_id: int, data: dict, user_email: str = None):
 async def get_deadlines(user_email: str = None):
     """
     Retorna prazos dos documentos
-    SECURITY: Filtra por usuário para prevenir data leak
+    SECURITY: Filtra por usuÃ¡rio para prevenir data leak
     """
     db = SessionLocal()
     try:
@@ -658,7 +660,7 @@ async def get_deadlines(user_email: str = None):
             all_dls = db.query(Deadline).order_by(desc(Deadline.created_at)).all()
             all_deadlines = [deadline_to_dict(dl) for dl in all_dls]
         
-        # Ordenar por urgência
+        # Ordenar por urgÃªncia
         urgency_order = {'high': 0, 'medium': 1, 'low': 2}
         all_deadlines.sort(key=lambda x: urgency_order.get(x.get('urgency', 'medium'), 1))
         
@@ -674,8 +676,8 @@ async def get_deadlines(user_email: str = None):
 @app.get("/api/dashboard/stats")
 async def dashboard_stats(user_email: str = None):
     """
-    Estatísticas para o dashboard
-    SECURITY: Filtra por usuário para prevenir data leak
+    EstatÃ­sticas para o dashboard
+    SECURITY: Filtra por usuÃ¡rio para prevenir data leak
     """
     db = SessionLocal()
     try:
@@ -700,7 +702,7 @@ async def dashboard_stats(user_email: str = None):
                     }
                 })
             else:
-                # Usuário não encontrado
+                # UsuÃ¡rio nÃ£o encontrado
                 return JSONResponse({
                     'success': True,
                     'stats': {
@@ -712,7 +714,7 @@ async def dashboard_stats(user_email: str = None):
                     }
                 })
         else:
-            # Retorna estatísticas globais (para compatibilidade)
+            # Retorna estatÃ­sticas globais (para compatibilidade)
             from sqlalchemy import func, desc
             total_docs = db.query(func.count(Document.id)).scalar()
             total_deadlines = db.query(func.count(Deadline.id)).scalar()
@@ -755,7 +757,7 @@ async def system_status():
         'version': '1.0.0',
         'ocr': {
             'available': ocr_real.tesseract_available,
-            'message': 'Tesseract OCR pronto' if ocr_real.tesseract_available else 'Tesseract não instalado',
+            'message': 'Tesseract OCR pronto' if ocr_real.tesseract_available else 'Tesseract nÃ£o instalado',
             'install_url': 'https://github.com/UB-Mannheim/tesseract/wiki' if not ocr_real.tesseract_available else None
         },
         'api': {
@@ -771,13 +773,13 @@ async def system_status():
 
 
 # ============================================
-# NOTIFICAÇÕES POR EMAIL
+# NOTIFICAÃ‡Ã•ES POR EMAIL
 # ============================================
 
 @app.get("/api/notifications/test")
 async def test_notifications():
     """
-    Testa conexão com servidor SMTP
+    Testa conexÃ£o com servidor SMTP
     """
     result = notification_manager.test_connection()
     return JSONResponse(result)
@@ -791,26 +793,26 @@ async def send_test_email(data: dict):
     if not to_email:
         return JSONResponse({
             'success': False,
-            'error': 'Email de destino não fornecido'
+            'error': 'Email de destino nÃ£o fornecido'
         }, status_code=400)
     
     html_content = """
     <html>
     <body style="font-family: Arial, sans-serif; padding: 20px;">
-        <h1 style="color: #1e3a5f;">✅ Teste LexScan IA</h1>
-        <p>Este é um email de teste do sistema de notificações.</p>
-        <p>Se você está recebendo este email, o sistema está configurado corretamente!</p>
+        <h1 style="color: #1e3a5f;">âœ… Teste LexScan IA</h1>
+        <p>Este Ã© um email de teste do sistema de notificaÃ§Ãµes.</p>
+        <p>Se vocÃª estÃ¡ recebendo este email, o sistema estÃ¡ configurado corretamente!</p>
         <br>
-        <p><strong>LexScan IA</strong> - Automação Documental Jurídica</p>
+        <p><strong>LexScan IA</strong> - AutomaÃ§Ã£o Documental JurÃ­dica</p>
     </body>
     </html>
     """
     
     result = notification_manager.send_email(
         to_email=to_email,
-        subject="📧 Teste de Notificação - LexScan IA",
+        subject="ðŸ“§ Teste de NotificaÃ§Ã£o - LexScan IA",
         html_content=html_content,
-        text_content="Teste de notificação LexScan IA. Sistema configurado corretamente!"
+        text_content="Teste de notificaÃ§Ã£o LexScan IA. Sistema configurado corretamente!"
     )
     
     return JSONResponse(result)
@@ -818,22 +820,22 @@ async def send_test_email(data: dict):
 @app.post("/api/notifications/check-deadlines")
 async def check_deadlines_and_notify(data: dict):
     """
-    Verifica prazos urgentes e envia notificações
+    Verifica prazos urgentes e envia notificaÃ§Ãµes
     """
     user_email = data.get('email', '')
     
     if not user_email:
         return JSONResponse({
             'success': False,
-            'error': 'Email do usuário não fornecido'
+            'error': 'Email do usuÃ¡rio nÃ£o fornecido'
         }, status_code=400)
     
     if not notification_manager.enabled:
         return JSONResponse({
             'success': False,
-            'error': 'Sistema de notificações não configurado',
+            'error': 'Sistema de notificaÃ§Ãµes nÃ£o configurado',
             'setup_instructions': [
-                'Configure as variáveis de ambiente no arquivo .env:',
+                'Configure as variÃ¡veis de ambiente no arquivo .env:',
                 'SMTP_SERVER=smtp.gmail.com',
                 'SMTP_PORT=587',
                 'SMTP_USERNAME=seu_email@gmail.com',
@@ -848,18 +850,18 @@ async def check_deadlines_and_notify(data: dict):
         'success': True,
         'notifications_sent': len(notifications),
         'notifications': notifications,
-        'message': f'{len(notifications)} notificações enviadas para {user_email}'
+        'message': f'{len(notifications)} notificaÃ§Ãµes enviadas para {user_email}'
     })
 
 
 # ============================================
-# EXPORTAÇÃO DE RELATÓRIOS PDF
+# EXPORTAÃ‡ÃƒO DE RELATÃ“RIOS PDF
 # ============================================
 
 @app.get("/api/documents/{doc_id}/report")
 async def generate_document_report(doc_id: int, user_email: str = None):
     """
-    Gera relatório PDF de um documento específico
+    Gera relatÃ³rio PDF de um documento especÃ­fico
     SECURITY: Verifica propriedade para prevenir IDOR
     """
     db = SessionLocal()
@@ -870,7 +872,7 @@ async def generate_document_report(doc_id: int, user_email: str = None):
         if not doc:
             return JSONResponse({
                 'success': False,
-                'error': 'Documento não encontrado'
+                'error': 'Documento nÃ£o encontrado'
             }, status_code=404)
         
         # Convert to dict for access verification
@@ -880,7 +882,7 @@ async def generate_document_report(doc_id: int, user_email: str = None):
         if not verify_document_access(doc_dict, user_email):
             return JSONResponse({
                 'success': False,
-                'error': 'Acesso negado. Você não tem permissão para acessar este recurso.',
+                'error': 'Acesso negado. VocÃª nÃ£o tem permissÃ£o para acessar este recurso.',
                 'code': 'FORBIDDEN'
             }, status_code=403)
         
@@ -910,8 +912,8 @@ async def generate_document_report(doc_id: int, user_email: str = None):
 @app.get("/api/reports/dashboard")
 async def generate_dashboard_report(user_email: str = None):
     """
-    Gera relatório geral do dashboard
-    SECURITY: Filtra por usuário para prevenir data leak
+    Gera relatÃ³rio geral do dashboard
+    SECURITY: Filtra por usuÃ¡rio para prevenir data leak
     """
     db = SessionLocal()
     try:
@@ -1131,8 +1133,8 @@ from tools.mfa_service import mfa_service
 @app.post("/api/auth/mfa/setup")
 async def mfa_setup(data: dict):
     """
-    Inicia configuração de MFA (2FA) para usuário
-    Retorna QR Code e segredo para configuração no Google Authenticator
+    Inicia configuraÃ§Ã£o de MFA (2FA) para usuÃ¡rio
+    Retorna QR Code e segredo para configuraÃ§Ã£o no Google Authenticator
     """
     user_id = data.get('user_id')
     user_email = data.get('email')
@@ -1140,7 +1142,7 @@ async def mfa_setup(data: dict):
     if not user_id or not user_email:
         return JSONResponse({
             'success': False,
-            'error': 'user_id e email são obrigatórios'
+            'error': 'user_id e email sÃ£o obrigatÃ³rios'
         }, status_code=400)
     
     try:
@@ -1150,7 +1152,7 @@ async def mfa_setup(data: dict):
             'success': True,
             'message': 'MFA configurado. Escaneie o QR Code com Google Authenticator.',
             'qr_code_base64': setup_info['qr_code_base64'],
-            'secret': setup_info['secret'],  # Para configuração manual
+            'secret': setup_info['secret'],  # Para configuraÃ§Ã£o manual
             'backup_codes': setup_info['backup_codes'],
             'instructions': setup_info['instructions']
         })
@@ -1163,15 +1165,15 @@ async def mfa_setup(data: dict):
 @app.post("/api/auth/mfa/verify")
 async def mfa_verify(data: dict):
     """
-    Verifica código MFA e habilita 2FA
+    Verifica cÃ³digo MFA e habilita 2FA
     """
     user_id = data.get('user_id')
-    token = data.get('token')  # Código de 6 dígitos do app autenticador
+    token = data.get('token')  # CÃ³digo de 6 dÃ­gitos do app autenticador
     
     if not user_id or not token:
         return JSONResponse({
             'success': False,
-            'error': 'user_id e token são obrigatórios'
+            'error': 'user_id e token sÃ£o obrigatÃ³rios'
         }, status_code=400)
     
     success, message = mfa_service.verify_and_enable(user_id, token)
@@ -1192,15 +1194,15 @@ async def mfa_verify(data: dict):
 @app.post("/api/auth/mfa/validate")
 async def mfa_validate(data: dict, request: Request):
     """
-    Valida código MFA durante login
-    Chamado após autenticação Firebase bem-sucedida
+    Valida cÃ³digo MFA durante login
+    Chamado apÃ³s autenticaÃ§Ã£o Firebase bem-sucedida
     
-    Rate limit: 5 tentativas por minuto por user_id (proteção contra brute force)
+    Rate limit: 5 tentativas por minuto por user_id (proteÃ§Ã£o contra brute force)
     """
     user_id = data.get('user_id')
     token = data.get('token')
     
-    # CRITICAL-001 FIX: Rate limiting específico para MFA (5 tentativas/minuto)
+    # CRITICAL-001 FIX: Rate limiting especÃ­fico para MFA (5 tentativas/minuto)
     client_ip = request.client.host if request.client else "unknown"
     rate_limit_key = f"mfa:{user_id}:{client_ip}" if user_id else f"mfa:ip:{client_ip}"
     
@@ -1217,7 +1219,7 @@ async def mfa_validate(data: dict, request: Request):
     if not user_id or not token:
         return JSONResponse({
             'success': False,
-            'error': 'user_id e token são obrigatórios'
+            'error': 'user_id e token sÃ£o obrigatÃ³rios'
         }, status_code=400)
     
     success, message = mfa_service.verify_mfa(user_id, token)
@@ -1238,12 +1240,12 @@ async def mfa_validate(data: dict, request: Request):
 @app.get("/api/auth/mfa/status")
 async def mfa_status(user_id: str):
     """
-    Retorna status do MFA para um usuário
+    Retorna status do MFA para um usuÃ¡rio
     """
     if not user_id:
         return JSONResponse({
             'success': False,
-            'error': 'user_id é obrigatório'
+            'error': 'user_id Ã© obrigatÃ³rio'
         }, status_code=400)
     
     status = mfa_service.get_mfa_status(user_id)
@@ -1256,18 +1258,18 @@ async def mfa_status(user_id: str):
 @app.post("/api/auth/mfa/disable")
 async def mfa_disable(data: dict):
     """
-    Desabilita MFA para um usuário (requer confirmação)
+    Desabilita MFA para um usuÃ¡rio (requer confirmaÃ§Ã£o)
     """
     user_id = data.get('user_id')
-    password = data.get('password')  # Para confirmação extra
+    password = data.get('password')  # Para confirmaÃ§Ã£o extra
     
     if not user_id:
         return JSONResponse({
             'success': False,
-            'error': 'user_id é obrigatório'
+            'error': 'user_id Ã© obrigatÃ³rio'
         }, status_code=400)
     
-    # Em produção, verificar senha com Firebase Auth
+    # Em produÃ§Ã£o, verificar senha com Firebase Auth
     success, message = mfa_service.disable_mfa(user_id, password)
     
     if success:
@@ -1285,7 +1287,7 @@ async def mfa_disable(data: dict):
 @app.post("/api/auth/mfa/backup-codes/regenerate")
 async def mfa_regenerate_backup_codes(data: dict):
     """
-    Regenera códigos de backup (requer token MFA válido)
+    Regenera cÃ³digos de backup (requer token MFA vÃ¡lido)
     """
     user_id = data.get('user_id')
     mfa_token = data.get('mfa_token')
@@ -1293,7 +1295,7 @@ async def mfa_regenerate_backup_codes(data: dict):
     if not user_id or not mfa_token:
         return JSONResponse({
             'success': False,
-            'error': 'user_id e mfa_token são obrigatórios'
+            'error': 'user_id e mfa_token sÃ£o obrigatÃ³rios'
         }, status_code=400)
     
     success, result = mfa_service.regenerate_backup_codes(user_id, mfa_token)
@@ -1301,9 +1303,9 @@ async def mfa_regenerate_backup_codes(data: dict):
     if success:
         return JSONResponse({
             'success': True,
-            'message': 'Códigos de backup regenerados',
+            'message': 'CÃ³digos de backup regenerados',
             'backup_codes': result,
-            'warning': 'Guarde os códigos em local seguro. Eles não serão mostrados novamente!'
+            'warning': 'Guarde os cÃ³digos em local seguro. Eles nÃ£o serÃ£o mostrados novamente!'
         })
     else:
         return JSONResponse({
@@ -1319,23 +1321,23 @@ async def mfa_regenerate_backup_codes(data: dict):
 @app.post("/api/documents/upload-async")
 async def upload_document_async(file: UploadFile = File(...), manual_text: str = None, user_email: str = None):
     """
-    Upload e processamento ASSÍNCRONO de documento
+    Upload e processamento ASSÃNCRONO de documento
     Retorna imediatamente com task_id para polling
     """
     if not CELERY_AVAILABLE:
         return JSONResponse({
             'success': False,
-            'error': 'Processamento assíncrono não disponível. Use /api/documents/upload',
+            'error': 'Processamento assÃ­ncrono nÃ£o disponÃ­vel. Use /api/documents/upload',
             'code': 'CELERY_UNAVAILABLE'
         }, status_code=503)
     
     db = SessionLocal()
     try:
-        # Validações
+        # ValidaÃ§Ãµes
         if user_email and not validate_email(user_email):
             return JSONResponse({
                 'success': False,
-                'error': 'Email inválido',
+                'error': 'Email invÃ¡lido',
                 'code': 'INVALID_EMAIL'
             }, status_code=400)
         
@@ -1367,11 +1369,11 @@ async def upload_document_async(file: UploadFile = File(...), manual_text: str =
             if is_malicious:
                 return JSONResponse({
                     'success': False,
-                    'error': 'Conteúdo suspeito detectado',
+                    'error': 'ConteÃºdo suspeito detectado',
                     'code': 'SECURITY_VIOLATION'
                 }, status_code=400)
         
-        # Ler conteúdo
+        # Ler conteÃºdo
         content = validated_file["content"]
         
         # Criar documento no banco (status: pending)
@@ -1414,12 +1416,12 @@ async def upload_document_async(file: UploadFile = File(...), manual_text: str =
 @app.get("/api/tasks/{task_id}/status")
 async def get_task_status_endpoint(task_id: str):
     """
-    Verifica status de uma tarefa assíncrona
+    Verifica status de uma tarefa assÃ­ncrona
     """
     if not CELERY_AVAILABLE:
         return JSONResponse({
             'success': False,
-            'error': 'Celery não disponível',
+            'error': 'Celery nÃ£o disponÃ­vel',
             'code': 'CELERY_UNAVAILABLE'
         }, status_code=503)
     
@@ -1434,12 +1436,12 @@ async def get_task_status_endpoint(task_id: str):
 @app.post("/api/send-email-async")
 async def send_email_async_endpoint(data: dict):
     """
-    Envia email de forma assíncrona
+    Envia email de forma assÃ­ncrona
     """
     if not CELERY_AVAILABLE:
         return JSONResponse({
             'success': False,
-            'error': 'Celery não disponível',
+            'error': 'Celery nÃ£o disponÃ­vel',
             'code': 'CELERY_UNAVAILABLE'
         }, status_code=503)
     
@@ -1472,7 +1474,7 @@ async def send_email_async_endpoint(data: dict):
 async def rate_limit_middleware(request: Request, call_next):
     """
     Middleware de rate limiting global
-    Limita requisições por IP
+    Limita requisiÃ§Ãµes por IP
     """
     # Skip rate limiting para health checks e static files
     path = request.url.path
@@ -1528,14 +1530,14 @@ async def premium_chat_endpoint(
 ):
     """
     Endpoint Premium de Chat
-    Usa o motor de IA com 25 etapas de humanização e contexto
+    Usa o motor de IA com 25 etapas de humanizaÃ§Ã£o e contexto
     
     Features:
     - Respostas humanizadas e naturais
-    - Memória contextual
-    - Formatação premium
-    - Anti-repetição
-    - Detecção de intenção
+    - MemÃ³ria contextual
+    - FormataÃ§Ã£o premium
+    - Anti-repetiÃ§Ã£o
+    - DetecÃ§Ã£o de intenÃ§Ã£o
     """
     user_message = data.get('message', '')
     document_context = data.get('document_context', '')
@@ -1560,7 +1562,7 @@ async def premium_chat_endpoint(
     if not user_message:
         return JSONResponse({
             'success': False,
-            'error': 'Mensagem não fornecida'
+            'error': 'Mensagem nÃ£o fornecida'
         }, status_code=400)
     
     if len(user_message) > 12000:
@@ -1577,7 +1579,7 @@ async def premium_chat_endpoint(
     if not PREMIUM_AI_AVAILABLE or not premium_ai_engine or not legal_ai_orchestrator:
         return JSONResponse({
             'success': False,
-            'error': 'Motor Premium não disponível',
+            'error': 'Motor Premium nÃ£o disponÃ­vel',
             'ai_mode': 'unavailable'
         }, status_code=503)
     

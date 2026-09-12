@@ -152,11 +152,12 @@ export default function DashboardPage() {
           Operações
         </p>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <OpsGroup title="Casos">
+                    <OpsGroup title="Casos">
             <OpsLink href="/dashboard/intake">Intake</OpsLink>
             <OpsLink href="/dashboard/matters">Matters</OpsLink>
             <OpsLink href="/dashboard/approvals">Aprovações</OpsLink>
             <OpsLink href="/dashboard/monitor">Monitor</OpsLink>
+            <OpsLink href="/dashboard/agenda">Agenda</OpsLink>
             <OpsLink href="/dashboard/activity">Activity</OpsLink>
           </OpsGroup>
           <OpsGroup title="Financeiro">

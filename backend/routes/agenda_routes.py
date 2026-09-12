@@ -1,0 +1,159 @@
+"""
+Agenda / audiências stub — compromissos diários do advogado.
+
+Local JWT CRUD only. Not a calendar sync (Google/Outlook) and not a court feed.
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from database import Hearing, get_db
+from security import get_current_user, rate_limit
+from security.xss_protection import sanitize_plain_text
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/agenda", tags=["Agenda / Hearings"])
+
+VALID_STATUSES = frozenset({"scheduled", "done", "cancelled"})
+
+
+class HearingCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    hearing_at: datetime
+    location: Optional[str] = Field(None, max_length=255)
+    client_id: Optional[int] = None
+    matter_id: Optional[int] = None
+    notes: Optional[str] = Field(None, max_length=4000)
+    status: str = Field("scheduled", max_length=20)
+
+
+class HearingStatusPatch(BaseModel):
+    status: str = Field(..., min_length=1, max_length=20)
+
+
+def _uid(current_user) -> int:
+    return int(current_user.id)
+
+
+def _parse_bound(value: Optional[str], label: str) -> Optional[datetime]:
+    if value is None or not str(value).strip():
+        return None
+    raw = str(value).strip().replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(raw)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} inválido — use ISO datetime",
+        ) from exc
+
+
+def _get_owned(db: Session, hearing_id: int, user_id: int) -> Hearing:
+    row = (
+        db.query(Hearing)
+        .filter(Hearing.id == hearing_id, Hearing.user_id == user_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Audiência não encontrada")
+    return row
+
+
+@router.get("/hearings")
+@rate_limit(requests_per_minute=60)
+async def list_hearings(
+    from_at: Optional[str] = Query(None, alias="from"),
+    to_at: Optional[str] = Query(None, alias="to"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Lista audiências/compromissos do usuário (filtro opcional from/to em hearing_at)."""
+    user_id = _uid(current_user)
+    query = db.query(Hearing).filter(Hearing.user_id == user_id)
+
+    start = _parse_bound(from_at, "from")
+    end = _parse_bound(to_at, "to")
+    if start is not None:
+        query = query.filter(Hearing.hearing_at >= start)
+    if end is not None:
+        query = query.filter(Hearing.hearing_at <= end)
+
+    items = query.order_by(Hearing.hearing_at.asc()).all()
+    return {
+        "success": True,
+        "hearings": [h.to_dict() for h in items],
+        "count": len(items),
+    }
+
+
+@router.post("/hearings", status_code=status.HTTP_201_CREATED)
+@rate_limit(requests_per_minute=30)
+async def create_hearing(
+    payload: HearingCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Cria audiência/compromisso na agenda."""
+    user_id = _uid(current_user)
+    title = (sanitize_plain_text(payload.title) or "").strip()
+    if len(title) < 1:
+        raise HTTPException(status_code=400, detail="title inválido")
+
+    status_val = (payload.status or "scheduled").strip().lower()
+    if status_val not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail="status deve ser scheduled, done ou cancelled",
+        )
+
+    location = sanitize_plain_text(payload.location) if payload.location else None
+    notes = sanitize_plain_text(payload.notes) if payload.notes else None
+
+    row = Hearing(
+        user_id=user_id,
+        client_id=payload.client_id,
+        matter_id=payload.matter_id,
+        title=title[:255],
+        location=(location[:255] if location else None),
+        hearing_at=payload.hearing_at,
+        status=status_val,
+        notes=notes,
+    )
+    db.add(row)
+    db.flush()
+    db.refresh(row)
+    logger.info("Hearing criado: %s (user=%s)", row.id, user_id)
+    return {"success": True, "hearing": row.to_dict()}
+
+
+@router.patch("/hearings/{hearing_id}")
+@rate_limit(requests_per_minute=60)
+async def patch_hearing_status(
+    hearing_id: int,
+    payload: HearingStatusPatch,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Atualiza apenas o status (scheduled | done | cancelled)."""
+    user_id = _uid(current_user)
+    row = _get_owned(db, hearing_id, user_id)
+
+    status_val = (payload.status or "").strip().lower()
+    if status_val not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail="status deve ser scheduled, done ou cancelled",
+        )
+
+    row.status = status_val
+    db.flush()
+    db.refresh(row)
+    return {"success": True, "hearing": row.to_dict()}

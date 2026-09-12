@@ -1387,6 +1387,38 @@ class FeeRetainer(Base):
 
 
 
+
+class Hearing(Base):
+    """Audiencia / compromisso na agenda do advogado (stub operacional diario)."""
+    __tablename__ = 'hearings'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=True)
+    hearing_at = Column(DateTime, nullable=False, index=True)
+    # scheduled | done | cancelled
+    status = Column(String(20), default='scheduled', nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'title': self.title,
+            'location': self.location,
+            'hearing_at': self.hearing_at.isoformat() if self.hearing_at else None,
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================

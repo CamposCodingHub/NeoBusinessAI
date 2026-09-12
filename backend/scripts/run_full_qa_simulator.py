@@ -228,6 +228,7 @@ class QA:
             (["/trust/accounts", "/trust/accounts/"], "trust"),
             (["/esign/envelopes", "/esign/envelopes/"], "esign"),
             (["/monitor/processes", "/monitor/processes/"], "monitor"),
+            (["/agenda/hearings", "/agenda/hearings/"], "agenda"),
             (["/finance/aging"], "aging"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),
         ]

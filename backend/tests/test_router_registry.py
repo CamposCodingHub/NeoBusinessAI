@@ -25,6 +25,7 @@ REQUIRED_INCLUDE_ROUTERS = (
     "trust_router",
     "esign_router",
     "monitor_router",
+    "agenda_router",
     "compliance_router",
     "billing_router",
 )
