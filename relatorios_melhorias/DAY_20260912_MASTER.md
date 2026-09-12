@@ -1,8 +1,17 @@
 # Day Marathon — LexScan / NeoBusiness
-## 12/09/2026 ~07:10 → 17:00
+## 12/09/2026 ~07:10 → **20:00** (extensão)
 
 ### Objetivo
-Fechar gaps do overnight + profissionalizar Lex (jurídico/contábil) + hardening produto. Simulador QA após cada melhoria. Parada: **17:00**.
+Fechar gaps do overnight + profissionalizar Lex + hardening + dores reais adv/contador + UI + push GitHub.
+
+### Status (~12:25)
+- Loop ativo até **20:00**
+- API local OK · QA **25/25 score 100**
+- GitHub: https://github.com/CamposCodingHub/NeoBusinessAI (`c93b3ff`+)
+- venv removido do versionamento
+
+### Entregas-chave day (+ extensão)
+Ver ticks 1–12 + `/ajuda`, régua ética, custas, tax-calendar stub, UI polish, pain research.
 
 ### Prioridades
 1. Lex KB oficial (Planalto/RFB/CFC) + playbook + exemplos de treino
