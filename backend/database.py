@@ -1667,6 +1667,42 @@ class HearingPrepItem(Base):
         }
 
 
+class CourtProtocol(Base):
+    """Protocolo judicial / peticao protocolada (numero PJe, e-SAJ, etc.)."""
+    __tablename__ = 'court_protocols'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    protocol_number = Column(String(120), nullable=False, index=True)
+    # pje | esaj | projudi | tj | outro
+    system = Column(String(40), default='outro', nullable=False)
+    court = Column(String(255), nullable=True)
+    # pending | confirmed | returned | archived
+    status = Column(String(20), default='pending', nullable=False, index=True)
+    filed_at = Column(DateTime, nullable=True, index=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'title': self.title,
+            'protocol_number': self.protocol_number,
+            'system': self.system,
+            'court': self.court,
+            'status': self.status,
+            'filed_at': self.filed_at.isoformat() if self.filed_at else None,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================

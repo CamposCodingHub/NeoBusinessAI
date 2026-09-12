@@ -244,6 +244,7 @@ class QA:
             (["/matter-docs", "/matter-docs/"], "matter_docs"),
             (["/matter-notes", "/matter-notes/"], "matter_notes"),
             (["/followups", "/followups/"], "followups"),
+            (["/protocols", "/protocols/"], "protocols"),
             (["/finance/aging"], "aging"),
             (["/finance/expenses"], "expenses"),
             (["/finance/expenses/csv"], "expenses_csv"),

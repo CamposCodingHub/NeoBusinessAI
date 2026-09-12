@@ -97,6 +97,7 @@ from routes.contacts_routes import router as contacts_router
 from routes.matter_docs_routes import router as matter_docs_router
 from routes.matter_notes_routes import router as matter_notes_router
 from routes.followups_routes import router as followups_router
+from routes.protocols_routes import router as protocols_router
 
 # AI Imports
 from ai.lexscan_engine import lexscan_engine
@@ -240,6 +241,7 @@ app.include_router(contacts_router)
 app.include_router(matter_docs_router)
 app.include_router(matter_notes_router)
 app.include_router(followups_router)
+app.include_router(protocols_router)
 # CRITICAL-003 FIX: Global error handler to prevent stack trace leaks
 import uuid
 from starlette.exceptions import HTTPException as StarletteHTTPException

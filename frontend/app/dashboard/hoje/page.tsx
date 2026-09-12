@@ -38,6 +38,13 @@ interface FollowUpItem {
   due_at?: string | null;
 }
 
+interface ProtocolItem {
+  id: number;
+  title: string;
+  protocol_number: string;
+  system?: string | null;
+}
+
 interface TodayBoard {
   deadlines: {
     overdue: DeadlineItem[];
@@ -56,6 +63,8 @@ interface TodayBoard {
   };
   followups_due?: FollowUpItem[];
   followups_due_count?: number;
+  protocols_pending?: ProtocolItem[];
+  protocols_pending_count?: number;
   docs_pending?: { id: number; title: string }[];
   docs_pending_count?: number;
   notes_recent?: { id: number; body: string; pinned?: boolean }[];
@@ -282,6 +291,24 @@ export default function HojePage() {
                     <li key={f.id} className="text-sm text-slate-200">
                       <span className="font-medium text-white">{f.subject}</span>
                       <span className="text-slate-400"> — {fmt(f.due_at)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+
+            <Section title="Protocolos pendentes" href="/dashboard/protocolos">
+              {(board.protocols_pending?.length ?? 0) === 0 ? (
+                <p className="text-sm text-slate-400">Nenhum protocolo pendente.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {(board.protocols_pending || []).map((pr) => (
+                    <li key={pr.id} className="text-sm text-slate-200">
+                      <span className="font-medium text-white">{pr.title}</span>
+                      <span className="text-slate-400"> — {pr.protocol_number}</span>
+                      {pr.system ? (
+                        <span className="text-slate-500"> · {pr.system}</span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

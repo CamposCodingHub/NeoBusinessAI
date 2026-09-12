@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timedelta, timezone
-from database import ActivityEvent, Deadline, FollowUp, Hearing, MatterDocItem, MatterNote, OfficeTask, PowerOfAttorney, get_db_async
+from database import ActivityEvent, CourtProtocol, Deadline, FollowUp, Hearing, MatterDocItem, MatterNote, OfficeTask, PowerOfAttorney, get_db_async
 from security import get_current_user
 from services.operations_intelligence_service import operations_intelligence_service
 
@@ -119,6 +119,11 @@ OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
         "label": "Follow-ups",
         "path": "/dashboard/followups",
         "description": "Lembretes de retorno ao cliente",
+    },
+    {
+        "label": "Protocolos",
+        "path": "/dashboard/protocolos",
+        "description": "Numeros de peticao protocolada",
     },
     {
         "label": "Agenda",
@@ -323,6 +328,18 @@ async def get_operations_today(
     )
 
 
+
+    pending_protocols = (
+        db.query(CourtProtocol)
+        .filter(
+            CourtProtocol.user_id == user_id,
+            CourtProtocol.status == "pending",
+        )
+        .order_by(CourtProtocol.filed_at.desc(), CourtProtocol.id.desc())
+        .limit(40)
+        .all()
+    )
+
     open_followups = (
         db.query(FollowUp)
         .filter(
@@ -373,6 +390,8 @@ async def get_operations_today(
         "notes_recent_count": len(recent_notes),
         "followups_due": [f.to_dict() for f in open_followups],
         "followups_due_count": len(open_followups),
+        "protocols_pending": [p.to_dict() for p in pending_protocols],
+        "protocols_pending_count": len(pending_protocols),
     }
 
 
@@ -463,6 +482,16 @@ def _format_today_brief(board: Dict[str, Any]) -> str:
     else:
         for f in followups[:10]:
             lines.append(f"- {f.get('subject')} — `{f.get('due_at') or '—'}`")
+    protocols = board.get("protocols_pending") or []
+    lines.append(f"## Protocolos pendentes ({board.get('protocols_pending_count', len(protocols))})")
+    if not protocols:
+        lines.append("- Nenhum.")
+    else:
+        for pr in protocols[:10]:
+            lines.append(
+                f"- {pr.get('title')} — `{pr.get('protocol_number')}` ({pr.get('system')})"
+            )
+    lines.append("")
     lines.append("")
     lines.append("_Briefing operacional local — não é parecer jurídico._")
     return "\n".join(lines)
