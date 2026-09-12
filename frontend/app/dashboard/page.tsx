@@ -158,6 +158,7 @@ export default function DashboardPage() {
             <OpsLink href="/dashboard/approvals">Aprovações</OpsLink>
             <OpsLink href="/dashboard/monitor">Monitor</OpsLink>
             <OpsLink href="/dashboard/agenda">Agenda</OpsLink>
+            <OpsLink href="/dashboard/poa">Procurações</OpsLink>
             <OpsLink href="/dashboard/activity">Activity</OpsLink>
           </OpsGroup>
           <OpsGroup title="Financeiro">

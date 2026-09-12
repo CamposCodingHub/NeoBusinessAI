@@ -1388,6 +1388,37 @@ class FeeRetainer(Base):
 
 
 
+
+class PowerOfAttorney(Base):
+    """Procuração / mandato — controle operacional de validade (não é registro cartorial)."""
+    __tablename__ = 'powers_of_attorney'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    # active | expired | revoked
+    status = Column(String(20), default='active', nullable=False, index=True)
+    granted_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True, index=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'title': self.title,
+            'status': self.status,
+            'granted_at': self.granted_at.isoformat() if self.granted_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
 class Hearing(Base):
     """Audiencia / compromisso na agenda do advogado (stub operacional diario)."""
     __tablename__ = 'hearings'
