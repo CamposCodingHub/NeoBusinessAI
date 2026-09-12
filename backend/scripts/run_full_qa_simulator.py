@@ -135,11 +135,18 @@ class QA:
         t0 = time.perf_counter()
         for path in paths:
             used = path
-            if method.upper() == "POST":
-                last = self.post(path, payload or {}, auth=auth)
-            else:
-                last = self.get(path, auth=auth)
-            if last.status_code == want:
+            for attempt in range(3):
+                if method.upper() == "POST":
+                    last = self.post(path, payload or {}, auth=auth)
+                else:
+                    last = self.get(path, auth=auth)
+                if last.status_code == want:
+                    latency = int((time.perf_counter() - t0) * 1000)
+                    return last, used, latency
+                # Brief backoff on rate-limit so suite order doesn't flake
+                if last.status_code == 429 and attempt < 2:
+                    time.sleep(1.2 * (attempt + 1))
+                    continue
                 break
         latency = int((time.perf_counter() - t0) * 1000)
         return last, used, latency

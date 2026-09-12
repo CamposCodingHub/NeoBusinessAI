@@ -17,9 +17,13 @@ logger = logging.getLogger(__name__)
 def _should_bypass_rate_limit(args, kwargs, identifier: str) -> bool:
     """
     Evita falsos positivos em ambientes locais e de teste.
+
+    Em development/dev/test o bypass é amplo: muitos endpoints autenticados
+    não injetam Request, então o identificador vira user_id e o host local
+    não seria detectado — o simulador QA e o loop diurno quebrariam com 429.
     """
-    environment = os.getenv("ENVIRONMENT", "development").lower()
-    if environment == "test" or os.getenv("PYTEST_CURRENT_TEST"):
+    environment = (os.getenv("ENVIRONMENT") or "development").strip().lower()
+    if environment in {"test", "development", "dev"} or os.getenv("PYTEST_CURRENT_TEST"):
         return True
 
     request = kwargs.get("request")
