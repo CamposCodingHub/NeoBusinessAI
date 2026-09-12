@@ -90,6 +90,21 @@ interface TaxCalendarItem {
   disclaimer: string;
 }
 
+
+interface ProfitabilityClient {
+  client_id: number | null;
+  client_name: string;
+  invoiced: number;
+  time_value: number;
+  costs_open: number;
+  rough_margin: number;
+}
+
+interface ProfitabilityReport {
+  clients: ProfitabilityClient[];
+  note: string;
+}
+
 interface TaxCalendarResponse {
   month: string;
   items: TaxCalendarItem[];
@@ -106,6 +121,7 @@ export default function FinancePage() {
   const [collectionPlan, setCollectionPlan] = useState<CollectionPlanResponse | null>(null);
   const [costAdvances, setCostAdvances] = useState<CostAdvance[]>([]);
   const [taxCalendar, setTaxCalendar] = useState<TaxCalendarResponse | null>(null);
+  const [profitability, setProfitability] = useState<ProfitabilityReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
@@ -195,6 +211,16 @@ export default function FinancePage() {
       if (costResponse.ok) {
         const data = await costResponse.json();
         setCostAdvances(data.items || []);
+      }
+
+
+      // Client profitability stub
+      const profitResponse = await fetch(`${API_URL}/finance/profitability?limit=10`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'omit'
+      });
+      if (profitResponse.ok) {
+        setProfitability(await profitResponse.json());
       }
 
       // Tax calendar methodological stub (not RFB API)
@@ -465,6 +491,53 @@ export default function FinancePage() {
           </section>
         )}
 
+
+        {/* Client profitability stub */}
+        {profitability && (
+          <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+            <div className="mb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                Rentabilidade
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">Lucro por cliente (estimativa)</h2>
+              <p className="mt-1 text-sm text-[#94A3B8]">{profitability.note}</p>
+            </div>
+            {profitability.clients.length === 0 ? (
+              <p className="text-sm text-[#64748B]">Sem atividade faturável ainda.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[520px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-[#1E293B] text-xs uppercase tracking-wide text-[#64748B]">
+                      <th className="py-2 pr-3 font-medium">Cliente</th>
+                      <th className="py-2 pr-3 font-medium text-right">Faturado</th>
+                      <th className="py-2 pr-3 font-medium text-right">Horas</th>
+                      <th className="py-2 pr-3 font-medium text-right">Custas abertas</th>
+                      <th className="py-2 font-medium text-right">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profitability.clients.map((c) => (
+                      <tr
+                        key={c.client_id ?? `none-${c.client_name}`}
+                        className="border-b border-[#1E293B]/80 last:border-0"
+                      >
+                        <td className="py-2.5 pr-3 text-[#E8EEF4]">{c.client_name}</td>
+                        <td className="py-2.5 pr-3 text-right text-[#CBD5E1]">{formatCurrency(c.invoiced)}</td>
+                        <td className="py-2.5 pr-3 text-right text-[#94A3B8]">{formatCurrency(c.time_value)}</td>
+                        <td className="py-2.5 pr-3 text-right text-[#94A3B8]">{formatCurrency(c.costs_open)}</td>
+                        <td className={`py-2.5 text-right font-semibold ${c.rough_margin >= 0 ? 'text-[#0F766E]' : 'text-red-400'}`}>
+                          {formatCurrency(c.rough_margin)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Ethical collection plan — EOAB stub */}
         {collectionPlan && (
           <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
@@ -536,8 +609,8 @@ export default function FinancePage() {
                   {taxCalendar.disclaimer}
                 </p>
               </div>
-              <Link href="/ajuda" className="text-sm text-[#5EEAD4] hover:underline">
-                Ajuda contador →
+              <Link href="/ajuda#reforma-esocial" className="text-sm text-[#5EEAD4] hover:underline">
+                Reforma / eSocial × DCTFWeb →
               </Link>
             </div>
             <ul className="space-y-4">

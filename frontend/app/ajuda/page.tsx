@@ -85,6 +85,17 @@ const CHECKLISTS: Record<
       ],
     },
     {
+      id: 'reforma-esocial',
+      title: 'Reforma Tributária / eSocial × DCTFWeb',
+      blurb:
+        'Dor operacional frequente: cruzamento e transição IBS/CBS. Método apenas — sem alíquotas nem datas de vencimento inventadas como fato.',
+      items: [
+        'Cruzamento eSocial × EFD-Reinf × DCTFWeb: conferir consistência S-1200/S-1210 (método) — remuneração, pagamentos e débitos alinhados antes de transmitir',
+        'Reforma: manter apuração paralela quando couber; validar campos IBS-CBS em NF conforme leiaute vigente (confirmar calendário oficial vigente)',
+        'Disclaimer: LexScan auxilia a rotina; o contador CRC valida e responde pela entrega; legislação e calendários mudam',
+      ],
+    },
+    {
       id: 'honorarios-cont',
       title: 'Honorários e inadimplência',
       blurb: 'Mesma disciplina financeira, tom profissional.',
@@ -236,17 +247,24 @@ export default function AjudaPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-sm">
+            <p className="mt-4 text-sm flex flex-wrap gap-x-4 gap-y-2">
               <Link href="/dashboard/finance" className="text-[#5EEAD4] hover:underline underline-offset-4">
                 Ver também no Financeiro →
               </Link>
+              <a href="#reforma-esocial" className="text-[#5EEAD4] hover:underline underline-offset-4">
+                Checklist Reforma / eSocial × DCTFWeb →
+              </a>
             </p>
           </section>
         )}
 
         <ol className="space-y-12 border-t border-[#1E293B] pt-10">
           {lists.map((block, idx) => (
-            <li key={block.id} className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:gap-10">
+            <li
+              key={block.id}
+              id={block.id}
+              className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:gap-10 scroll-mt-24"
+            >
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0F766E]">
                   {String(idx + 1).padStart(2, '0')}

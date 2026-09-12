@@ -16,7 +16,7 @@ import random
 import secrets
 import string
 
-from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance
+from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance, TimeEntry
 from security import get_current_user
 from services.activity_feed_service import log_activity
 from services.pix_payment_service import create_pix_charge
@@ -26,6 +26,7 @@ from services.collection_plan_service import (
     build_collection_plans,
 )
 from services.tax_calendar_service import build_tax_calendar
+from services.tax_reform_checklist_service import build_tax_reform_checklist
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/finance", tags=["Financeiro"])
@@ -547,6 +548,122 @@ async def get_receivables_aging(
     }
 
 
+
+@router.get("/profitability")
+async def get_client_profitability(
+    limit: int = Query(25, ge=1, le=100, description="Top N clients by activity"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Estimativa operacional de rentabilidade por cliente (stub).
+    Soma faturas paid/pending, valor de horas billable e custas nao reembolsadas.
+    Nao e balanco contabil.
+    """
+    NOTE = "estimativa operacional — nao e balanco contábil"
+    uid = current_user.id
+    by_client: dict = {}
+
+    def _bucket(cid, name: str):
+        key = cid if cid is not None else "_none"
+        if key not in by_client:
+            by_client[key] = {
+                "client_id": cid,
+                "client_name": name,
+                "invoiced": 0.0,
+                "time_value": 0.0,
+                "costs_open": 0.0,
+            }
+        return by_client[key]
+
+    def _client_name(cid):
+        if cid is None:
+            return "Sem cliente"
+        try:
+            client = db.query(Client).filter(Client.id == cid, Client.user_id == uid).first()
+            return client.name if client else f"Cliente #{cid}"
+        except Exception:
+            return f"Cliente #{cid}"
+
+    # Invoices: paid + pending (best-effort)
+    try:
+        inv_statuses = ("paid", "pending")
+        invoices = (
+            db.query(Invoice)
+            .filter(Invoice.user_id == uid, Invoice.status.in_(inv_statuses))
+            .all()
+        )
+        for inv in invoices:
+            cid = getattr(inv, "client_id", None)
+            row = _bucket(cid, _client_name(cid))
+            cents = getattr(inv, "total_cents", None)
+            if cents is not None:
+                row["invoiced"] += (cents or 0) / 100.0
+            else:
+                amt = getattr(inv, "total", None) or getattr(inv, "amount", 0) or 0
+                row["invoiced"] += float(amt)
+    except Exception as exc:
+        logger.warning("profitability invoices soft-fail: %s", exc)
+
+    # Time entries billable value (best-effort)
+    try:
+        entries = db.query(TimeEntry).filter(TimeEntry.user_id == uid).all()
+        for entry in entries:
+            billable = getattr(entry, "billable", True)
+            if billable is False:
+                continue
+            rate = getattr(entry, "hourly_rate", None)
+            minutes = getattr(entry, "minutes", None)
+            if rate is None or not minutes:
+                continue
+            cid = getattr(entry, "client_id", None)
+            row = _bucket(cid, _client_name(cid))
+            row["time_value"] += (float(minutes) / 60.0) * float(rate)
+    except Exception as exc:
+        logger.warning("profitability time soft-fail: %s", exc)
+
+    # Unreimbursed cost advances (best-effort)
+    try:
+        advances = (
+            db.query(CostAdvance)
+            .filter(CostAdvance.user_id == uid, CostAdvance.status == "advanced")
+            .all()
+        )
+        for adv in advances:
+            cid = getattr(adv, "client_id", None)
+            row = _bucket(cid, _client_name(cid))
+            row["costs_open"] += float(getattr(adv, "amount", 0) or 0)
+    except Exception as exc:
+        logger.warning("profitability costs soft-fail: %s", exc)
+
+    clients = []
+    for row in by_client.values():
+        invoiced = round(row["invoiced"], 2)
+        time_value = round(row["time_value"], 2)
+        costs_open = round(row["costs_open"], 2)
+        # Prefer billed cash; fall back to WIP time if nothing invoiced yet
+        revenue = invoiced if invoiced > 0 else time_value
+        clients.append({
+            "client_id": row["client_id"],
+            "client_name": row["client_name"],
+            "invoiced": invoiced,
+            "time_value": time_value,
+            "costs_open": costs_open,
+            "rough_margin": round(revenue - costs_open, 2),
+        })
+
+    clients.sort(
+        key=lambda c: (c["invoiced"] + c["time_value"] + c["costs_open"]),
+        reverse=True,
+    )
+    clients = clients[:limit]
+
+    return {
+        "clients": clients,
+        "note": NOTE,
+    }
+
+
 @router.get("/overdue/list")
 async def get_overdue_invoices(
     db: Session = Depends(get_db),
@@ -980,3 +1097,17 @@ async def get_tax_calendar(
         return build_tax_calendar(month)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@router.get("/tax-reform-checklist")
+async def get_tax_reform_checklist(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Static Reforma Tributaria / eSocial-DCTFWeb methodological checklist.
+
+    Same content as Contador help on /ajuda. NOT legal advice; no invented
+    rates or exact statutory due dates as facts.
+    """
+    _ = current_user  # JWT required; payload is static methodological help
+    return build_tax_reform_checklist()
+
