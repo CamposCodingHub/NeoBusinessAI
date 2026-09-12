@@ -93,6 +93,7 @@ from routes.notification_routes import router as notification_router
 from routes.agenda_routes import router as agenda_router
 from routes.poa_routes import router as poa_router
 from routes.tasks_routes import router as tasks_router
+from routes.contacts_routes import router as contacts_router
 
 # AI Imports
 from ai.lexscan_engine import lexscan_engine
@@ -232,6 +233,7 @@ app.include_router(notification_router)
 app.include_router(agenda_router)
 app.include_router(poa_router)
 app.include_router(tasks_router)
+app.include_router(contacts_router)
 # CRITICAL-003 FIX: Global error handler to prevent stack trace leaks
 import uuid
 from starlette.exceptions import HTTPException as StarletteHTTPException

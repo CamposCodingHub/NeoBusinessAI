@@ -1486,6 +1486,37 @@ class OfficeTask(Base):
         }
 
 
+
+
+class ClientContactLog(Base):
+    """Registro de atendimento / contato com cliente (CRM leve — não é gravação)."""
+    __tablename__ = 'client_contact_logs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    # phone | whatsapp | email | in_person | other
+    channel = Column(String(30), default='phone', nullable=False, index=True)
+    subject = Column(String(255), nullable=False)
+    summary = Column(Text, nullable=True)
+    contacted_at = Column(DateTime, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'channel': self.channel,
+            'subject': self.subject,
+            'summary': self.summary,
+            'contacted_at': self.contacted_at.isoformat() if self.contacted_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ============================================
 # FUNÇÕES UTILITÁRIAS
 # ============================================

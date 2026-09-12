@@ -101,6 +101,11 @@ OPERATIONS_SHORTCUTS: List[Dict[str, str]] = [
         "description": "Checklist operacional do escritorio",
     },
     {
+        "label": "Atendimentos",
+        "path": "/dashboard/atendimentos",
+        "description": "Historico de contatos com clientes",
+    },
+    {
         "label": "Agenda",
         "path": "/dashboard/agenda",
         "description": "Audiencias e compromissos",

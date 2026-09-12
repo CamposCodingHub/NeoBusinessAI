@@ -239,6 +239,7 @@ class QA:
             (["/agenda/hearings", "/agenda/hearings/"], "agenda"),
             (["/poa", "/poa/"], "poa"),
             (["/tasks", "/tasks/"], "tasks"),
+            (["/contacts/logs"], "contacts"),
             (["/finance/aging"], "aging"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),
         ]
