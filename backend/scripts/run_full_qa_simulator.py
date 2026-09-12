@@ -238,6 +238,7 @@ class QA:
             (["/esign/envelopes", "/esign/envelopes/"], "esign"),
             (["/monitor/processes", "/monitor/processes/"], "monitor"),
             (["/agenda/hearings", "/agenda/hearings/"], "agenda"),
+            (["/agenda/calendar.ics"], "agenda_ics"),
             (["/poa", "/poa/"], "poa"),
             (["/tasks", "/tasks/"], "tasks"),
             (["/contacts/logs"], "contacts"),

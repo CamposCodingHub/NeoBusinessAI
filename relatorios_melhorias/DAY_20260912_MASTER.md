@@ -1,6 +1,14 @@
 # Day Marathon — LexScan / NeoBusiness
 ## 12/09/2026 ~07:10 → **20:00** (extensão)
 
+### Status (~19:45)
+- Loop até **20:00** · encerramento em `DAY_20260912_FINAL.md`
+- QA full ~**37/37** · GitHub `main` atualizado ao longo do dia
+- Extensão: Hoje, agenda/prep/testemunhas/ICS, protocolos, follow-ups, despesas CSV, POA, tarefas
+
+# Day Marathon — LexScan / NeoBusiness
+## 12/09/2026 ~07:10 → **20:00** (extensão)
+
 ### Objetivo
 Fechar gaps do overnight + profissionalizar Lex + hardening + dores reais adv/contador + UI + push GitHub.
 

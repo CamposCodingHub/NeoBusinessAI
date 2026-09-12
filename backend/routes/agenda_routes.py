@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -366,3 +367,74 @@ async def patch_witness_status(
     db.commit()
     db.refresh(row)
     return {"success": True, "witness": row.to_dict()}
+
+
+def _ics_escape(value: str) -> str:
+    return (
+        (value or "")
+        .replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\n", "\\n")
+    )
+
+
+def _to_ics_utc(dt: datetime) -> str:
+    from datetime import timezone as _tz
+    if dt.tzinfo is None:
+        return dt.strftime("%Y%m%dT%H%M%SZ")
+    return dt.astimezone(_tz.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+@router.get("/calendar.ics")
+@rate_limit(requests_per_minute=30)
+async def export_hearings_ics(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Exporta audiencias scheduled em iCalendar (JWT) — sem sync Google/Outlook."""
+    user_id = _uid(current_user)
+    rows = (
+        db.query(Hearing)
+        .filter(Hearing.user_id == user_id, Hearing.status == "scheduled")
+        .order_by(Hearing.hearing_at.asc())
+        .limit(200)
+        .all()
+    )
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//LexScan//Agenda//PT",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+    ]
+    for h in rows:
+        uid = f"hearing-{h.id}@lexscan.local"
+        stamp = _to_ics_utc(datetime.utcnow())
+        start = _to_ics_utc(h.hearing_at)
+        summary = _ics_escape(h.title or f"Audiencia {h.id}")
+        loc = _ics_escape(h.location or "")
+        desc = _ics_escape(h.notes or "")
+        lines.extend(
+            [
+                "BEGIN:VEVENT",
+                f"UID:{uid}",
+                f"DTSTAMP:{stamp}",
+                f"DTSTART:{start}",
+                f"SUMMARY:{summary}",
+            ]
+        )
+        if loc:
+            lines.append(f"LOCATION:{loc}")
+        if desc:
+            lines.append(f"DESCRIPTION:{desc}")
+        lines.append("END:VEVENT")
+    lines.append("END:VCALENDAR")
+    body = "\r\n".join(lines) + "\r\n"
+    return Response(
+        content=body,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="lexscan-agenda.ics"',
+        },
+    )

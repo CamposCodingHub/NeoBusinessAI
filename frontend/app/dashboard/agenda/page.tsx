@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, API_BASE_URL } from '@/lib/api';
 
 interface Hearing {
   id: number;
@@ -252,6 +252,29 @@ export default function AgendaPage() {
     );
   }
 
+
+  const downloadIcs = async () => {
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/agenda/calendar.ics`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`ICS falhou (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lexscan-agenda.ics';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao exportar ICS');
+    }
+  };
+
+
   return (
     <div className="trust-shell px-4 py-8 sm:px-8">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -273,7 +296,16 @@ export default function AgendaPage() {
         </div>
       ) : null}
 
-      <form onSubmit={handleCreate} className="trust-card mb-8 grid gap-4 p-5 md:grid-cols-2">
+            <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onClick={() => void downloadIcs()}
+          className="rounded-lg border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-xs text-teal-200 hover:bg-teal-500/20"
+        >
+          Exportar ICS
+        </button>
+      </div>
+<form onSubmit={handleCreate} className="trust-card mb-8 grid gap-4 p-5 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-white/50">
             Título

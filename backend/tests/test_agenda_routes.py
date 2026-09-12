@@ -284,3 +284,23 @@ def test_hearing_witnesses_crud_and_idor(auth_headers, stranger_headers):
     assert done.status_code == 200
     assert done.json()["witness"]["status"] == "confirmed"
     assert HearingWitness is not None
+
+
+
+def test_calendar_ics_export(auth_headers):
+    client.post(
+        "/agenda/hearings",
+        json={
+            "title": "Audiencia ICS",
+            "hearing_at": datetime(2026, 12, 10, 15, 0, tzinfo=timezone.utc).isoformat(),
+            "location": "Forum Central",
+        },
+        headers=auth_headers,
+    )
+    r = client.get("/agenda/calendar.ics", headers=auth_headers)
+    assert r.status_code == 200, r.text
+    assert "text/calendar" in r.headers.get("content-type", "")
+    body = r.text
+    assert "BEGIN:VCALENDAR" in body
+    assert "Audiencia ICS" in body
+    assert "Forum Central" in body
