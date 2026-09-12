@@ -83,6 +83,17 @@ interface CostAdvance {
   created_at?: string | null;
 }
 
+interface ExpenseClaim {
+  id: number;
+  description: string;
+  amount: number;
+  category: 'travel' | 'courier' | 'copies' | 'other';
+  status: 'pending' | 'reimbursed' | 'denied' | 'written_off';
+  client_id?: number | null;
+  matter_id?: number | null;
+  created_at?: string | null;
+}
+
 interface FeeRetainer {
   id: number;
   client_id: number;
@@ -132,6 +143,8 @@ export default function FinancePage() {
   const [aging, setAging] = useState<AgingReport | null>(null);
   const [collectionPlan, setCollectionPlan] = useState<CollectionPlanResponse | null>(null);
   const [costAdvances, setCostAdvances] = useState<CostAdvance[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseClaim[]>([]);
+  const [expensePendingTotal, setExpensePendingTotal] = useState(0);
   const [retainers, setRetainers] = useState<FeeRetainer[]>([]);
   const [taxCalendar, setTaxCalendar] = useState<TaxCalendarResponse | null>(null);
   const [profitability, setProfitability] = useState<ProfitabilityReport | null>(null);
@@ -139,6 +152,11 @@ export default function FinancePage() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
   const [costForm, setCostForm] = useState({ description: '', amount: '', client_id: '', matter_id: '' });
+  const [expenseForm, setExpenseForm] = useState({
+    description: '',
+    amount: '',
+    category: 'travel',
+  });
   const [retainerForm, setRetainerForm] = useState({ client_id: '', amount: '', matter_id: '', notes: '' });
   const [applyAmounts, setApplyAmounts] = useState<Record<number, string>>({});
 
@@ -228,6 +246,17 @@ export default function FinancePage() {
         setCostAdvances(data.items || []);
       }
 
+      // Despesas reembolsáveis (deslocamento / correio / cópias)
+      const expenseResponse = await fetch(`${API_URL}/finance/expenses`, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'omit',
+      });
+      if (expenseResponse.ok) {
+        const data = await expenseResponse.json();
+        setExpenses(data.items || []);
+        setExpensePendingTotal(Number(data.pending_total || 0));
+      }
+
       // Honorários antecipados / retainers
       const retainerResponse = await fetch(`${API_URL}/finance/retainers`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -309,6 +338,52 @@ export default function FinancePage() {
       if (response.ok) fetchData();
     } catch (error) {
       console.error('Erro ao atualizar custas:', error);
+    }
+  };
+
+  const handleCreateExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token || !expenseForm.description || !expenseForm.amount) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/expenses`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({
+          description: expenseForm.description,
+          amount: parseFloat(expenseForm.amount),
+          category: expenseForm.category,
+        }),
+      });
+      if (response.ok) {
+        setExpenseForm({ description: '', amount: '', category: 'travel' });
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Erro ao registrar despesa:', error);
+    }
+  };
+
+  const handleExpenseStatus = async (id: number, status: ExpenseClaim['status']) => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/finance/expenses/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit',
+        body: JSON.stringify({ status }),
+      });
+      if (response.ok) fetchData();
+    } catch (error) {
+      console.error('Erro ao atualizar despesa:', error);
     }
   };
 
@@ -880,6 +955,98 @@ export default function FinancePage() {
                           className="px-2 py-1 text-xs text-[#94A3B8] hover:bg-white/5 rounded"
                         >
                           Baixar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Despesas reembolsáveis */}
+        <section className="mb-8 border-t border-[#0F766E]/30 pt-6">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5EEAD4]">
+                Despesas
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[#E8EEF4]">
+                Reembolsáveis (deslocamento / correio / cópias)
+              </h2>
+              <p className="mt-1 text-sm text-[#94A3B8]">
+                Pendente: {formatCurrency(expensePendingTotal)} — distinto de custas judiciais
+              </p>
+            </div>
+          </div>
+          <form onSubmit={handleCreateExpense} className="mb-4 grid gap-3 sm:grid-cols-5">
+            <input
+              type="text"
+              value={expenseForm.description}
+              onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+              placeholder="Descrição (ex.: Uber fórum)"
+              className="sm:col-span-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <select
+              value={expenseForm.category}
+              onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+            >
+              <option value="travel">Deslocamento</option>
+              <option value="courier">Correio</option>
+              <option value="copies">Cópias</option>
+              <option value="other">Outro</option>
+            </select>
+            <input
+              type="number"
+              step="0.01"
+              value={expenseForm.amount}
+              onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+              placeholder="Valor R$"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#0F766E]/50"
+              required
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#0F766E]/30 hover:bg-[#0F766E]/45 text-[#5EEAD4] rounded-lg text-sm font-medium transition"
+            >
+              Registrar
+            </button>
+          </form>
+          {expenses.length === 0 ? (
+            <p className="text-sm text-[#64748B]">Nenhuma despesa registrada.</p>
+          ) : (
+            <div className="space-y-2">
+              {expenses.slice(0, 10).map((row) => (
+                <div
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-[#1E293B]"
+                >
+                  <div>
+                    <p className="text-sm text-[#E8EEF4]">{row.description}</p>
+                    <p className="text-xs text-[#64748B]">
+                      {row.category} · {row.status}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#CBD5E1]">{formatCurrency(row.amount)}</span>
+                    {row.status === 'pending' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleExpenseStatus(row.id, 'reimbursed')}
+                          className="px-2 py-1 text-xs text-[#5EEAD4] hover:bg-[#0F766E]/20 rounded"
+                        >
+                          Reembolsado
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleExpenseStatus(row.id, 'denied')}
+                          className="px-2 py-1 text-xs text-[#94A3B8] hover:bg-white/5 rounded"
+                        >
+                          Negar
                         </button>
                       </>
                     )}

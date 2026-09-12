@@ -16,7 +16,7 @@ import random
 import secrets
 import string
 
-from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance, FeeRetainer, TimeEntry
+from database import get_db, Invoice, Client, User, NfseDraft, CostAdvance, ExpenseClaim, FeeRetainer, TimeEntry
 from security import get_current_user
 from services.activity_feed_service import log_activity
 from services.pix_payment_service import create_pix_charge
@@ -1214,6 +1214,121 @@ async def get_tax_calendar(
         return build_tax_calendar(month)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+
+VALID_EXPENSE_STATUSES = frozenset({"pending", "reimbursed", "denied", "written_off"})
+VALID_EXPENSE_CATEGORIES = frozenset({"travel", "courier", "copies", "other"})
+
+
+@router.get("/expenses")
+async def list_expense_claims(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    category: Optional[str] = Query(None),
+    client_id: Optional[int] = Query(None),
+    matter_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista despesas reembolsáveis (deslocamento/correio/cópias) do usuário."""
+    q = db.query(ExpenseClaim).filter(ExpenseClaim.user_id == current_user.id)
+    if status_filter:
+        q = q.filter(ExpenseClaim.status == status_filter)
+    if category:
+        q = q.filter(ExpenseClaim.category == category)
+    if client_id is not None:
+        q = q.filter(ExpenseClaim.client_id == client_id)
+    if matter_id is not None:
+        q = q.filter(ExpenseClaim.matter_id == matter_id)
+    rows = q.order_by(ExpenseClaim.created_at.desc()).all()
+    pending_total = sum(
+        float(r.amount or 0) for r in rows if r.status == "pending"
+    )
+    return {
+        "items": [r.to_dict() for r in rows],
+        "count": len(rows),
+        "pending_total": round(pending_total, 2),
+    }
+
+
+@router.post("/expenses", status_code=status.HTTP_201_CREATED)
+async def create_expense_claim(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Registra despesa reembolsável (não confundir com custas judiciais)."""
+    description = (payload.get("description") or "").strip()
+    if not description:
+        raise HTTPException(status_code=400, detail="description é obrigatório")
+    try:
+        amount = float(payload.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount inválido")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount deve ser > 0")
+
+    cat = (payload.get("category") or "other").strip().lower()
+    if cat not in VALID_EXPENSE_CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"category inválida; use: {', '.join(sorted(VALID_EXPENSE_CATEGORIES))}",
+        )
+    st = (payload.get("status") or "pending").strip().lower()
+    if st not in VALID_EXPENSE_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"status inválido; use: {', '.join(sorted(VALID_EXPENSE_STATUSES))}",
+        )
+
+    incurred_raw = payload.get("incurred_at")
+    incurred_at = None
+    if incurred_raw:
+        from datetime import datetime
+        try:
+            raw = str(incurred_raw).strip().replace("Z", "+00:00")
+            incurred_at = datetime.fromisoformat(raw)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="incurred_at inválido") from exc
+
+    row = ExpenseClaim(
+        user_id=current_user.id,
+        client_id=payload.get("client_id"),
+        matter_id=payload.get("matter_id"),
+        description=description[:500],
+        category=cat,
+        amount=amount,
+        status=st,
+        incurred_at=incurred_at,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
+
+
+@router.patch("/expenses/{expense_id}/status")
+async def patch_expense_status(
+    expense_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    row = (
+        db.query(ExpenseClaim)
+        .filter(ExpenseClaim.id == expense_id, ExpenseClaim.user_id == current_user.id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
+    st = (payload.get("status") or "").strip().lower()
+    if st not in VALID_EXPENSE_STATUSES:
+        raise HTTPException(status_code=400, detail="status inválido")
+    row.status = st
+    db.commit()
+    db.refresh(row)
+    return row.to_dict()
+
 
 @router.get("/tax-reform-checklist")
 async def get_tax_reform_checklist(

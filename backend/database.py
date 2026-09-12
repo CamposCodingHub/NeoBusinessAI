@@ -1335,6 +1335,40 @@ class CostAdvance(Base):
 
 
 
+
+
+class ExpenseClaim(Base):
+    """Despesa reembolsável do escritório (deslocamento, correio, cópias — não é custas judiciais)."""
+    __tablename__ = 'expense_claims'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True, index=True)
+    matter_id = Column(Integer, ForeignKey('matters.id'), nullable=True, index=True)
+    description = Column(String(500), nullable=False)
+    # travel | courier | copies | other
+    category = Column(String(30), default='other', nullable=False, index=True)
+    amount = Column(Float, nullable=False)
+    # pending | reimbursed | denied | written_off
+    status = Column(String(30), default='pending', nullable=False, index=True)
+    incurred_at = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'client_id': self.client_id,
+            'matter_id': self.matter_id,
+            'description': self.description,
+            'category': self.category,
+            'amount': float(self.amount) if self.amount is not None else 0.0,
+            'status': self.status,
+            'incurred_at': self.incurred_at.isoformat() if self.incurred_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class FeeRetainer(Base):
     """Honorários antecipados / retainer (controle operacional de saldo)."""
     __tablename__ = 'fee_retainers'

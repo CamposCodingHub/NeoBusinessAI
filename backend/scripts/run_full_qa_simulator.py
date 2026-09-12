@@ -241,6 +241,7 @@ class QA:
             (["/tasks", "/tasks/"], "tasks"),
             (["/contacts/logs"], "contacts"),
             (["/finance/aging"], "aging"),
+            (["/finance/expenses"], "expenses"),
             (["/billing/nfse", "/billing/nfse/"], "nfse"),
         ]
         for paths, name in endpoints:
