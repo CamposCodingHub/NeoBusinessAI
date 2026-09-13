@@ -9,6 +9,10 @@ import unicodedata
 from typing import Any, Dict, Optional
 
 from ai.knowledge_packs import load_professional_playbook
+from ai.professional_domains import (
+    build_domain_system_addenda,
+    detect_professional_domains,
+)
 from config import settings
 from services.official_legal_sources_service import official_legal_sources
 from services.official_realtime_research_service import (
@@ -284,6 +288,11 @@ class LegalAIOrchestrator:
         realtime_results = list(realtime_research.get("results") or [])
         realtime_context = self._build_realtime_context(realtime_results)
 
+        domain_hits = detect_professional_domains(
+            f"{user_message}\n{document_context or ''}"
+        )
+        domain_addenda = build_domain_system_addenda(domain_hits)
+
         system_context = ""
         if legal_query:
             system_context = f"""
@@ -306,6 +315,10 @@ REGRAS DE CONFIABILIDADE:
 - Indique fatos faltantes que podem mudar a conclusao.
 - Em materia contabil ou fiscal, nao invente aliquota, prazo, leiaute ou obrigacao.
 - Informe que a resposta auxilia o trabalho profissional e requer revisao do advogado ou contador responsavel.
+- Tom comercial: objetivo, tecnico e confiante; sem emoji, sem coach de SaaS, sem frases vazias.
+
+ADDENDA DE DOMINIO (interno):
+{domain_addenda or 'Nenhuma addenda especifica nesta consulta.'}
 
 PLAYBOOK PROFISSIONAL (interno):
 {PROFESSIONAL_PLAYBOOK_SNIPPET or 'Playbook indisponivel nesta execucao.'}
@@ -675,6 +688,15 @@ PESQUISA OFICIAL CONSULTADA AGORA:
                 else "assistencia_geral"
             ),
             "contingency_mode": contingency_mode,
+            "professional_domains": list(domain_hits),
+            "degraded_reason": (
+                "local_model_unavailable" if contingency_mode else None
+            ),
+            "ux_banner": (
+                "Briefing fundamentado (IA local offline)"
+                if contingency_mode
+                else None
+            ),
         }
         if local_search_ran:
             result["legal_metadata"]["local_knowledge_hits"] = len(
@@ -940,6 +962,7 @@ PESQUISA OFICIAL CONSULTADA AGORA:
         recent_history: list[str],
         document_context: str,
     ) -> str:
+        """Memo profissional quando o modelo generativo esta indisponivel."""
         sources = retrieval.get("sources", [])
         source_sections = []
         for index, source in enumerate(sources[:4], start=1):
@@ -948,28 +971,37 @@ PESQUISA OFICIAL CONSULTADA AGORA:
                 " ",
                 str(source.get("excerpt") or ""),
             ).strip()
+            title = str(source.get("title") or source.get("code") or f"Fonte {index}")
             if excerpt:
                 source_sections.append(
-                    f"### Evidencia oficial {index} [Fonte {index}]\n\n"
+                    f"### {index}. {title} [Fonte {index}]\n\n"
                     f"{excerpt[:1600]}"
                 )
             else:
                 source_sections.append(
-                    f"### Referencia oficial {index} [Fonte {index}]\n\n"
-                    "O texto nao foi recuperado nesta execucao. A verificacao "
-                    "deve ser feita diretamente no link oficial."
+                    f"### {index}. {title} [Fonte {index}]\n\n"
+                    "Trecho nao recuperado nesta execucao — conferir o link oficial."
                 )
 
         guardrails = retrieval.get("guardrails", [])
-        guardrail_lines = (
-            "\n".join(f"- {item}" for item in guardrails)
-            if guardrails
-            else (
+        if guardrails:
+            executive = (
+                "Com base nas regras curadas e fontes oficiais recuperadas, "
+                "a orientacao segura e aplicar os controles abaixo sem extrapolar "
+                "para conclusao individualizada do caso."
+            )
+            guardrail_lines = "\n".join(f"- {item}" for item in guardrails)
+        else:
+            executive = (
+                "Nao ha regra curada especifica para esta pergunta nesta execucao. "
+                "Abaixo segue um memo operacional com fontes oficiais recuperadas "
+                "e checklist de verificacao — sem presumir o merito do caso."
+            )
+            guardrail_lines = (
                 "- Nao transformar hipotese em fato.\n"
                 "- Nao inventar prazo, aliquota, artigo, obrigacao ou precedente.\n"
-                "- Conferir o texto integral e a vigencia na fonte oficial."
+                "- Conferir texto integral e vigencia na fonte oficial."
             )
-        )
 
         recent_context = (
             [recent_history[0], *recent_history[-5:]]
@@ -981,7 +1013,7 @@ PESQUISA OFICIAL CONSULTADA AGORA:
         )
         if document_context:
             context_lines += (
-                "\n- Contexto documental conectado: "
+                "\n- Documento conectado: "
                 + re.sub(r"\s+", " ", document_context[:1200]).strip()
             )
 
@@ -997,63 +1029,70 @@ PESQUISA OFICIAL CONSULTADA AGORA:
                 "| Conferir cadastro, eventos e documentos | C | C | R/A | I |\n"
                 "| Aprovar alternativa e risco residual | C | C | C | R/A |\n"
                 "| Executar dupla verificacao final | A | A | R | I |\n\n"
-                "Legenda: R responsavel pela execucao; A aprovador; C consultado; "
-                "I informado."
+                "Legenda: R responsavel; A aprovador; C consultado; I informado."
             )
         elif professional_domain == "contabil_fiscal":
             checklist = (
-                "- Confirmar CNPJ/CPF, periodo de apuracao, regime tributario e "
-                "estabelecimento afetado.\n"
-                "- Conferir recibos, eventos transmitidos, totalizadores, guias, "
-                "livros e conciliacoes antes de retificar.\n"
-                "- Comparar origem contabil, folha, documento fiscal e declaracao "
-                "para localizar a primeira divergencia.\n"
-                "- Registrar evidencia, responsavel, data, versao do leiaute e "
-                "efeito financeiro de cada ajuste.\n"
-                "- Submeter enquadramento, prazo e transmissao ao contador responsavel."
+                "- Confirmar CNPJ/CPF, periodo, regime e estabelecimento.\n"
+                "- Conferir recibos, eventos, totalizadores e conciliacoes.\n"
+                "- Isolar a primeira divergencia entre origem e declaracao.\n"
+                "- Registrar evidencia, responsavel e efeito financeiro.\n"
+                "- Submeter ao contador responsavel antes de transmitir."
             )
         elif professional_domain == "juridico_contabil":
             checklist = (
-                "- Advogado: delimitar fundamento, risco, prova e decisao juridica.\n"
-                "- Contador: validar reflexos contabeis, fiscais, previdenciarios e guias.\n"
-                "- RH/operacao: conferir cadastro, datas, eventos e documentos de suporte.\n"
-                "- Diretoria: aprovar alternativa, risco residual e alocacao de responsavel.\n"
-                "- Manter uma unica linha do tempo e dupla verificacao antes da execucao."
+                "- Advogado: fundamento, risco, prova e decisao.\n"
+                "- Contador: reflexos contabeis/fiscais e guias.\n"
+                "- RH/ops: cadastro, datas, eventos e suporte.\n"
+                "- Diretoria: alternativa e risco residual.\n"
+                "- Dupla verificacao antes da execucao."
             )
         else:
             checklist = (
-                "- Delimitar fatos incontroversos, fatos alegados e fatos ainda sem prova.\n"
-                "- Confirmar competencia, procedimento, datas de ciencia e forma de contagem.\n"
-                "- Separar texto normativo, interpretacao e estrategia do caso concreto.\n"
-                "- Pesquisar jurisprudencia somente em resultado oficial recuperado.\n"
-                "- Submeter tese, prazo e medida ao advogado responsavel."
+                "- Separar fatos incontroversos, alegados e sem prova.\n"
+                "- Confirmar competencia, procedimento e contagem de prazo.\n"
+                "- Distinguir norma, interpretacao e estrategia.\n"
+                "- Usar jurisprudencia so se recuperada oficialmente.\n"
+                "- Submeter tese e prazo ao advogado responsavel."
             )
 
+        domain_label = {
+            "juridico": "Juridico",
+            "contabil_fiscal": "Contabil / fiscal",
+            "juridico_contabil": "Juridico-contabil",
+        }.get(professional_domain, professional_domain)
+
+        sources_block = (
+            "\n\n".join(source_sections)
+            if source_sections
+            else "_Nenhuma fonte oficial recuperada nesta execucao._"
+        )
+
         return (
-            "## Contingencia profissional fundamentada\n\n"
-            "O modelo generativo especializado esta temporariamente indisponivel. "
-            "Para nao entregar uma resposta curta ou inventada, a Lex montou abaixo "
-            "um dossie deterministico a partir das fontes oficiais recuperadas. "
-            "Nenhuma conclusao individualizada foi presumida.\n\n"
-            f"**Area detectada:** {detected_area}\n\n"
-            f"**Dominio:** {professional_domain}\n\n"
-            f"**Pergunta atual:** {user_message}\n\n"
-            "## Contexto recente informado pelo usuario\n\n"
-            f"{context_lines or '- Nenhum contexto anterior disponivel.'}\n\n"
+            "## Memo Lex — briefing fundamentado\n\n"
+            f"**Resposta executiva:** {executive}\n\n"
+            f"**Area:** {detected_area} · **Dominio:** {domain_label}\n\n"
+            f"**Pergunta:** {user_message}\n\n"
+            "> Modo degradado controlado: o motor generativo local esta "
+            "indisponivel. A Lex entrega briefing deterministicamente ancorado "
+            "em fontes oficiais — sem inventar conclusao de merito.\n\n"
             "## Controles factuais\n\n"
             f"{guardrail_lines}\n\n"
-            + "\n\n".join(source_sections)
-            + "\n\n## Checklist de verificacao e execucao\n\n"
+            "## Evidencias oficiais\n\n"
+            f"{sources_block}\n\n"
+            "## Contexto informado\n\n"
+            f"{context_lines or '- Sem historico adicional.'}\n\n"
+            "## Checklist de execucao\n\n"
             f"{checklist}\n\n"
-            "## Informacoes que podem mudar a orientacao\n\n"
-            "- Datas exatas, recibos, documentos integrais e versoes transmitidas.\n"
-            "- Regime aplicavel, jurisdicao, periodo, partes e eventos posteriores.\n"
-            "- Existencia de decisao, regulamentacao ou orientacao oficial mais recente.\n"
-            "- Divergencias entre o relato, o sistema oficial e a documentacao suporte.\n\n"
-            "## Proximo passo seguro\n\n"
-            "Use os trechos e links oficiais abaixo para validar cada premissa. "
-            "Depois, o advogado ou contador responsavel deve registrar a conclusao, "
-            "o fundamento, a evidencia usada e o responsavel pela execucao."
+            "## Fatos que mudam a orientacao\n\n"
+            "- Datas, recibos, documentos integrais e versoes oficiais.\n"
+            "- Regime, jurisdicao, periodo, partes e eventos posteriores.\n"
+            "- Norma ou orientacao oficial mais recente.\n\n"
+            "## Proximo passo comercial\n\n"
+            "1. Validar os trechos e links oficiais abaixo.\n"
+            "2. Registrar conclusao, fundamento e responsavel no caso.\n"
+            "3. Quando a IA local estiver ativa, reenviar a pergunta no modo "
+            "**Analise** ou **Pesquisa** para aprofundar com revisao humana."
         )
 
     @staticmethod

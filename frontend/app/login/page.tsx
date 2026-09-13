@@ -215,6 +215,13 @@ export default function LoginPage() {
                 Criar conta
               </Link>
             </p>
+            {process.env.NODE_ENV === 'development' ? (
+              <p className="mt-4 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-center text-[11px] text-white/45">
+                Demo local: <span className="text-white/70">admin@neobusiness.ai</span>
+                {' / '}
+                <span className="text-white/70">Admin@123456!</span>
+              </p>
+            ) : null}
           </div>
         </div>
 

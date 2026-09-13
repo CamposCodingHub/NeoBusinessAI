@@ -43,9 +43,10 @@ class Settings(BaseSettings):
     )
     LOCAL_AI_API_KEY: str = Field("ollama")
     LOCAL_AI_FAST_MODEL: str = Field("qwen2.5-coder:1.5b")
-    LOCAL_AI_QUICK_MODEL: str = Field("lex-juridica-instant:1.5b")
-    LOCAL_AI_BALANCED_MODEL: str = Field("lex-juridica-rapida:3b")
-    LOCAL_AI_DEEP_MODEL: str = Field("lex-juridica:14b")
+    # Prefer models instalados no host; Modelfiles Lex custom podem ser recriados depois.
+    LOCAL_AI_QUICK_MODEL: str = Field("llama3.1:8b")
+    LOCAL_AI_BALANCED_MODEL: str = Field("llama3.1:8b")
+    LOCAL_AI_DEEP_MODEL: str = Field("llama3.1:8b")
     LOCAL_AI_EMBEDDING_MODEL: str = Field("nomic-embed-text")
     LOCAL_AI_TIMEOUT_SECONDS: int = Field(1200, ge=10, le=3600)
     LOCAL_AI_MAX_RETRIES: int = Field(0, ge=0, le=5)

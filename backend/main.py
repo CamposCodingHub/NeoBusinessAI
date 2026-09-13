@@ -1725,6 +1725,12 @@ async def premium_chat_endpoint(
                     'contingency_mode',
                     False,
                 ),
+                'degraded_reason': legal_metadata.get('degraded_reason'),
+                'ux_banner': legal_metadata.get('ux_banner'),
+                'professional_domains': legal_metadata.get(
+                    'professional_domains',
+                    [],
+                ),
                 'answer_scope': legal_metadata.get('answer_scope', 'assistencia_geral'),
                 'model': legal_metadata.get(
                     'model',
