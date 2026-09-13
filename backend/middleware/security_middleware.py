@@ -48,10 +48,12 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"CORS blocked: {origin}")
                 raise HTTPException(status_code=403, detail="Origem não permitida")
             
-            # 3. Verificar Content-Type para POST/PUT/PATCH
+            # 3. Verificar Content-Type para POST/PUT/PATCH (exceto body vazio)
             if request.method in ["POST", "PUT", "PATCH"]:
                 content_type = request.headers.get("content-type", "")
-                if not self._is_valid_content_type(content_type):
+                content_length = request.headers.get("content-length")
+                bodyless = content_length in (None, "", "0") and not content_type
+                if not bodyless and not self._is_valid_content_type(content_type):
                     logger.warning(f"Invalid Content-Type: {content_type}")
                     raise HTTPException(status_code=415, detail="Content-Type não suportado")
             

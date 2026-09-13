@@ -1,0 +1,350 @@
+{
+  "generated_at": "2026-09-12T23:26:48.961475+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "summary": {
+    "total": 40,
+    "passed": 38,
+    "failed": 2,
+    "score": 95.0
+  },
+  "ids": {
+    "client_id": 1,
+    "matter_id": 1,
+    "deadline_id": 1,
+    "hearing_id": 1
+  },
+  "results": [
+    {
+      "area": "auth",
+      "name": "login_admin",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 2338
+    },
+    {
+      "area": "health",
+      "name": "health",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 15
+    },
+    {
+      "area": "clients",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 id=1 body_keys=['message', 'client']",
+      "ms": 113
+    },
+    {
+      "area": "clients",
+      "name": "list",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 32
+    },
+    {
+      "area": "matters",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 id=1 {\"message\":\"Matter criado com sucesso\",\"matter\":{\"id\":1,\"user_id\":46,\"client_id\":1,\"title\":\"Ação E2E — Cobrança\",\"practice_area\":\"civel\",\"status\":\"open\",\"opposing_party\":null,\"court\":null,\"process_num",
+      "ms": 28
+    },
+    {
+      "area": "deadlines",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 {\"message\":\"Prazo criado com sucesso\",\"deadline\":{\"id\":1,\"document_id\":1,\"matter_id\":null,\"days\":null,\"due_date\":\"2026-09-22T23:26:45.976559\",\"urgency\":\"high\",\"context\":\"\",\"description\":\"Contestação E2E — prazo fatal\",\"i",
+      "ms": 46
+    },
+    {
+      "area": "deadlines",
+      "name": "compute_business_15d",
+      "ok": true,
+      "detail": "status=200 {\"due_date\":\"2026-10-02\",\"calendar_days_span\":20,\"note\":\"Feriados padrao incompletos: apenas datas nacionais fixas do ano corrente/seguinte. Sem feriados moveis, locais ou suspensoes judiciais. Contagem exclui sabados, domingos e feriados do conjunto",
+      "ms": 30,
+      "extra": {
+        "due_date": "2026-10-02",
+        "calendar_days_span": 20,
+        "note": "Feriados padrao incompletos: apenas datas nacionais fixas do ano corrente/seguinte. Sem feriados moveis, locais ou suspensoes judiciais. Contagem exclui sabados, domingos e feriados do conjunto; confirme no tribunal antes de protocolar.",
+        "start_date": "2026-09-12",
+        "business_days": 15
+      }
+    },
+    {
+      "area": "deadlines",
+      "name": "list",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 32
+    },
+    {
+      "area": "agenda",
+      "name": "create_hearing",
+      "ok": true,
+      "detail": "status=201",
+      "ms": 36
+    },
+    {
+      "area": "agenda",
+      "name": "prep_seed",
+      "ok": false,
+      "detail": "status=500 {\"success\":false,\"error\":\"Ocorreu um erro interno. Nossa equipe foi notificada.\",\"error_id\":\"1835a89c\",\"message\":\"Se o problema persistir, contate o suporte com",
+      "ms": 125
+    },
+    {
+      "area": "agenda",
+      "name": "add_witness",
+      "ok": true,
+      "detail": "status=201",
+      "ms": 42
+    },
+    {
+      "area": "agenda",
+      "name": "export_ics",
+      "ok": true,
+      "detail": "status=200 bytes=323",
+      "ms": 8
+    },
+    {
+      "area": "protocols",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 {\"success\":true,\"protocol\":{\"id\":1,\"user_id\":46,\"client_id\":1,\"matter_id\":1,\"title\":\"Contestação protocolada E2E\",\"protocol_number\":\"2026.E2E.0001\",\"system\":\"pj",
+      "ms": 31
+    },
+    {
+      "area": "tasks",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201",
+      "ms": 31
+    },
+    {
+      "area": "followups",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201",
+      "ms": 31
+    },
+    {
+      "area": "poa",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 {\"success\":true,\"power\":{\"id\":1,\"user_id\":46,\"client_id\":1,\"matter_id\":null,\"title\":\"Procuração ad judicia E2E\",\"status\":\"active\",\"granted_at\":null,\"expires_at\":\"2026-10-02T23:26:4",
+      "ms": 30
+    },
+    {
+      "area": "matter_notes",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 {\"success\":true,\"note\":{\"id\":1,\"user_id\":46,\"client_id\":null,\"matter_id\":1,\"body\":\"Nota E2E: cliente pediu urgencia no prazo.\",\"pinned\":true,\"created_at\":\"2026-",
+      "ms": 29
+    },
+    {
+      "area": "matter_docs",
+      "name": "create",
+      "ok": true,
+      "detail": "status=201 {\"success\":true,\"item\":{\"id\":1,\"user_id\":46,\"client_id\":null,\"matter_id\":1,\"title\":\"Contrato social\",\"status\":\"pending\",\"notes\":null,\"created_at\":\"2026-09-12T23",
+      "ms": 31
+    },
+    {
+      "area": "contacts",
+      "name": "create_log",
+      "ok": false,
+      "detail": "status=422 {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"subject\"],\"msg\":\"Field required\",\"input\":{\"channel\":\"phone\",\"summary\":\"Ligacao E2E — confirmou audiencia\",\"client_id\":1,\"direction\":\"out",
+      "ms": 22
+    },
+    {
+      "area": "finance",
+      "name": "create_expense",
+      "ok": true,
+      "detail": "status=201 {\"id\":1,\"user_id\":46,\"client_id\":1,\"matter_id\":null,\"description\":\"Deslocamento foro E2E\",\"category\":\"other\",\"amount\":85.5,\"status\":\"pending\",\"incurred_at\":null,\"created_at\":\"2026-09-12T23:26:46.70576",
+      "ms": 17
+    },
+    {
+      "area": "finance",
+      "name": "expenses_csv",
+      "ok": true,
+      "detail": "status=200 bytes=158",
+      "ms": 26
+    },
+    {
+      "area": "finance",
+      "name": "aging",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 7
+    },
+    {
+      "area": "ops",
+      "name": "today_board",
+      "ok": true,
+      "detail": "status=200 hearings=1 deadlines_today={'overdue': 0, 'due_today': 0, 'upcoming': 0}",
+      "ms": 29,
+      "extra": {
+        "has_e2e_hearing": true
+      }
+    },
+    {
+      "area": "ops",
+      "name": "today_brief",
+      "ok": true,
+      "detail": "status=200 md_len=748",
+      "ms": 12
+    },
+    {
+      "area": "documents",
+      "name": "upload_peticao_simples.pdf",
+      "ok": true,
+      "detail": "status=200 {\"message\":\"Documento uploadado com sucesso\",\"document_id\":2,\"filename\":\"peticao_simples.pdf\",\"status\":\"uploaded\",\"file_size\":658,\"mime_type\":\"application/pdf\",\"sha256\":\"39b777a92d222bf35f09c64b67b2007023547b7a92c0d00c70",
+      "ms": 44
+    },
+    {
+      "area": "documents",
+      "name": "upload_mozilla_pdf_reference.pdf",
+      "ok": true,
+      "detail": "status=200 {\"message\":\"Documento uploadado com sucesso\",\"document_id\":3,\"filename\":\"mozilla_pdf_reference.pdf\",\"status\":\"uploaded\",\"file_size\":1016315,\"mime_type\":\"application/pdf\",\"sha256\":\"3662ff519e485810520552bf301d8c3b2b917fd2",
+      "ms": 59
+    },
+    {
+      "area": "documents",
+      "name": "upload_planalto_lei_13709.txt",
+      "ok": true,
+      "detail": "status=200 {\"message\":\"Documento uploadado com sucesso\",\"document_id\":4,\"filename\":\"planalto_lei_13709.txt\",\"status\":\"uploaded\",\"file_size\":310252,\"mime_type\":\"text/plain\",\"sha256\":\"8b2c93c5e271adf41065bbbc011fe752976ee99a939996e27",
+      "ms": 47
+    },
+    {
+      "area": "documents",
+      "name": "list",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 31
+    },
+    {
+      "area": "modules",
+      "name": "esign",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 7
+    },
+    {
+      "area": "modules",
+      "name": "monitor",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 22
+    },
+    {
+      "area": "modules",
+      "name": "trust",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 30
+    },
+    {
+      "area": "modules",
+      "name": "orgs",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 31
+    },
+    {
+      "area": "modules",
+      "name": "time",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 32
+    },
+    {
+      "area": "modules",
+      "name": "nfse",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 30
+    },
+    {
+      "area": "modules",
+      "name": "collection_plan",
+      "ok": true,
+      "detail": "status=200",
+      "ms": 32
+    },
+    {
+      "area": "lex",
+      "name": "prazo_contestacao",
+      "ok": true,
+      "detail": "status=200 len=2790 preview=## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventad",
+      "ms": 352
+    },
+    {
+      "area": "lex",
+      "name": "lgpd",
+      "ok": true,
+      "detail": "status=200 len=3616 preview=## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventad",
+      "ms": 633
+    },
+    {
+      "area": "lex",
+      "name": "honorarios",
+      "ok": true,
+      "detail": "status=200 len=2057 preview=## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventad",
+      "ms": 441
+    },
+    {
+      "area": "lex",
+      "name": "audiencia",
+      "ok": true,
+      "detail": "status=200 len=2727 preview=## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventad",
+      "ms": 331
+    },
+    {
+      "area": "lex",
+      "name": "dias_uteis",
+      "ok": true,
+      "detail": "status=200 len=174 preview=Olha, vejo onde você quer chegar.\n\nConsiderando todos os aspectos:\n\nSobre sua questão: informação clara e aplicável.\n\nResumindo o essencial...\n\n**Síntese das no",
+      "ms": 40
+    }
+  ],
+  "lex_answers": [
+    {
+      "key": "prazo_contestacao",
+      "question": "Em processo cível no TJSP, quantos dias úteis tenho para contestar após a citação? Não invente artigo — indique a base e a ressalva.",
+      "ok": true,
+      "ms": 352,
+      "response": "## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventada, a Lex montou abaixo um dossie deterministico a partir das fontes oficiais recuperadas. Nenhuma conclusao individualizada foi presumida.\n\n**Area detectada:** constitucional\n\n**Dominio:** juridico\n\n**Pergunta atual:** Em processo cível no TJSP, quantos dias úteis tenho para contestar após a citação? Não invente artigo — indique a base e a ressalva.\n\n## Contexto recente informado pelo usuario\n\n- Em processo cível no TJSP, quantos dias úteis tenho para contestar após a citação? Não invente artigo — indique a base e a ressalva.\n\n## Controles factuais\n\n- Nao transformar hipotese em fato.\n- Nao inventar prazo, aliquota, artigo, obrigacao ou precedente.\n- Conferir o texto integral e a vigencia na fonte oficial.\n\n### Evidencia oficial 1 [Fonte 1]\n\n\n### Evidencia oficial 2 [Fonte 2]\n\n\n### Referencia oficial 3 [Fonte 3]\n\nO texto nao foi recuperado nesta execucao. A verificacao deve ser feita diretamente no link oficial.\n\n## Checklist de verificacao e execucao\n\n- Delimitar fatos incontroversos, fatos alegados e fatos ainda sem prova."
+    },
+    {
+      "key": "lgpd",
+      "question": "O que a LGPD (Lei 13.709/2018) exige antes de enviar WhatsApp de cobrança a um cliente? Resposta prática para escritório.",
+      "ok": true,
+      "ms": 633,
+      "response": "## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventada, a Lex montou abaixo um dossie deterministico a partir das fontes oficiais recuperadas. Nenhuma conclusao individualizada foi presumida.\n\n**Area detectada:** proteção_de_dados\n\n**Dominio:** juridico\n\n**Pergunta atual:** O que a LGPD (Lei 13.709/2018) exige antes de enviar WhatsApp de cobrança a um cliente? Resposta prática para escritório.\n\n## Contexto recente informado pelo usuario\n\n- O que a LGPD (Lei 13.709/2018) exige antes de enviar WhatsApp de cobrança a um cliente? Resposta prática para escritório.\n\n## Controles factuais\n\n- Nao transformar hipotese em fato.\n- Nao inventar prazo, aliquota, artigo, obrigacao ou precedente.\n- Conferir o texto integral e a vigencia na fonte oficial.\n\n### Evidencia oficial 1 [Fonte 1]\n\nL13709 Presidência da República Secretaria-Geral Subchefia para Assuntos Jurídicos LEI Nº 13.709, DE 14 DE AGOSTO DE 2018 Texto compilado Mensagem de veto Vigência Dispõe sobre a proteção de dados pessoais e altera a Lei nº 12.965, de 23 de abril de 2014 (Marco Civil da Internet). Lei Geral de Proteção de "
+    },
+    {
+      "key": "honorarios",
+      "question": "Como organizar aging de honorários atrasados sem tom agressivo, alinhado à ética da OAB?",
+      "ok": true,
+      "ms": 441,
+      "response": "## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventada, a Lex montou abaixo um dossie deterministico a partir das fontes oficiais recuperadas. Nenhuma conclusao individualizada foi presumida.\n\n**Area detectada:** advocacia\n\n**Dominio:** juridico\n\n**Pergunta atual:** Como organizar aging de honorários atrasados sem tom agressivo, alinhado à ética da OAB?\n\n## Contexto recente informado pelo usuario\n\n- Como organizar aging de honorários atrasados sem tom agressivo, alinhado à ética da OAB?\n\n## Controles factuais\n\n- Nao transformar hipotese em fato.\n- Nao inventar prazo, aliquota, artigo, obrigacao ou precedente.\n- Conferir o texto integral e a vigencia na fonte oficial.\n\n### Evidencia oficial 1 [Fonte 1]\n\n\n## Checklist de verificacao e execucao\n\n- Delimitar fatos incontroversos, fatos alegados e fatos ainda sem prova.\n- Confirmar competencia, procedimento, datas de ciencia e forma de contagem.\n- Separar texto normativo, interpretacao e estrategia do caso concreto.\n- Pesquisar jurisprudencia somente em resultado oficial recuperado.\n- Submeter tese, prazo e medida ao advogado respo"
+    },
+    {
+      "key": "audiencia",
+      "question": "Tenho audiência daqui a 3 dias. Monte um checklist operacional do que o advogado deve conferir antes de ir ao fórum.",
+      "ok": true,
+      "ms": 331,
+      "response": "## Contingencia profissional fundamentada\n\nO modelo generativo especializado esta temporariamente indisponivel. Para nao entregar uma resposta curta ou inventada, a Lex montou abaixo um dossie deterministico a partir das fontes oficiais recuperadas. Nenhuma conclusao individualizada foi presumida.\n\n**Area detectada:** constitucional\n\n**Dominio:** juridico\n\n**Pergunta atual:** Tenho audiência daqui a 3 dias. Monte um checklist operacional do que o advogado deve conferir antes de ir ao fórum.\n\n## Contexto recente informado pelo usuario\n\n- Tenho audiência daqui a 3 dias. Monte um checklist operacional do que o advogado deve conferir antes de ir ao fórum.\n\n## Controles factuais\n\n- Nao transformar hipotese em fato.\n- Nao inventar prazo, aliquota, artigo, obrigacao ou precedente.\n- Conferir o texto integral e a vigencia na fonte oficial.\n\n### Evidencia oficial 1 [Fonte 1]\n\n\n### Evidencia oficial 2 [Fonte 2]\n\n\n### Referencia oficial 3 [Fonte 3]\n\nO texto nao foi recuperado nesta execucao. A verificacao deve ser feita diretamente no link oficial.\n\n## Checklist de verificacao e execucao\n\n| Atividade | Advogado | Contador | RH | Diretoria |\n|---|---|---|---|---|\n| Definir fundamento e risco j"
+    },
+    {
+      "key": "dias_uteis",
+      "question": "Se o prazo começa em 12/09/2026 e são 15 dias úteis, explique como o LexScan calcula isso no módulo de prazos.",
+      "ok": true,
+      "ms": 40,
+      "response": "Olha, vejo onde você quer chegar.\n\nConsiderando todos os aspectos:\n\nSobre sua questão: informação clara e aplicável.\n\nResumindo o essencial...\n\n**Síntese das nossas ideias:**"
+    }
+  ],
+  "samples_used": [
+    "peticao_simples.pdf",
+    "mozilla_pdf_reference.pdf",
+    "planalto_lei_13709.txt"
+  ]
+}
